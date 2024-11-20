@@ -3,7 +3,7 @@ jQuery( function( $ ) {
     
 
 try {
-    var stripe = Stripe( eh_stripe_val.key, {apiVersion: eh_stripe_val.version} );
+    var stripe = Stripe( eh_stripe_val.key, {apiVersion: eh_stripe_val.version,stripeAccount: eh_stripe_val.wt_stripe_account_id } );
 } catch( error ) {
     console.log( error );
     return;

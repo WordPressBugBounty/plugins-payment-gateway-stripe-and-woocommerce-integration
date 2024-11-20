@@ -32,6 +32,7 @@ class Eh_Stripe_Checkout extends WC_Payment_Gateway {
 		$this->init_settings();
         
         $this->eh_stripe_option        = get_option("woocommerce_eh_stripe_pay_settings");
+        
 		$this->title                   = __($this->get_option( 'eh_stripe_checkout_title' ), 'payment-gateway-stripe-and-woocommerce-integration' );
         $this->description             = __($this->get_option( 'eh_stripe_checkout_description' ), 'payment-gateway-stripe-and-woocommerce-integration' );
         $this->method_description      = __( '<p style="max-width: 97%;"> Stripe Checkout redirects users to a secure, Stripe-hosted payment page to accept payment. You will have to specify an account name in Stripe <a href="https://dashboard.stripe.com/account" target="_blank">Dashboard</a> prior to configuring the settings. <a class="thickbox" href="'.EH_STRIPE_MAIN_URL_PATH . 'assets/img/stripe_checkout_line_items.gif?TB_iframe=true&width=100&height=100" >Preview</a></p><p><a target="_blank" href="https://www.webtoffee.com/woocommerce-stripe-payment-gateway-plugin-user-guide/#stripe_checkout"> Read documentation </a>  </p>', 'payment-gateway-stripe-and-woocommerce-integration' );
@@ -47,10 +48,12 @@ class Eh_Stripe_Checkout extends WC_Payment_Gateway {
 		add_action( 'woocommerce_update_options_payment_gateways_' . $this->id, array( $this, 'process_admin_options' ) );
         add_action('wp_enqueue_scripts', array($this, 'payment_scripts'));
 
-        add_action( 'wc_ajax_eh_spg_stripe_checkout_order', array( $this, 'eh_spg_stripe_checkout_order_callback' ) );
-        add_action( 'wc_ajax_eh_spg_stripe_cancel_order', array( $this, 'eh_spg_stripe_cancel_order' ) );
+        /*add_action( 'wc_ajax_eh_spg_stripe_checkout_order', array( $this, 'eh_spg_stripe_checkout_order_callback' ) );
+        add_action( 'wc_ajax_eh_spg_stripe_cancel_order', array( $this, 'eh_spg_stripe_cancel_order' ) );*/
         add_action( 'set_logged_in_cookie', array( $this, 'eh_set_cookie_on_current_request' ) );
- 
+        
+        add_action( 'woocommerce_api_eh_stripe_checkout', array( $this, 'eh_spg_stripe_checkout_order_callback' ) );
+
         // Set stripe API key.
         \Stripe\Stripe::setApiKey(EH_Stripe_Payment::get_stripe_api_key());
         \Stripe\Stripe::setAppInfo( 'WordPress payment-gateway-stripe-and-woocommerce-integration', EH_STRIPE_VERSION, 'https://wordpress.org/plugins/payment-gateway-stripe-and-woocommerce-integration/', 'pp_partner_KHip9dhhenLx0S' );
@@ -179,19 +182,29 @@ class Eh_Stripe_Checkout extends WC_Payment_Gateway {
      */
 	public function is_available() {
 
-        if ('yes' === $this->enabled) {
-           
-            if (isset($this->eh_stripe_option['eh_stripe_mode']) && 'test' === $this->eh_stripe_option['eh_stripe_mode']) {
-                if (!isset($this->eh_stripe_option['eh_stripe_test_publishable_key']) || !isset($this->eh_stripe_option['eh_stripe_test_secret_key']) || ! $this->eh_stripe_option['eh_stripe_test_publishable_key'] || ! $this->eh_stripe_option['eh_stripe_test_secret_key']) {
-                    return false;
-                }
-            } else {
-                if (!isset($this->eh_stripe_option['eh_stripe_live_secret_key']) || !isset($this->eh_stripe_option['eh_stripe_live_publishable_key']) || !$this->eh_stripe_option['eh_stripe_live_secret_key'] || !$this->eh_stripe_option['eh_stripe_live_publishable_key']) {
-                    return false;
-                }
-            }
+        if ('yes' === $this->enabled && !empty($this->eh_stripe_option)) { 
+            $stripe_settings = get_option("woocommerce_eh_stripe_pay_settings");            
+           $mode = isset($stripe_settings['eh_stripe_mode']) ? $stripe_settings['eh_stripe_mode'] : 'live';
 
-            return true;
+            if(!Eh_Stripe_Admin_Handler::wtst_oauth_compatible($mode)){
+                if (isset($this->eh_stripe_option['eh_stripe_mode']) && 'test' === $this->eh_stripe_option['eh_stripe_mode']) {
+                    if (!isset($this->eh_stripe_option['eh_stripe_test_publishable_key']) || !isset($this->eh_stripe_option['eh_stripe_test_secret_key']) || ! $this->eh_stripe_option['eh_stripe_test_publishable_key'] || ! $this->eh_stripe_option['eh_stripe_test_secret_key']) {
+                        return false;
+                    }
+                } else {
+                    if (!isset($this->eh_stripe_option['eh_stripe_live_secret_key']) || !isset($this->eh_stripe_option['eh_stripe_live_publishable_key']) || !$this->eh_stripe_option['eh_stripe_live_secret_key'] || !$this->eh_stripe_option['eh_stripe_live_publishable_key']) {
+                        return false;
+                    }
+                }
+
+                return true;
+                            
+            }
+            else{
+
+                $tokens = EH_Stripe_Payment::wtst_get_stripe_tokens($mode); 
+                return $enable = EH_Stripe_Payment::wtst_is_valid($tokens);
+            }
         }
         return false; 
     }
@@ -270,8 +283,8 @@ class Eh_Stripe_Checkout extends WC_Payment_Gateway {
                 'description' => wp_specialchars_decode( get_bloginfo( 'name' ), ENT_QUOTES ) . ' Order #' . $order->get_order_number(),
                 'capture_method' => $capture_method,
             ],
-            'success_url'=> wp_sanitize_redirect(home_url()).'/?wc-ajax=eh_spg_stripe_checkout_order'.'&sessionid={CHECKOUT_SESSION_ID}'.'&order_id='.$order_id.'&_wpnonce='.wp_create_nonce('eh_checkout_nonce'),
-            'cancel_url' => wp_sanitize_redirect(home_url()).'/?wc-ajax=eh_spg_stripe_cancel_order'.'&_wpnonce='.wp_create_nonce('eh_checkout_nonce').'&order_id='. base64_encode($order_id),
+            'success_url'=>  add_query_arg(array('sessionid' => '{CHECKOUT_SESSION_ID}', 'order_id'=> $order_id, '_wpnonce' => wp_create_nonce('eh_checkout_nonce')), WC()->api_request_url('Eh_Stripe_Checkout')) ,
+            'cancel_url' => add_query_arg(array('action' => 'cancel_checkout', 'order_id'=> $order_id, '_wpnonce' => wp_create_nonce('eh_checkout_nonce')), WC()->api_request_url('Eh_Stripe_Checkout')) ,
             'metadata' => ['order_id' => $order_id],
             'expires_at' => time() + (3600 * 1),
             'phone_number_collection' => ['enabled' => true],            
@@ -491,7 +504,6 @@ class Eh_Stripe_Checkout extends WC_Payment_Gateway {
         $user = wp_get_current_user();
         $logged_in_userid = $user->ID;
         $customer_id = get_user_meta($logged_in_userid, '_stripe_ch_customer_id', true);
-
         //create stripe customer 
         if (empty($customer_id)) { 
 
@@ -599,76 +611,71 @@ class Eh_Stripe_Checkout extends WC_Payment_Gateway {
         {
             die(_e('Access Denied', 'payment-gateway-stripe-and-woocommerce-integration'));
         }
-      
-        $session_id = sanitize_text_field( $_GET['sessionid'] );
         $order_id = intval( $_GET['order_id'] );
         $order = wc_get_order($order_id);
 
-        $obj  = new EH_Stripe_Payment();
-            
-        $order_time = date('Y-m-d H:i:s', time() + get_option('gmt_offset') * 3600);
-        
-        $session = \Stripe\Checkout\Session::retrieve($session_id);
-        $payment_intent_id = $session->payment_intent;
-
-         EH_Helper_Class::wt_stripe_order_db_operations($order_id,  $order, 'add', '_eh_stripe_payment_intent', $payment_intent_id, false);  
-
-        $payment_intent = \Stripe\PaymentIntent::retrieve($payment_intent_id);
-        $charge_details = $payment_intent->charges['data'];
-    
-        foreach($charge_details as $charge){
-
-            $charge_response = $charge;  
-        }
-
-        $data = $obj->make_charge_params($charge_response, $order_id);
-        
-        if ($charge_response->paid == true) {
-
-            if($charge_response->captured == true){
-                $order->payment_complete($data['id']);
-            }
-
-            if (!$charge_response->captured) {
-                $order->update_status('on-hold');
-            }
-
-            $order->set_transaction_id( $data['transaction_id'] );
-
-            $order->add_order_note(__('Payment Status : ', 'payment-gateway-stripe-and-woocommerce-integration') . ucfirst($data['status']) . ' [ ' . $order_time . ' ] . ' . __('Source : ', 'payment-gateway-stripe-and-woocommerce-integration') . $data['source_type'] . '. ' . __('Charge Status :', 'payment-gateway-stripe-and-woocommerce-integration') . $data['captured'] . (is_null($data['transaction_id']) ? '' : '.'.__('Transaction ID : ','payment-gateway-stripe-and-woocommerce-integration') . $data['transaction_id']));
-            WC()->cart->empty_cart();
-            
-            EH_Helper_Class::wt_stripe_order_db_operations($order_id, $order, 'add', '_eh_stripe_payment_charge', $data, false); 
-            EH_Stripe_Log::log_update('live', $data, get_bloginfo('blogname') . ' - Charge - Order #' . $order_id);
-            
-            // Return thank you page redirect.
-            $result =  array(
-                'result'    => 'success',
-                'redirect'  => $obj->get_return_url($order),
-            );
-        
-            wp_safe_redirect($result['redirect']);
+        if(isset($_REQUEST['action']) && 'cancel_checkout' === sanitize_text_field($_REQUEST['action'])){
+            wc_add_notice(__('You have cancelled Stripe Checkout Session. Please try to process your order again.', 'payment-gateway-stripe-and-woocommerce-integration'), 'notice');
+            wp_redirect(wc_get_checkout_url());
             exit;
+        }
+        else{
+            $session_id = sanitize_text_field( $_GET['sessionid'] );
+
+            $obj  = new EH_Stripe_Payment();
+                
+            $order_time = date('Y-m-d H:i:s', time() + get_option('gmt_offset') * 3600);
             
-        } else {
-            wc_add_notice($data['status'], $notice_type = 'error');
-            EH_Stripe_Log::log_update('dead', $charge_response, get_bloginfo('blogname') . ' - Charge - Order #' . $order_id);
-        }
-       
+            $session = \Stripe\Checkout\Session::retrieve($session_id);
+            $payment_intent_id = $session->payment_intent;
+
+             EH_Helper_Class::wt_stripe_order_db_operations($order_id,  $order, 'add', '_eh_stripe_payment_intent', $payment_intent_id, false);  
+
+            $payment_intent = \Stripe\PaymentIntent::retrieve($payment_intent_id);
+            $charge_details = $payment_intent->charges['data'];
+        
+            foreach($charge_details as $charge){
+
+                $charge_response = $charge;  
+            }
+
+            $data = $obj->make_charge_params($charge_response, $order_id);
+            
+            if ($charge_response->paid == true) {
+
+                if($charge_response->captured == true){
+                    $order->payment_complete($data['id']);
+                }
+
+                if (!$charge_response->captured) {
+                    $order->update_status('on-hold');
+                }
+
+                $order->set_transaction_id( $data['transaction_id'] );
+
+                $order->add_order_note(__('Payment Status : ', 'payment-gateway-stripe-and-woocommerce-integration') . ucfirst($data['status']) . ' [ ' . $order_time . ' ] . ' . __('Source : ', 'payment-gateway-stripe-and-woocommerce-integration') . $data['source_type'] . '. ' . __('Charge Status :', 'payment-gateway-stripe-and-woocommerce-integration') . $data['captured'] . (is_null($data['transaction_id']) ? '' : '.'.__('Transaction ID : ','payment-gateway-stripe-and-woocommerce-integration') . $data['transaction_id']));
+                WC()->cart->empty_cart();
+                
+                EH_Helper_Class::wt_stripe_order_db_operations($order_id, $order, 'add', '_eh_stripe_payment_charge', $data, false); 
+                EH_Stripe_Log::log_update('live', $data, get_bloginfo('blogname') . ' - Charge - Order #' . $order_id);
+                
+                // Return thank you page redirect.
+                $result =  array(
+                    'result'    => 'success',
+                    'redirect'  => $obj->get_return_url($order),
+                );
+            
+                wp_safe_redirect($result['redirect']);
+                exit;
+                
+            } else {
+                wc_add_notice($data['status'], $notice_type = 'error');
+                EH_Stripe_Log::log_update('dead', $charge_response, get_bloginfo('blogname') . ' - Charge - Order #' . $order_id);
+            }
+       }
     }
 
 
-    public function eh_spg_stripe_cancel_order(){
-        
-        if(!EH_Helper_Class::verify_nonce(EH_STRIPE_PLUGIN_NAME, 'eh_checkout_nonce'))
-        {
-            die(_e('Access Denied', 'payment-gateway-stripe-and-woocommerce-integration'));
-        }
-        
-        wc_add_notice(__('You have cancelled Stripe Checkout Session. Please try to process your order again.', 'payment-gateway-stripe-and-woocommerce-integration'), 'notice');
-        wp_redirect(wc_get_checkout_url());
-        exit;
-    }
 
     /**
      * process order refund

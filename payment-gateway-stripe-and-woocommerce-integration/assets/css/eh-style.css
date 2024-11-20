@@ -44,3 +44,7 @@
 .woocommerce-checkout #payment ul.payment_methods li .eh-stripe-card-brand.eh-stripe-jcb-brand {
     background: no-repeat url(../img/jcb.svg);
 }
+
+#eh-stripe-payment-request-button{
+    padding: 20px 0;
+}

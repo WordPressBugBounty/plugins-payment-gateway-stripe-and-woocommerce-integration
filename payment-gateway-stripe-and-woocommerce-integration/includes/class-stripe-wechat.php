@@ -136,17 +136,26 @@ class EH_Wechat extends WC_Payment_Gateway {
 
         if (!empty($stripe_settings) && 'yes' === $this->enabled) {
 
-            if (isset($stripe_settings['eh_stripe_mode']) && 'test' === $stripe_settings['eh_stripe_mode']) {
-                if (!isset($stripe_settings['eh_stripe_test_publishable_key']) || !isset($stripe_settings['eh_stripe_test_secret_key']) || ! $stripe_settings['eh_stripe_test_publishable_key'] || ! $stripe_settings['eh_stripe_test_secret_key']) {
-                    return false;
+           $mode = isset($stripe_settings['eh_stripe_mode']) ? $stripe_settings['eh_stripe_mode'] : 'live';
+            if(!Eh_Stripe_Admin_Handler::wtst_oauth_compatible()){
+                if (isset($stripe_settings['eh_stripe_mode']) && 'test' === $stripe_settings['eh_stripe_mode']) {
+                    if (!isset($stripe_settings['eh_stripe_test_publishable_key']) || !isset($stripe_settings['eh_stripe_test_secret_key']) || ! $stripe_settings['eh_stripe_test_publishable_key'] || ! $stripe_settings['eh_stripe_test_secret_key']) {
+                        return false;
+                    }
+                } else {
+                    if (!isset($stripe_settings['eh_stripe_live_secret_key']) || !isset($stripe_settings['eh_stripe_live_publishable_key']) || !$stripe_settings['eh_stripe_live_secret_key'] || !$stripe_settings['eh_stripe_live_publishable_key']) {
+                        return false;
+                    }
                 }
-            } else {
-                if (!isset($stripe_settings['eh_stripe_live_secret_key']) || !isset($stripe_settings['eh_stripe_live_publishable_key']) || !$stripe_settings['eh_stripe_live_secret_key'] || !$stripe_settings['eh_stripe_live_publishable_key']) {
-                    return false;
-                }
-            }
 
-            return true;
+                return true;
+                            
+            }
+            else{
+
+                $tokens = EH_Stripe_Payment::wtst_get_stripe_tokens($mode); 
+                return $enable = EH_Stripe_Payment::wtst_is_valid($tokens);
+            }
         }
         return false; 
     }
@@ -166,22 +175,18 @@ class EH_Wechat extends WC_Payment_Gateway {
             wp_register_script('stripe_v3_js', 'https://js.stripe.com/v3/');
 
          wp_enqueue_script('eh_wechat_js', plugins_url('assets/js/eh-wechat.js', EH_STRIPE_MAIN_FILE), array('stripe_v3_js','jquery'),EH_STRIPE_VERSION, true);
-            if (isset($stripe_settings['eh_stripe_mode']) && 'test' === $stripe_settings['eh_stripe_mode']) {
-                if (!isset($stripe_settings['eh_stripe_test_publishable_key']) || !isset($stripe_settings['eh_stripe_test_secret_key']) || ! $stripe_settings['eh_stripe_test_publishable_key'] || ! $stripe_settings['eh_stripe_test_secret_key']) {
-                    return false;
-                }
-                else{
-                    $public_key = $stripe_settings['eh_stripe_test_publishable_key'];
-                }
+           $mode = isset($stripe_settings['eh_stripe_mode']) ? $stripe_settings['eh_stripe_mode'] : 'live';
 
-            } else {
-                if (!isset($stripe_settings['eh_stripe_live_secret_key']) || !isset($stripe_settings['eh_stripe_live_publishable_key']) || !$stripe_settings['eh_stripe_live_secret_key'] || !$stripe_settings['eh_stripe_live_publishable_key']) {
-                    return false;
-                }
-                else{
+            if(Eh_Stripe_Admin_Handler::wtst_oauth_compatible()){
+                $tokens = EH_Stripe_Payment::wtst_get_stripe_tokens($mode); 
+                $public_key = $tokens['wt_stripe_publishable_key'];
+            }
+            else{
+                if (isset($stripe_settings['eh_stripe_mode']) && 'test' === $stripe_settings['eh_stripe_mode']) {
+                    $public_key = $stripe_settings['eh_stripe_test_publishable_key'];
+                } else {
                     $public_key = $stripe_settings['eh_stripe_live_publishable_key'];
                 }
-               
             }
 
 
@@ -243,8 +248,10 @@ class EH_Wechat extends WC_Payment_Gateway {
                     $width = apply_filters('eh_stripe_qr_width', $width);
                     $qr_style = '';
                     $qr_style = apply_filters('eh_stripe_qr_style', $qr_style);
+
                     
                    ?><div id="eh-wechat-qr" <?php print($qr_style) ?> ><center><img width="<?php print esc_attr($width); ?>" src="<?php print esc_url($intent->next_action->wechat_pay_display_qr_code->image_url_png) ?>" ></center>
+
                     <style>.payment_methods{ display: none; }</style>
                     <p style="text-align: center; font-weight: bold; font-family: Arial, sans-serif;"><?php esc_html_e("WeChat Pay QR", "payment-gateway-stripe-and-woocommerce-integration") ?></p>
                     </div> <?php

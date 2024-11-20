@@ -52,39 +52,50 @@ class EH_Stripe_Overview
                 $charge_response = \Stripe\Charge::retrieve($charge_id);
                 $refund_response = $charge_response->refunds->create($refund_params);
                 if ($refund_response) {
-                    $refund = wc_create_refund(array(
-                        'amount' => $remaining_amount,
-                        'reason' => 'Refunded using Stripe',
-                        'order_id' => $order_id,
-                        'line_items' => array(),
-                    ));
-                    do_action('woocommerce_refund_processed', $refund, true);
-                    $refund_id = (WC()->version < '2.7.0') ? $refund->id : $refund->get_id();
-                    if ($wc_order->get_remaining_refund_amount() > 0 || ( $wc_order->has_free_item() && $wc_order->get_remaining_refund_items() > 0 )) {
-                        /**
-                         * woocommerce_order_partially_refunded.
-                         *
-                         * @since 2.4.0
-                         * Note: 3rd arg was added in err. Kept for bw compat. 2.4.3.
-                         */
-                        do_action('woocommerce_order_partially_refunded', $order_id, $refund_id, $refund_id);
-                    } else {
-                        do_action('woocommerce_order_fully_refunded', $order_id, $refund_id);
 
-                        $wc_order->update_status(apply_filters('woocommerce_order_fully_refunded_status', 'refunded', $order_id, $refund_id));
-                        $response_data['status'] = 'fully_refunded';
-                    }
-
-                    do_action('woocommerce_order_refunded', $order_id, $refund_id);
-
-                    // Clear transients
-                    wc_delete_shop_order_transients($order_id);
                     $refund_time = date('Y-m-d H:i:s', time() + get_option('gmt_offset') * 3600);
                     $data = $obj->make_refund_params($refund_response, $remaining_amount, ((WC()->version < '2.7.0') ? $wc_order->order_currency : $wc_order->get_currency()), $order_id);
                     EH_Helper_Class::wt_stripe_order_db_operations($order_id, null, 'add', '_eh_stripe_payment_refund', $data);
-                    $wc_order->add_order_note(__('Reason : ', 'payment-gateway-stripe-and-woocommerce-integration') . $reason . '.<br>' . __('Amount : ', 'payment-gateway-stripe-and-woocommerce-integration') . get_woocommerce_currency_symbol() . $amount . '.<br>' . __('Status : ', 'payment-gateway-stripe-and-woocommerce-integration') . (($data['status'] === 'succeeded') ? 'Success' : 'Failed') . ' [ ' . $refund_time . ' ] ' . (is_null($data['transaction_id']) ? '' : '<br>' . __('Transaction ID : ', 'payment-gateway-stripe-and-woocommerce-integration') . $data['transaction_id']));
+                    $wc_order->add_order_note(__('Reason : ', 'payment-gateway-stripe-and-woocommerce-integration') . esc_html($reason) . '.<br>' . __('Amount : ', 'payment-gateway-stripe-and-woocommerce-integration') . get_woocommerce_currency_symbol() . esc_html($amount) . '.<br>' . __('Status : ', 'payment-gateway-stripe-and-woocommerce-integration') . (($data['status'] === 'succeeded') ? 'Success' : $data['status'] ) . ' [ ' . $refund_time . ' ] ' . (is_null($data['transaction_id']) ? '' : '<br>' . __('Transaction ID : ', 'payment-gateway-stripe-and-woocommerce-integration') . $data['transaction_id']));
                     EH_Stripe_Log::log_update('live', $data, get_bloginfo('blogname') . ' - Refund - Order #' . $wc_order->get_order_number());
                     $message = $remaining_amount . ' refund ' . $data['status'] . ' at ' . $refund_time . (is_null($data['transaction_id']) ? '' : '. Transaction Id - ' . $data['transaction_id']);
+
+                    if('succeeded' === $data['status']){  
+
+                        $refund = wc_create_refund(array(
+                            'amount' => $remaining_amount,
+                            'reason' => 'Refunded using Stripe',
+                            'order_id' => $order_id,
+                            'line_items' => array(),
+                        ));
+                        do_action('woocommerce_refund_processed', $refund, true);
+                        $refund_id = (WC()->version < '2.7.0') ? $refund->id : $refund->get_id();
+                        if ($wc_order->get_remaining_refund_amount() > 0 || ( $wc_order->has_free_item() && $wc_order->get_remaining_refund_items() > 0 )) {
+                            /**
+                             * woocommerce_order_partially_refunded.
+                             *
+                             * @since 2.4.0
+                             * Note: 3rd arg was added in err. Kept for bw compat. 2.4.3.
+                             */
+                            do_action('woocommerce_order_partially_refunded', $order_id, $refund_id, $refund_id);
+                        } else {
+                            do_action('woocommerce_order_fully_refunded', $order_id, $refund_id);
+
+                            $wc_order->update_status(apply_filters('woocommerce_order_fully_refunded_status', 'refunded', $order_id, $refund_id));
+                            $response_data['status'] = 'fully_refunded';
+                        }
+
+                        do_action('woocommerce_order_refunded', $order_id, $refund_id);
+
+                        // Clear transients
+                        wc_delete_shop_order_transients($order_id);
+                    }
+                    else{
+                         $wc_order->update_meta_data( 'auto_process_refund_status', 'yes' );
+                         $wc_order->save();
+                    }                    
+
+
                     wp_send_json($message);
                 } else {
                     EH_Stripe_Log::log_update('dead', $refund_response, get_bloginfo('blogname') . ' - Refund Error - Order #' . $wc_order->get_order_number());
@@ -211,39 +222,50 @@ class EH_Stripe_Overview
                 $charge_response = \Stripe\Charge::retrieve($charge_id);
                 $refund_response = $charge_response->refunds->create($refund_params);
                 if ($refund_response) {
-                    $refund = wc_create_refund(array(
-                        'amount' => $refund_amount,
-                        'reason' => 'Refunded using Stripe',
-                        'order_id' => $order_id,
-                        'line_items' => array(),
-                    ));
-                    do_action('woocommerce_refund_processed', $refund, true);
-                    $refund_id = (WC()->version < '2.7.0') ? $refund->id : $refund->get_id();
-                    if ($wc_order->get_remaining_refund_amount() > 0 || ( $wc_order->has_free_item() && $wc_order->get_remaining_refund_items() > 0 )) {
-                        /**
-                         * woocommerce_order_partially_refunded.
-                         *
-                         * @since 2.4.0
-                         * Note: 3rd arg was added in err. Kept for bw compat. 2.4.3.
-                         */
-                        do_action('woocommerce_order_partially_refunded', $order_id, $refund_id, $refund_id);
-                    } else {
-                        do_action('woocommerce_order_fully_refunded', $order_id, $refund_id);
 
-                        $wc_order->update_status(apply_filters('woocommerce_order_fully_refunded_status', 'refunded', $order_id, $refund_id));
-                        $response_data['status'] = 'fully_refunded';
-                    }
-
-                    do_action('woocommerce_order_refunded', $order_id, $refund_id);
-
-                    // Clear transients
-                    wc_delete_shop_order_transients($order_id);
                     $refund_time = date('Y-m-d H:i:s', time() + get_option('gmt_offset') * 3600);
                     $data = $obj->make_refund_params($refund_response, $refund_amount, ((WC()->version < '2.7.0') ? $wc_order->order_currency : $wc_order->get_currency()), $order_id);
                     EH_Helper_Class::wt_stripe_order_db_operations($order_id, $wc_order, 'add', '_eh_stripe_payment_refund', $data);
-                    $wc_order->add_order_note(__('Reason : ', 'payment-gateway-stripe-and-woocommerce-integration') . $reason . '.<br>' . __('Amount : ', 'payment-gateway-stripe-and-woocommerce-integration') . get_woocommerce_currency_symbol() . $amount . '.<br>' . __('Status : ', 'payment-gateway-stripe-and-woocommerce-integration') . (($data['status'] === 'succeeded') ? 'Success' : 'Failed') . ' [ ' . $refund_time . ' ] ' . (is_null($data['transaction_id']) ? '' : '<br>' . __('Transaction ID : ', 'payment-gateway-stripe-and-woocommerce-integration') . $data['transaction_id']));
+                    $wc_order->add_order_note(__('Reason : ', 'payment-gateway-stripe-and-woocommerce-integration') . esc_html($reason) . '.<br>' . __('Amount : ', 'payment-gateway-stripe-and-woocommerce-integration') . get_woocommerce_currency_symbol() . esc_html($amount) . '.<br>' . __('Status : ', 'payment-gateway-stripe-and-woocommerce-integration') . (($data['status'] === 'succeeded') ? 'Success' : $data['status'] ) . ' [ ' . $refund_time . ' ] ' . (is_null($data['transaction_id']) ? '' : '<br>' . __('Transaction ID : ', 'payment-gateway-stripe-and-woocommerce-integration') . $data['transaction_id']));
                     EH_Stripe_Log::log_update('live', $data, get_bloginfo('blogname') . ' - Refund - Order #' . $wc_order->get_order_number());
                     $message = $refund_amount . ' refund ' . $data['status'] . ' at ' . $refund_time . (is_null($data['transaction_id']) ? '' : '. Transaction Id - ' . $data['transaction_id']);
+
+                    if('succeeded' === $data['status']){
+
+
+                        $refund = wc_create_refund(array(
+                            'amount' => $refund_amount,
+                            'reason' => 'Refunded using Stripe',
+                            'order_id' => $order_id,
+                            'line_items' => array(),
+                        ));
+                        do_action('woocommerce_refund_processed', $refund, true);
+                        $refund_id = (WC()->version < '2.7.0') ? $refund->id : $refund->get_id();
+                        if ($wc_order->get_remaining_refund_amount() > 0 || ( $wc_order->has_free_item() && $wc_order->get_remaining_refund_items() > 0 )) {
+                            /**
+                             * woocommerce_order_partially_refunded.
+                             *
+                             * @since 2.4.0
+                             * Note: 3rd arg was added in err. Kept for bw compat. 2.4.3.
+                             */
+                            do_action('woocommerce_order_partially_refunded', $order_id, $refund_id, $refund_id);
+                        } else {
+                            do_action('woocommerce_order_fully_refunded', $order_id, $refund_id);
+
+                            $wc_order->update_status(apply_filters('woocommerce_order_fully_refunded_status', 'refunded', $order_id, $refund_id));
+                            $response_data['status'] = 'fully_refunded';
+                        }
+
+                        do_action('woocommerce_order_refunded', $order_id, $refund_id);
+
+                        // Clear transients
+                        wc_delete_shop_order_transients($order_id);
+                    }
+                    else{
+                        $wc_order->update_meta_data( 'auto_process_refund_status', 'yes' );    
+                        $wc_order->save();                    
+                    }                    
+
                     wp_send_json($message);
                 } else {
                     EH_Stripe_Log::log_update('dead', $refund_response, get_bloginfo('blogname') . ' - Refund Error - Order #' . $wc_order->get_order_number());

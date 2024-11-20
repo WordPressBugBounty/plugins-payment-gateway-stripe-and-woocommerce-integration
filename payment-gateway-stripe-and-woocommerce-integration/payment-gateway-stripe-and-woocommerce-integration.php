@@ -2,12 +2,12 @@
 /*
  * Plugin Name: Stripe Payment Plugin for WooCommerce
  * Plugin URI: https://wordpress.org/plugins/payment-gateway-stripe-and-woocommerce-integration/
- * Description: Accept payments from your WooCommerce store via Credit/Debit Cards, Stripe Checkout, Apple Pay, Google Pay, Alipay, SEPA Pay, Klarna, Afterpay, WeChat Pay, Sofort, iDEAL, Bancontact, EPS, P24, Bacs Debit, BECS Debit, FPX, Boleto, OXXO, GrabPay, Multibanco and Affirm using Stripe.
+ * Description: Accept payments from your WooCommerce store via Credit/Debit Cards, Stripe Checkout, Apple Pay, Google Pay, Alipay, SEPA Pay, Klarna, Afterpay, WeChat Pay, iDEAL, Bancontact, EPS, P24, Bacs Debit, BECS Debit, FPX, Boleto, OXXO, GrabPay, Multibanco and Affirm using Stripe.
  * Author: WebToffee
  * Author URI: https://www.webtoffee.com/product/woocommerce-stripe-payment-gateway/
- * Version: 3.9.10
+ * Version: 4.0.3
  * WC requires at least: 3.0
- * WC tested up to: 9.1.4
+ * WC tested up to: 9.3.3
  * License: GPLv3
  * License URI: https://www.gnu.org/licenses/gpl-3.0.html
  * Text Domain: payment-gateway-stripe-and-woocommerce-integration
@@ -25,7 +25,7 @@ if (!defined('EH_STRIPE_MAIN_PATH')) {
     define('EH_STRIPE_MAIN_PATH', plugin_dir_path(__FILE__));
 }
 if (!defined('EH_STRIPE_VERSION')) {
-    define('EH_STRIPE_VERSION', '3.9.10');
+    define('EH_STRIPE_VERSION', '4.0.3');
 }
 if (!defined('EH_STRIPE_MAIN_FILE')) {
     define('EH_STRIPE_MAIN_FILE', __FILE__);
@@ -35,6 +35,9 @@ if (!defined('EH_STRIPE_INSTALLED_VERSION')) {
 }
 if (!defined('EH_STRIPE_PLUGIN_NAME')) { 
     define('EH_STRIPE_PLUGIN_NAME', 'payment_gateway_stripe_and_woocommerce_integration');
+}
+if (!defined('EH_STRIPE_OAUTH_WT_URL')) {
+    define ( 'EH_STRIPE_OAUTH_WT_URL', 'https://verify-stripe.webtoffee.com/wp-json/wt-stripe/v1/' );
 }
 
 if (!class_exists('Stripe\Stripe')) { //fix for SFRWDF-184
@@ -124,7 +127,6 @@ if(is_plugin_active('eh-stripe-payment-gateway/stripe-payment-gateway.php')){
             $methods[] = 'EH_Klarna_Gateway';
              $methods[] = 'EH_Afterpay';
             $methods[] = 'EH_Wechat';
-            $methods[] = 'EH_Sofort';
             $methods[] = 'EH_Ideal';
             $methods[] = 'EH_Bancontact';
             $methods[] = 'EH_EPS';
@@ -147,14 +149,21 @@ if(is_plugin_active('eh-stripe-payment-gateway/stripe-payment-gateway.php')){
         
         //includes neccessary payment method files
         add_filter('woocommerce_payment_gateways', 'eh_section_add_stripe_gateway');
+        include(EH_STRIPE_MAIN_PATH . "includes/admin/class-stripe-admin-handler.php");
+        /**
+         * Includes the Black Friday and Cyber Monday CTA banners for 2024
+         */ 
+        require_once EH_STRIPE_MAIN_PATH . 'includes/admin/banner/class-wtst-bfcm-twenty-twenty-four.php';        
+        new Eh_Stripe_Admin_Handler();          
         if (!class_exists('EH_Stripe_Payment')) {
+
             include(EH_STRIPE_MAIN_PATH . "includes/class-stripe-api.php");
+            include(EH_STRIPE_MAIN_PATH . "includes/class-stripe-checkout.php");            
             include(EH_STRIPE_MAIN_PATH . "includes/class-stripe-intent-manager.php");
-            include(EH_STRIPE_MAIN_PATH . "includes/class-stripe-checkout.php");
             include(EH_STRIPE_MAIN_PATH . "includes/class-stripe-payment-request-button.php");
             
             new  Eh_Stripe_Payment_Request_Class();
-            new  Eh_Stripe_Checkout();
+        new  Eh_Stripe_Checkout();
 
             $eh_stripe = get_option("woocommerce_eh_stripe_pay_settings");
             if(isset($eh_stripe['overview'])){
@@ -165,10 +174,13 @@ if(is_plugin_active('eh-stripe-payment-gateway/stripe-payment-gateway.php')){
                 }
             }
         }
-        
+
+
+
+
+
         include(EH_STRIPE_MAIN_PATH . "includes/class-gateway-stripe-alipay.php");
-        include(EH_STRIPE_MAIN_PATH . "includes/admin/class-stripe-admin-handler.php");
-        new Eh_Stripe_Admin_Handler();
+
         include(EH_STRIPE_MAIN_PATH . "includes/class-eh-stripe-uninstall-feedback.php");
         include(EH_STRIPE_MAIN_PATH . "includes/class-eh-security-helper.php");
         include(EH_STRIPE_MAIN_PATH . "includes/class-eh-stripe-review-request.php");
@@ -179,7 +191,6 @@ if(is_plugin_active('eh-stripe-payment-gateway/stripe-payment-gateway.php')){
         include(EH_STRIPE_MAIN_PATH . "includes/class-stripe-klarna.php");
         include(EH_STRIPE_MAIN_PATH . "includes/class-stripe-afterpay.php");
         include(EH_STRIPE_MAIN_PATH . "includes/class-stripe-wechat.php");
-        include(EH_STRIPE_MAIN_PATH . "includes/class-stripe-sofort.php");
         include(EH_STRIPE_MAIN_PATH . "includes/class-stripe-ideal.php");
         include(EH_STRIPE_MAIN_PATH . "includes/class-stripe-bancontact.php");
         include(EH_STRIPE_MAIN_PATH . "includes/class-stripe-eps.php");
@@ -194,6 +205,8 @@ if(is_plugin_active('eh-stripe-payment-gateway/stripe-payment-gateway.php')){
         include(EH_STRIPE_MAIN_PATH . "includes/class-stripe-affirm.php");
 
         include(EH_STRIPE_MAIN_PATH . 'includes/admin/class-wt-promotion-banner.php');
+        include(EH_STRIPE_MAIN_PATH . "includes/class-stripe-oauth.php");
+
     }
     
     
@@ -231,7 +244,7 @@ if(is_plugin_active('eh-stripe-payment-gateway/stripe-payment-gateway.php')){
             $args = array(
                 'return' => 'ids',
                 'status' => array('wc-processing', 'wc-on-hold', 'wc-completed', 'wc-refunded'),
-                'payment_method' => array('eh_multibanco_stripe', 'eh_grabpay_stripe', 'eh_oxxo_stripe', 'eh_boleto_stripe', 'eh_fpx_stripe', 'eh_becs_stripe', 'eh_bacs', 'eh_p24_stripe', 'eh_eps_stripe', 'eh_bancontact_stripe', 'eh_ideal_stripe', 'eh_sofort_stripe', 'eh_wechat_stripe', 'eh_afterpay_stripe', 'eh_klarna_stripe', 'eh_sepa_stripe', 'eh_stripe_pay', 'eh_alipay_stripe', 'eh_stripe_checkout', 'eh_affirm_stripe'),
+                'payment_method' => array('eh_multibanco_stripe', 'eh_grabpay_stripe', 'eh_oxxo_stripe', 'eh_boleto_stripe', 'eh_fpx_stripe', 'eh_becs_stripe', 'eh_bacs', 'eh_giropay_stripe', 'eh_p24_stripe', 'eh_eps_stripe', 'eh_bancontact_stripe', 'eh_ideal_stripe', 'eh_sofort_stripe', 'eh_wechat_stripe', 'eh_afterpay_stripe', 'eh_klarna_stripe', 'eh_sepa_stripe', 'eh_stripe_pay', 'eh_alipay_stripe', 'eh_stripe_checkout', 'eh_affirm_stripe'),
             );
             $orders = wc_get_orders($args);
             if(!empty($orders)){
@@ -242,7 +255,7 @@ if(is_plugin_active('eh-stripe-payment-gateway/stripe-payment-gateway.php')){
         }
         else{   
 
-            $array_gateway_ids = array('eh_multibanco_stripe', 'eh_grabpay_stripe', 'eh_oxxo_stripe', 'eh_boleto_stripe', 'eh_fpx_stripe', 'eh_becs_stripe', 'eh_bacs', 'eh_p24_stripe', 'eh_eps_stripe', 'eh_bancontact_stripe', 'eh_ideal_stripe', 'eh_sofort_stripe', 'eh_wechat_stripe', 'eh_afterpay_stripe', 'eh_klarna_stripe', 'eh_sepa_stripe', 'eh_stripe_pay', 'eh_alipay_stripe', 'eh_stripe_checkout', 'eh_affirm_stripe');
+            $array_gateway_ids = array('eh_multibanco_stripe', 'eh_grabpay_stripe', 'eh_oxxo_stripe', 'eh_boleto_stripe', 'eh_fpx_stripe', 'eh_becs_stripe', 'eh_bacs', 'eh_giropay_stripe', 'eh_p24_stripe', 'eh_eps_stripe', 'eh_bancontact_stripe', 'eh_ideal_stripe', 'eh_sofort_stripe', 'eh_wechat_stripe', 'eh_afterpay_stripe', 'eh_klarna_stripe', 'eh_sepa_stripe', 'eh_stripe_pay', 'eh_alipay_stripe', 'eh_stripe_checkout', 'eh_affirm_stripe');
 
             $args = array(
                 'post_type' => 'shop_order',

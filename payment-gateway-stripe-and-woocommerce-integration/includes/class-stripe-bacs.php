@@ -155,19 +155,28 @@ class Eh_Bacs extends WC_Payment_Gateway {
      */
 	public function is_available() {
 
-        if ('yes' === $this->enabled) {
-           
-            if (isset($this->eh_stripe_option['eh_stripe_mode']) && 'test' === $this->eh_stripe_option['eh_stripe_mode']) {
-                if (!isset($this->eh_stripe_option['eh_stripe_test_publishable_key']) || !isset($this->eh_stripe_option['eh_stripe_test_secret_key']) || ! $this->eh_stripe_option['eh_stripe_test_publishable_key'] || ! $this->eh_stripe_option['eh_stripe_test_secret_key']) {
-                    return false;
-                }
-            } else {
-                if (!isset($this->eh_stripe_option['eh_stripe_live_secret_key']) || !isset($this->eh_stripe_option['eh_stripe_live_publishable_key']) || !$this->eh_stripe_option['eh_stripe_live_secret_key'] || !$this->eh_stripe_option['eh_stripe_live_publishable_key']) {
-                    return false;
-                }
-            }
+        if ('yes' === $this->enabled && !empty($this->eh_stripe_option)) {
+            $stripe_settings = get_option("woocommerce_eh_stripe_pay_settings");
+            $mode = isset($stripe_settings['eh_stripe_mode']) ? $stripe_settings['eh_stripe_mode'] : 'live';
 
-            return true;
+           if(!Eh_Stripe_Admin_Handler::wtst_oauth_compatible($mode)){
+                if (isset($this->eh_stripe_option['eh_stripe_mode']) && 'test' === $this->eh_stripe_option['eh_stripe_mode']) {
+                    if (!isset($this->eh_stripe_option['eh_stripe_test_publishable_key']) || !isset($this->eh_stripe_option['eh_stripe_test_secret_key']) || ! $this->eh_stripe_option['eh_stripe_test_publishable_key'] || ! $this->eh_stripe_option['eh_stripe_test_secret_key']) {
+                        return false;
+                    }
+                } else {
+                    if (!isset($this->eh_stripe_option['eh_stripe_live_secret_key']) || !isset($this->eh_stripe_option['eh_stripe_live_publishable_key']) || !$this->eh_stripe_option['eh_stripe_live_secret_key'] || !$this->eh_stripe_option['eh_stripe_live_publishable_key']) {
+                        return false;
+                    }
+                }
+
+                return true;
+            }
+            else{
+
+                $tokens = EH_Stripe_Payment::wtst_get_stripe_tokens($mode); 
+                return $enable = EH_Stripe_Payment::wtst_is_valid($tokens);
+            }            
         }
         return false; 
     }
@@ -220,17 +229,20 @@ class Eh_Bacs extends WC_Payment_Gateway {
              wp_register_script('stripe_v3_js', 'https://js.stripe.com/v3/');
             wp_enqueue_script('eh_checkout_script', EH_STRIPE_MAIN_URL_PATH . 'assets/js/eh-checkout.js',array('stripe_v3_js','jquery'),EH_STRIPE_VERSION ,true);
             
-            if(isset($this->eh_stripe_option['eh_stripe_mode'])){
-
-                if ('test' == $this->eh_stripe_option['eh_stripe_mode']) {
+            $stripe_settings = get_option("woocommerce_eh_stripe_pay_settings");
+            $mode = isset($stripe_settings['eh_stripe_mode']) ? $stripe_settings['eh_stripe_mode'] : 'live';
+            
+            if(Eh_Stripe_Admin_Handler::wtst_oauth_compatible($mode)){
+                $tokens = EH_Stripe_Payment::wtst_get_stripe_tokens($mode); 
+                $public_key = $tokens['wt_stripe_publishable_key'];
+            }
+            else{
+                if (isset($this->eh_stripe_option['eh_stripe_mode']) && 'test' === $this->eh_stripe_option['eh_stripe_mode']) {
                     $public_key = $this->eh_stripe_option['eh_stripe_test_publishable_key'];
-                    $secret_key = $this->eh_stripe_option['eh_stripe_test_secret_key'];
                 } else {
                     $public_key = $this->eh_stripe_option['eh_stripe_live_publishable_key'];
-                    $secret_key = $this->eh_stripe_option['eh_stripe_live_secret_key'];
                 }
             }
-
             $eh_bacs_params = array(
                 'key'                                           => isset($public_key) ? $public_key : '',
                 'wp_ajaxurl'                                    => admin_url("admin-ajax.php"),

@@ -3,18 +3,19 @@ Contributors: webtoffee
 Donate link: https://www.webtoffee.com/plugins/
 Tags: stripe checkout, credit card, google pay, apple pay, stripe, woocommerce, alipay, payment gateway, debit card, sepa, stripe payment gateway, sca ready
 Requires at least: 5.6
-Tested up to: 6.6.1
+Tested up to: 6.6.2
 Requires PHP: 5.6
-Stable tag: 3.9.10
+Stable tag: 4.0.3
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
-Accepts payments through Credit Cards, Debit Cards, Google Pay, Apple Pay, Alipay, SEPA, Klarna, WeChat Pay, Sofort, iDEAL, BECS, Bacs, Boleto, OXXO, Multibanco, Bancontact, P24, Afterpay/Clearpay and Affirm using Stripe.
+This WooCommerce Stripe Payment Plugin adds Stripe Payment Gateway to your WooCommerce store. Accept credit/debit card payments, Google Pay, Apple Pay, Alipay, SEPA, Klarna, and more.
 
 == Description ==
+Easily integrate the Stripe Payment Gateway into your WooCommerce store and start accepting Stripe payments with ease.
 
 ### Introduction ###
-Stripe Payment Plugin for WooCommerce lets you accept credit cards/debit cards (Mastercard, Visa, American Express, Discover, JCB, Diners Club), Alipay, Apple Pay, Google Pay, SEPA, Klarna, Afterpay/Clearpay, Sofort, iDEAL, and WeChat Pay within your website via the Stripe Payment Gateway.
+Stripe Payment Plugin for WooCommerce lets you accept credit cards/debit cards (Mastercard, Visa, American Express, Discover, JCB, Diners Club), Alipay, Apple Pay, Google Pay, SEPA, Klarna, Afterpay/Clearpay, iDEAL, and WeChat Pay within your website via the Stripe Payment Gateway.
 
 With this WooCommerce Stripe plugin, you can activate Stripe checkout on your store site and let your customers pay with their credit or debit cards at the checkout. This ensures a smooth and secure payment experience for your users. 
 
@@ -22,7 +23,10 @@ This free payment plugin offers a unique and intuitive Stripe overview page for 
 
 Integrating the Stripe Payments Gateway in your WooCommerce store would be the best way to enable a smooth payment flow for your customers and business.
 
-### Easily Set up Stripe Checkout ###
+### Easily Connect WooCommerce with Stripe Dashboard  ###
+We’ve launched a new Stripe Authenticator app in Stripe Marketplace that lets you easily connect your WooCommerce store to the Stripe dashboard. This will simplify your efforts to manually add the API keys from the Stripe dashboard.
+
+### Set up Stripe Checkout ###
 
 The plugin allows you to easily set up Stripe checkout in your WooCommerce store. Stripe checkout is a prebuilt checkout page hosted by Stripe. By enabling Stripe checkout, you can relieve yourself from having to build a checkout page from scratch for your WooCommerce store. 
 
@@ -41,7 +45,7 @@ To learn how to install the plugin, navigate to the Installation tab. For detail
  * Accept debit/credit cards including Mastercard, Visa, American Express, Discover, JCB, and Diners Club. 
  * Supports Apple Pay, Google Pay, and saved cards in the supporting browser
  * Pay using Alipay
- * Accept payments via SEPA, Afterpay/clearpay, WeChat Pay, Klarna, Sofort, iDEAL
+ * Accept payments via SEPA, Afterpay/clearpay, WeChat Pay, Klarna, iDEAL, and more
  * Stripe Overview Page: A dashboard where you can review transactions & do any payment actions
  * Capture Later: Capture authorized payment later
  * Supports full & partial refunds
@@ -49,7 +53,7 @@ To learn how to install the plugin, navigate to the Installation tab. For detail
 
 Stripe is available in [47+ countries](https://stripe.com/global)
 
-## Premium version Features ##
+## Premium Version Features ##
 
 ✅ Supports [WooCommerce Subscriptions](https://woocommerce.com/products/woocommerce-subscriptions/) and [Subscriptions for WooCommerce by WebToffee](https://www.webtoffee.com/product/woocommerce-subscriptions/). 
 ✅ Link payment method
@@ -107,9 +111,6 @@ Afterpay is an online payment platform that allows shoppers to make weekly payme
 
 ###About WeChat Pay###
 WeChat Pay is a mobile payment and digital wallet service based in China that allows users to make mobile payments and online transactions.
-
-### Sofort###
-Integrate the Sofort payment gateway with your WooCommerce store to make online banking transactions easy for your customers.
 
 ### iDEAL ###
 Let your customers make direct online payment transfers from their own bank accounts with an ideal payment gateway.
@@ -201,23 +202,41 @@ Yes. The plugin allows you to enable Stripe checkout that lets you collect payme
 8. Stripe Klarna
 9. Stripe WeChat Pay
 10. Stripe Afterpay
-11. Stripe Sofort
-12. Stripe iDEAL
-13. Stripe Bancontact
-14. Stripe EPS
-15. Stripe P24
-16. Stripe Bacs Direct Debit
-17. Stripe BECS Debit
-18. Stripe FPX
-19. Stripe Boleto
-20. Stripe OXXO
-21. Stripe GrabPay
-22. Stripe Multibanco
-23. Stripe Affirm
-24. Stripe Overview Page
-25. Stripe General Settings
+11. Stripe iDEAL
+12. Stripe Bancontact
+13. Stripe EPS
+14. Stripe P24
+15. Stripe Bacs Direct Debit
+16. Stripe BECS Debit
+17. Stripe FPX
+18. Stripe Boleto
+19. Stripe OXXO
+20. Stripe GrabPay
+21. Stripe Multibanco
+22. Stripe Affirm
+23. Stripe Overview Page
+24. Stripe General Settings
 
 == Changelog ==
+
+= 4.0.3 2024-11-20 =
+* [Fix] - Resolved security issue with OAuth authentication
+
+= 4.0.2 2024-11-11 =
+*[Fix] - Handled OAuth expiry issues, by handling duplication of refresh token API calls.
+
+= 4.0.1 2024-10-22 =
+*[Add] - App disconnect option
+*[Improvement] - Implemented a retry mechanism for the refresh token API to handle timeout issues.
+*[Fix] - Refresh OAuth tokens when switching payment environment
+*[Fix] - Fixed warnings occurring during error handling.
+
+= 4.0.0 2024-10-11 =
+*[Add] - Migrated to OAuth authentication
+*[Add] - Migrated to express checkout elements
+*[Fix] - Fixed an issue with checking order status
+*[Compatibility] - WordPress 6.6.2
+*[Compatibility] - WooCommerce 9.3.3
 
 = 3.9.10 2024-09-03 =
 *[Tweak] - Removed Giropay payment method as it is no longer supported by Stripe
@@ -694,14 +713,5 @@ Yes. The plugin allows you to enable Stripe checkout that lets you collect payme
  
 == Upgrade Notice ==
 
-= 3.9.10 =
-*[Tweak] - Removed Giropay payment method as it is no longer supported by Stripe
-*[Tweak] - Updated deprecated statement descriptor Stripe API parameter
-*[Fix] - Fixed the issue with webhook processing in multisite 
-*[Add] - Added custom jQuery events wt-stripe-payment_request_button_cart-data, wt-stripe-paymentdetails-data,wt-stripe-get-shippings-data,wt-stripe-update-shippings-data, to alter the payment request button request parameter send to Stripe 
-*[Add] - Added compatibility with Checkout Field Editor for WooCommerce 
-*[Improvement] - Enhance Wechat QR code display
-*[Fix] - Fixed issue with address handling when shipping address is disabled in WooCommerce
-*[Fix] - Fixed issue with sending line items having special characters to Stripe checkout
-*[Compatibility] - WooCommerce 9.1.4
-*[Compatibility] - WordPress 6.6.1
+= 4.0.3 =
+* [Fix] - Resolved security issue with OAuth authentication

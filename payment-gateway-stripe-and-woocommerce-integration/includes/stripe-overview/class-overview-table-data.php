@@ -93,7 +93,7 @@ class Eh_Stripe_Order_Datatables extends WP_List_Table {
                 if ('succeeded' === $data['status']) {
                     switch ($data['captured']) {
                         case 'Captured':
-                            $actions = '<span style="width:69%%;text-align: center;" class="button payment_refund_button payment_act" id=' . $id . '>' . __('Refund ', 'payment-gateway-stripe-and-woocommerce-integration') .get_woocommerce_currency_symbol(). '<span class="amount_refund_main_' . $id . '" >' .$item['refund_rem']. '</span><span class="amount_refund_place_' . $id . '" hidden> ' . $item['refund_rem'] . '</span><span id="' . $id . '_loader"></span></span><input type="number" id=' . $id . ' class="payment_refund_text_' . $id . '" style="float:left; width:89%%; margin-top:3px; margin-left:3px" placeholder="Amount" hidden>'
+                            $actions = '<span style="text-align: center;" class="button payment_refund_button payment_act" id=' . $id . '>' . __('Refund ', 'payment-gateway-stripe-and-woocommerce-integration') .get_woocommerce_currency_symbol(). '<span class="amount_refund_main_' . $id . '" >' .$item['refund_rem']. '</span><span class="amount_refund_place_' . $id . '" hidden> ' . $item['refund_rem'] . '</span><span id="' . $id . '_loader"></span></span><input type="number" id=' . $id . ' class="payment_refund_text_' . $id . '" style="float:left; width:89%%; margin-top:3px; margin-left:3px" placeholder="Amount" hidden>'
                                     . '<input type="checkbox" style="margin-left:3px;" checked class="' . $id . '" id="payment_refund_check" value="refund">' . __('Full', 'payment-gateway-stripe-and-woocommerce-integration');
                             break;
                         case 'Uncaptured':
@@ -257,11 +257,22 @@ class Eh_Stripe_Datatables extends WP_List_Table {
         $order_id = eh_stripe_overview_get_order_ids();
         $stripe_temp = array();
         for ($i = 0, $j = 0; $i < count($order_id); $i++) {
-            $charge_count = count(EH_Helper_Class::wt_stripe_order_db_operations($order_id[$i], null, 'get', '_eh_stripe_payment_charge',null, false));
+              $charge_count = count(EH_Helper_Class::wt_stripe_order_db_operations($order_id[$i], null, 'get', '_eh_stripe_payment_charge',null, false));
             $refund_count = count(EH_Helper_Class::wt_stripe_order_db_operations($order_id[$i], null, 'get', '_eh_stripe_payment_refund',null, false));
             $balance_count = count(EH_Helper_Class::wt_stripe_order_db_operations($order_id[$i], null, 'get', '_eh_stripe_payment_balance',null, false));
             for ($k = 0; $k < $charge_count; $k++) {
                 $data =  EH_Helper_Class::wt_stripe_order_db_operations($order_id[$i], null, 'get', '_eh_stripe_payment_charge',null, false);
+
+
+                if (isset($data[$k]->value) && is_object($data[$k])) {
+                    $data[$k] = $data[$k]->value;
+                } 
+                elseif (!empty($data)) 
+                {
+                    $keys = array_keys($data);
+                    $k = end($keys);
+                }        
+                       
                 $order = wc_get_order($order_id[$i]);
                 $stripe_temp[$j]['order_id'] = $order_id[$i];
                 $stripe_temp[$j]['order_number'] = $order->get_order_number();
@@ -285,7 +296,14 @@ class Eh_Stripe_Datatables extends WP_List_Table {
                 $j++;
             }
             for ($k = 0; $k < $refund_count; $k++) {
-                $data = EH_Helper_Class::wt_stripe_order_db_operations($order_id[$i], null, 'get', '_eh_stripe_payment_refund',null, false);
+                $data = EH_Helper_Class::wt_stripe_order_db_operations($order_id[$i], null, 'get', '_eh_stripe_payment_refund',null, false); 
+
+                if (!empty($data) && !isset($data[$k])) 
+                {
+                    $keys = array_keys($data);
+                    $k = end($keys);
+                } 
+
                 $order = wc_get_order($order_id[$i]);
                 $stripe_temp[$j]['order_id'] = $order_id[$i];
                 $stripe_temp[$j]['order_number'] = $order->get_order_number();
@@ -308,6 +326,13 @@ class Eh_Stripe_Datatables extends WP_List_Table {
             }
             for ($k = 0; $k < $balance_count; $k++) {
                 $data = EH_Helper_Class::wt_stripe_order_db_operations($order_id[$i], null, 'get', '_eh_stripe_payment_balance',null, false);
+
+                if (!empty($data) && !isset($data[$k])) 
+                {
+                    $keys = array_keys($data);
+                    $k = end($keys);
+                } 
+
                 $order = wc_get_order($order_id[$i]);
                 $stripe_temp[$j]['order_id'] = $order_id[$i];
                 $stripe_temp[$j]['order_number'] = $order->get_order_number();

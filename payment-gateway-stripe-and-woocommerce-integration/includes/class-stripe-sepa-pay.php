@@ -140,21 +140,20 @@ class EH_Sepa_Stripe_Gateway extends WC_Payment_Gateway {
             wp_register_script('stripe_v3_js', 'https://js.stripe.com/v3/');
 
            wp_enqueue_script('eh_sepa_pay', plugins_url('assets/js/eh-sepa.js', EH_STRIPE_MAIN_FILE), array('stripe_v3_js','jquery'),EH_STRIPE_VERSION, true);
-            if (isset($stripe_settings['eh_stripe_mode']) && 'test' === $stripe_settings['eh_stripe_mode']) {
-                if (!isset($stripe_settings['eh_stripe_test_publishable_key']) || !isset($stripe_settings['eh_stripe_test_secret_key']) || ! $stripe_settings['eh_stripe_test_publishable_key'] || ! $stripe_settings['eh_stripe_test_secret_key']) {
-                    return false;
-                }
-                else{
+           $mode = isset($stripe_settings['eh_stripe_mode']) ? $stripe_settings['eh_stripe_mode'] : 'live';
+            
+            if(Eh_Stripe_Admin_Handler::wtst_oauth_compatible()){
+                $tokens = EH_Stripe_Payment::wtst_get_stripe_tokens($mode); 
+                $public_key = $tokens['wt_stripe_publishable_key'];
+            }
+            else{
+                if (isset($stripe_settings['eh_stripe_mode']) && 'test' === $stripe_settings['eh_stripe_mode']) {
                     $public_key = $stripe_settings['eh_stripe_test_publishable_key'];
-                }
-            } else {
-                if (!isset($stripe_settings['eh_stripe_live_secret_key']) || !isset($stripe_settings['eh_stripe_live_publishable_key']) || !$stripe_settings['eh_stripe_live_secret_key'] || !$stripe_settings['eh_stripe_live_publishable_key']) {
-                    return false;
-                }
-                else{
+                } else {
                     $public_key = $stripe_settings['eh_stripe_live_publishable_key'];
                 }
             }
+
 
             $show_zip_code = apply_filters('eh_stripe_ccshow_zipcode',true);
             $stripe_params = array(
@@ -295,24 +294,33 @@ class EH_Sepa_Stripe_Gateway extends WC_Payment_Gateway {
      *Makes gateway available 
      */
     public function is_available() {
-
         $stripe_settings   = get_option( 'woocommerce_eh_stripe_pay_settings' );
-
         if (!empty($stripe_settings) && 'yes' === $this->enabled) {
+           $mode = isset($stripe_settings['eh_stripe_mode']) ? $stripe_settings['eh_stripe_mode'] : 'live';
 
-            if (isset($stripe_settings['eh_stripe_mode']) && 'test' === $stripe_settings['eh_stripe_mode']) {
-                if (!isset($stripe_settings['eh_stripe_test_publishable_key']) || !isset($stripe_settings['eh_stripe_test_secret_key']) || ! $stripe_settings['eh_stripe_test_publishable_key'] || ! $stripe_settings['eh_stripe_test_secret_key']) {
-                    return false;
+            if(!Eh_Stripe_Admin_Handler::wtst_oauth_compatible()){
+                if (isset($stripe_settings['eh_stripe_mode']) && 'test' === $stripe_settings['eh_stripe_mode']) {
+                    if (!isset($stripe_settings['eh_stripe_test_publishable_key']) || !isset($stripe_settings['eh_stripe_test_secret_key']) || ! $stripe_settings['eh_stripe_test_publishable_key'] || ! $stripe_settings['eh_stripe_test_secret_key']) {
+                        return false;
+                    }
+                } else {
+                    if (!isset($stripe_settings['eh_stripe_live_secret_key']) || !isset($stripe_settings['eh_stripe_live_publishable_key']) || !$stripe_settings['eh_stripe_live_secret_key'] || !$stripe_settings['eh_stripe_live_publishable_key']) {
+                        return false;
+                    }
                 }
-            } else {
-                if (!isset($stripe_settings['eh_stripe_live_secret_key']) || !isset($stripe_settings['eh_stripe_live_publishable_key']) || !$stripe_settings['eh_stripe_live_secret_key'] || !$stripe_settings['eh_stripe_live_publishable_key']) {
-                    return false;
-                }
+
+                return true;
+                            
             }
+            else{
 
-            return true;
+                $tokens = EH_Stripe_Payment::wtst_get_stripe_tokens($mode); 
+                return $enable = EH_Stripe_Payment::wtst_is_valid($tokens);
+            }
         }
-        return false; 
+        else{
+            return false;
+        }
     }
     
     /**
@@ -844,13 +852,11 @@ class EH_Sepa_Stripe_Gateway extends WC_Payment_Gateway {
                                     exit;
                                 }
 
-                                $order_status = $order->get_status();
-
                                 $obj1 = new EH_Stripe_Payment();
                                 $charge_param = $obj1->make_charge_params($decoded['data']['object'], $order_id);
                                  EH_Helper_Class::wt_stripe_order_db_operations($order_id, $order, 'update', '_eh_stripe_payment_charge', $charge_param, false);
                                 
-                                if ( 'on-hold' === $order_status || 'pending' === $order_status || 'failed' === $order_status) {
+                                if ( 'on-hold' === $order->status || 'pending' === $order->status || 'failed' === $order->status) {
                                     if (isset($decoded['data']['object']['status']) && $decoded['data']['object']['status'] === 'succeeded') {
                                          $status = $decoded['data']['object']['status'];
 
@@ -991,11 +997,12 @@ class EH_Sepa_Stripe_Gateway extends WC_Payment_Gateway {
 
                                 if (!empty($order_id)) {
                                     if($order = wc_get_order( $order_id )){
-                                        $order_status = $order->get_status();
-
+                                        if(!$order){
+                                            return;
+                                        }
                                         $request = array('id' => $intent_id);
                                         $reqst_json = json_encode($request );
-                                        if ( 'on-hold' === $order_status || 'pending' === $order_status || 'failed' === $order_status) {
+                                        if ( 'on-hold' === $order->status || 'pending' === $order->status || 'failed' === $order->status ) {
 
                                         //charges array not present by default for API version 2022-11-15 onwards
                                         if(isset($decoded['data']['object']['charges']) && !empty($decoded['data']['object']['charges'])){
@@ -1108,8 +1115,6 @@ class EH_Sepa_Stripe_Gateway extends WC_Payment_Gateway {
                                 }
                                 if(isset($order_id) && !empty($order_id)){ 
                                     $order = wc_get_order( $order_id );
-                                    $order_status = $order->get_status();
-
                                     if($order){   
                                         if('eh_stripe_checkout' === $order->get_payment_method() && 'processing' !== $order->status && 'completed' !== $order->status ){ 
 
@@ -1134,9 +1139,8 @@ class EH_Sepa_Stripe_Gateway extends WC_Payment_Gateway {
                             if (isset($decoded['data']['object']['metadata']['order_id']) && !empty($decoded['data']['object']['metadata']['order_id'])) {
                                 $order_id = $decoded['data']['object']['metadata']['order_id'];
                                 $order = wc_get_order( $order_id );
-                                $order_status = $order->get_status();
                                 
-                                if($order &&  ('on-hold' === $order_status || 'pending' === $order_status)){
+                                    if($order &&  ('on-hold' === $order->status || 'pending' === $order->status)){
                                    if(isset($decoded['data']['object']['payment_intent']) && !empty($decoded['data']['object']['payment_intent'])){
                                         $intent_id = $decoded['data']['object']['payment_intent'];
 
@@ -1151,6 +1155,133 @@ class EH_Sepa_Stripe_Gateway extends WC_Payment_Gateway {
                             }
                         break;
                                                                     
+                   case 'charge.refunded':
+                        //check stripe vendor folder is exist
+                        if (!class_exists('Stripe\Stripe')) { 
+
+                            include(EH_STRIPE_MAIN_PATH . "vendor/autoload.php");
+                        }
+
+                        //refund object if returned by default upto Stripe API version 2022-08-01
+                       if (isset($decoded['data']['object']['refunds'])) {
+                            $refund_data = $decoded['data']['object']['refunds'];
+                       }
+                       //Stripe API v_2022-11-15 onwards expand refunds objects in charge retrieve API
+                       elseif(isset($decoded['data']['object']['id'])){ 
+                            $expanded_charge = \Stripe\Charge::retrieve(array('id' => $decoded['data']['object']['id'], 'expand' => array('refunds') ) );
+                            $refund_data = isset($expanded_charge->refunds) ? json_decode(json_encode($expanded_charge->refunds), true) : array();
+                       }
+
+
+
+                       
+                        if(isset($refund_data) && !empty($refund_data)){
+                           $charge_id = (isset($refund_data['data']['0']['charge'])) ? sanitize_text_field($refund_data['data']['0']['charge']) : null;
+                            if (!empty($charge_id)) {
+                                $order_id = isset($decoded['data']['object']['metadata']['order_id']) ? $decoded['data']['object']['metadata']['order_id'] : '';
+
+                                if(empty($order_id) && isset($decoded['data']['object']['payment_intent'])){
+                                    $payment_intent_id = sanitize_text_field($decoded['data']['object']['payment_intent']);
+                                    if(true === EH_Stripe_Payment::wt_stripe_is_HPOS_compatibile()){
+                                        $meta = $wpdb->get_results(
+                                            $wpdb->prepare(
+                                                "SELECT order_id FROM {$wpdb->prefix}wc_orders_meta WHERE meta_key = '_eh_stripe_payment_intent' AND meta_value = %s",
+                                                $payment_intent_id
+                                            )
+                                        );
+                                    }
+                                    else{
+                                        $meta = $wpdb->get_results(
+                                            $wpdb->prepare(
+                                                "SELECT post_id FROM {$wpdb->postmeta} WHERE meta_key = '_eh_stripe_payment_intent' AND meta_value = %s",
+                                                $payment_intent_id
+                                            )
+                                        );
+                                    }                                    
+                                    
+                                    if (!empty($meta) && isset($meta[0]->post_id) && !empty($meta[0]->post_id)) {
+                                        $order_id = $meta[0]->post_id;
+                                   }
+                                   else{
+                                    return;
+                                   }                               
+                                } 
+
+
+                                $order = wc_get_order( $order_id );
+                                if(!empty($order) && 'refunded' !== $order->status){
+                                    
+                                    //to prevent refunding again if the request initiated from WP admin adn already success. if the refund inititated from WP  is on pending status then process the webhook
+                                    $auto_process_refund_status = $order->get_meta('auto_process_refund_status');
+                                    if((isset($refund_data['data']['0']['metadata']) && !isset($refund_data['data']['0']['metadata']['refund_initiated_from'])) || 'yes' === $auto_process_refund_status){
+
+
+                                        $obj_stripe_payment = new EH_Stripe_Payment();
+
+                                        if(isset($refund_data['data'][0]['amount'])){
+
+                                            $amount_to_be_refund = EH_Stripe_Payment::reset_stripe_amount($refund_data['data'][0]['amount'], $order->get_currency());
+
+                                        }
+                                        else{
+                                            $amount_to_be_refund = EH_Stripe_Payment::reset_stripe_amount($decoded['data']['object']['amount_refunded'], $order->get_currency());
+
+                                        }
+                                        
+                                        $refund_data = $decoded['data']['object'];
+
+
+                                        $data = $obj_stripe_payment->make_refund_params($refund_data, $amount_to_be_refund, $order->get_currency(), $order_id);
+
+
+                                        $refund = wc_create_refund( array(
+                                        'amount'         => $amount_to_be_refund, //$order->get_remaining_refund_amount(),
+                                        'reason'         => $data['reason'],
+                                        'order_id'       => $order_id,
+                                        'line_items'     => array(),
+                                        ));
+                                         
+                                        
+                                        do_action('woocommerce_refund_processed', $refund, true);    
+                                        $refund_id = (WC()->version < '2.7.0') ? $refund->id : $refund->get_id();
+                                        if ($order->get_remaining_refund_amount() > 0 || ( $order->has_free_item() && $order->get_remaining_refund_items() > 0 )) {
+                                            /**
+                                             * woocommerce_order_partially_refunded.
+                                             *
+                                             * @since 2.4.0
+                                             * Note: 3rd arg was added in err. Kept for bw compat. 2.4.3.
+                                             */
+                                            do_action('woocommerce_order_partially_refunded', $order_id, $refund_id, $refund_id);
+                                        } else {
+                                            do_action('woocommerce_order_fully_refunded', $order_id, $refund_id);
+
+                                            $order->update_status(apply_filters('woocommerce_order_fully_refunded_status', 'refunded', $order_id, $refund_id));
+                                            $response_data['status'] = 'fully_refunded';
+
+                                            //set refund status
+                                            if(isset($decoded['data']['object']['status']) & 'succeeded' === $decoded['data']['object']['status'] && $decoded['data']['object']['amount_refunded'] == $decoded['data']['object']['amount']){
+                                                // Set order status to payment failed
+                                                $order->update_status( 'refunded', sprintf( __( 'Refunded.', 'payment_gateway_stripe_and_woocommerce_integration' ) ) );
+                                            }
+
+                                        }
+
+                                        do_action('woocommerce_order_refunded', $order_id, $refund_id);
+                                        
+                                       
+                                        EH_Helper_Class::wt_stripe_order_db_operations($order_id, $order, 'add', '_eh_stripe_payment_refund', $data, false);
+
+
+                                        $order->add_order_note(__('Reason : ', 'payment_gateway_stripe_and_woocommerce_integration') . $data['reason'] . '.<br>' . __('Amount : ', 'payment_gateway_stripe_and_woocommerce_integration') . get_woocommerce_currency_symbol() . $amount_to_be_refund . '.<br>' . __('Status : ', 'payment_gateway_stripe_and_woocommerce_integration') . (($data['status'] === 'succeeded') ? 'Success' : 'Failed') . ' [ ' . $data['created'] . ' ] ' . (is_null($data['transaction_id']) ? '' : '<br>' . __('Transaction ID : ', 'payment_gateway_stripe_and_woocommerce_integration') . $data['transaction_id'] . __('. via webhook', 'payment_gateway_stripe_and_woocommerce_integration')));                                                                            
+
+
+                                    }    
+                                }
+
+                            }
+                        }
+                       
+                       break;                                                                   
                        default:
                            // code...
                            break;

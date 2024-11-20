@@ -23,17 +23,18 @@ class EH_Stripe_Payment_Request extends EH_Stripe_Payment {
             'eh_payment_request_form_title' => array(
                 'title' => sprintf('<span style="font-weight: bold; font-size: 15px; color:#23282d;">'.__( 'Payment Request Button','payment-gateway-stripe-and-woocommerce-integration' ).'<span>'),
                 'type' => 'title',
-                'description' => '<p style="max-width: 97%;">'.__( 'Accepts payments via Google Pay or chrome payment methods. It works if the customer has set up Google Pay on a device or have cards saved on a supporting browser.</p><p> <a target="_blank" href="https://www.webtoffee.com/woocommerce-stripe-payment-gateway-plugin-user-guide/#google_pay"> Read documentation </a></p> ','payment-gateway-stripe-and-woocommerce-integration' ),
+                'description' => sprintf(__( 'Google Pay allows customers to make payments using any credit or debit card saved to their Google Account. It works when customers have Google Pay set up on their devices <div class="wt_info_div"><p> '.__('To use Google Pay,', 'payment-gateway-stripe-and-woocommerce-integration').' </p><ol><li>Enable Google Pay in your Stripe <a href="https://dashboard.stripe.com/settings/payment_methods">payment methods settings</a>.</li><li>Register your domain</li><ul class="wt_notice_bar_style"><li> '.__('To do this, navigate to <a href="https://dashboard.stripe.com/settings/payment_method_domains"> Settings > Payments > Payment method domains </a> from your Stripe dashboard and add your domain. All domains, whether in production or testing, must be registered. Don’t register your domain more than once per account.', 'payment-gateway-stripe-and-woocommerce-integration') . '</li></ul><li>' . __('To accept Google Pay payments on the web, you need to serve from an HTTPS webpage with a TLS domain-validated certificate.', 'payment-gateway-stripe-and-woocommerce-integration') . '</li></ol>  <p> '.__('Payment methods are only available when you use a ', 'payment-gateway-stripe-and-woocommerce-integration').' <a href="https://docs.stripe.com/elements/express-checkout-element#supported-browsers" target="_blank">'.__(' supported browser', 'payment-gateway-stripe-and-woocommerce-integration').'</a> and pay in a supported currency.</p> </div>.<p> <a target="_blank" href="https://www.webtoffee.com/woocommerce-stripe-payment-gateway-plugin-user-guide/#google_pay"> Read documentation </a></p> ','payment-gateway-stripe-and-woocommerce-integration' )),
+
             ),
             'eh_payment_request_title' => array(
                 'class'=> 'eh-css-class',
                 'type' => 'title',
             ),
             'eh_payment_request' => array(
-                'title'       => __( 'Payment Request Button', 'payment-gateway-stripe-and-woocommerce-integration' ),
+                'title'       => __( 'Google Pay', 'payment-gateway-stripe-and-woocommerce-integration' ),
                 'label'       => __( 'Enable', 'payment-gateway-stripe-and-woocommerce-integration' ), 
                 'type'        => 'checkbox',
-                'desc_tip'    => __( 'Enable to accept payments via Google Pay or chrome payment methods.', 'payment-gateway-stripe-and-woocommerce-integration' ),
+                'desc_tip'    => __( 'Enable to accept secure payments via Google Pay.', 'payment-gateway-stripe-and-woocommerce-integration' ),
                 'default'     => 'no',
             ),
             'eh_payment_request_button_enable_options' => array(
@@ -41,7 +42,7 @@ class EH_Stripe_Payment_Request extends EH_Stripe_Payment {
                 'type' => 'multiselect',
                 'class' => 'chosen_select',
                 'css' => 'width: 350px;',
-                'desc_tip' => __('Payment Request Button will be shown on selected pages.', 'payment-gateway-stripe-and-woocommerce-integration'),
+                'desc_tip' => __('Select where to display the GPay button.', 'payment-gateway-stripe-and-woocommerce-integration'),
                 'options' => array(
                     'product' => 'Product page',
                     'cart' => 'Cart page',
@@ -63,35 +64,33 @@ class EH_Stripe_Payment_Request extends EH_Stripe_Payment {
                 'title'       => __( 'Type', 'payment-gateway-stripe-and-woocommerce-integration' ),
                 'type'        => 'select',
                 'class'       => 'wc-enhanced-select',
-                'description' => __( 'Displays the chosen button type at the checkout.', 'payment-gateway-stripe-and-woocommerce-integration' ),
+                'description' => __( 'Select the desired button type to customize your Google Pay experience.', 'payment-gateway-stripe-and-woocommerce-integration' ),
                 'default'     => 'buy',
                 'desc_tip'    => true,
                 'options'     => array(
-                    'default' => __( 'Pay', 'payment-gateway-stripe-and-woocommerce-integration' ),
+                    'book' => __( 'Book', 'payment-gateway-stripe-and-woocommerce-integration' ),
                     'buy'     => __( 'Buy', 'payment-gateway-stripe-and-woocommerce-integration' ),
+                    'checkout' => __( 'Checkout', 'payment-gateway-stripe-and-woocommerce-integration' ),
                     'donate'  => __( 'Donate', 'payment-gateway-stripe-and-woocommerce-integration' ),
+                    'order' => __( 'Order', 'payment-gateway-stripe-and-woocommerce-integration' ),
+                    'pay' => __( 'Pay', 'payment-gateway-stripe-and-woocommerce-integration' ),
+                    'plain' => __( 'Plain', 'payment-gateway-stripe-and-woocommerce-integration' ),
+
                 ),
             ),
             'eh_payment_request_button_theme' => array(
                 'title'       => __( 'Theme', 'payment-gateway-stripe-and-woocommerce-integration' ),
                 'type'        => 'select',
                 'class'       => 'wc-enhanced-select',
-                'description' => __( 'Displays the chosen color scheme at the checkout.', 'payment-gateway-stripe-and-woocommerce-integration' ),
-                'default'     => 'default',
+                'description' => __( 'Select a theme to customize the appearance of the payment button.', 'payment-gateway-stripe-and-woocommerce-integration' ),
+                'default'     => 'black',
                 'desc_tip'    => true,
                 'options'     => array(
-                    'dark'          => __( 'Dark', 'payment-gateway-stripe-and-woocommerce-integration' ),
-                    'light'         => __( 'Light', 'payment-gateway-stripe-and-woocommerce-integration' ),
-                    'light-outline' => __( 'Light-Outline', 'payment-gateway-stripe-and-woocommerce-integration' ),
+                    'black'          => __( 'Black', 'payment-gateway-stripe-and-woocommerce-integration' ),
+                    'white'         => __( 'White', 'payment-gateway-stripe-and-woocommerce-integration' ),
                 ),
             ),
-            'eh_payment_request_button_height' => array(
-                'title'       => __( 'Height', 'payment-gateway-stripe-and-woocommerce-integration' ),
-                'type'        => 'text',
-                'description' => __( ' Enter the button height in pixels. Width is set to 100%.', 'payment-gateway-stripe-and-woocommerce-integration' ),
-                'default'     => '44',
-                'desc_tip'    => true,
-            ),
+
            
         );
     }

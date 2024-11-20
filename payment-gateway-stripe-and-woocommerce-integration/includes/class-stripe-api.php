@@ -25,10 +25,7 @@ class EH_Stripe_Payment extends WC_Payment_Gateway {
         $this->description = __($this->get_option('description'), 'payment-gateway-stripe-and-woocommerce-integration');
         $this->eh_stripe_order_button = $this->get_option('eh_stripe_order_button');
         $this->eh_stripe_mode = $this->get_option('eh_stripe_mode');
-        $this->eh_stripe_test_secret_key = $this->get_option('eh_stripe_test_secret_key');
-        $this->eh_stripe_test_publishable_key = $this->get_option('eh_stripe_test_publishable_key');
-        $this->eh_stripe_live_secret_key = $this->get_option('eh_stripe_live_secret_key');
-        $this->eh_stripe_live_publishable_key = $this->get_option('eh_stripe_live_publishable_key');
+
         $this->eh_stripe_capture = 'yes' === $this->get_option('eh_stripe_capture', 'yes');
         $this->eh_stripe_checkout_cards = $this->get_option('eh_stripe_checkout_cards') ? $this->get_option('eh_stripe_checkout_cards') : array();
         $this->eh_stripe_enforce_cards = 'yes' === $this->get_option('eh_stripe_enforce_cards', 'yes');
@@ -41,6 +38,28 @@ class EH_Stripe_Payment extends WC_Payment_Gateway {
         $this->eh_stripe_enable_inline_form  = true;
         $this->eh_stripe_save_cards = $this->get_option('eh_stripe_save_cards');
        
+
+        //get tokens based on plugin authentication method
+        if(Eh_Stripe_Admin_Handler::wtst_oauth_compatible($this->eh_stripe_mode)){
+            //Test access token
+            $this->eh_stripe_test_secret_key = get_option('wt_stripe_access_token_test');
+            $this->eh_stripe_test_publishable_key = get_option('wt_stripe_test_publishable_key');
+            $this->eh_stripe_live_secret_key = get_option('wt_stripe_access_token_live');
+            $this->eh_stripe_live_publishable_key = get_option('wt_stripe_live_publishable_key');
+            $this->wt_stripe_account_id_test = get_option('wt_stripe_account_id_test');
+            $this->wt_stripe_account_id_live = get_option('wt_stripe_account_id_live');
+
+        }
+        else{
+            $this->eh_stripe_test_secret_key = $this->get_option('eh_stripe_test_secret_key');
+            $this->eh_stripe_test_publishable_key = $this->get_option('eh_stripe_test_publishable_key');
+            $this->eh_stripe_live_secret_key = $this->get_option('eh_stripe_live_secret_key');
+            $this->eh_stripe_live_publishable_key = $this->get_option('eh_stripe_live_publishable_key');
+            $this->wt_stripe_account_id_test = '';
+            $this->wt_stripe_account_id_live = '';            
+        }
+
+
         $this->method_description = sprintf(__("Accepts Stripe payments via credit or debit card.", 'payment-gateway-stripe-and-woocommerce-integration')." <p><a target='_blank' href='https://www.webtoffee.com/woocommerce-stripe-payment-gateway-plugin-user-guide/#credit_debit'>  ".__('Read documentation', 'payment-gateway-stripe-and-woocommerce-integration')." </a> </p> ");
 
         if ('test' === $this->eh_stripe_mode) {
@@ -87,19 +106,47 @@ class EH_Stripe_Payment extends WC_Payment_Gateway {
     }
    
     /**
-     * function to get stripe api key.
+     * function to get stripe access token.
      */
-    public static function get_stripe_api_key(){
-
-        $stripe_settings  = get_option( 'woocommerce_eh_stripe_pay_settings' );
-        if(isset($stripe_settings['eh_stripe_mode'])){
-            $mode = $stripe_settings['eh_stripe_mode'];
+    public static function get_stripe_api_key(){ 
     
+        $stripe_settings = get_option("woocommerce_eh_stripe_pay_settings");
+        if(!$stripe_settings){
+            return false;
+        }
+        $mode = isset($stripe_settings['eh_stripe_mode']) ? $stripe_settings['eh_stripe_mode'] : 'live';
+        if(!empty($mode)){
+            if(Eh_Stripe_Admin_Handler::wtst_oauth_compatible($mode)){
                 if ('test' === $mode) { 
+                    if('wtst_oauth_expriy' === get_transient( 'wtst_oauth_expriy_test')){ 
+                        return get_option( 'wt_stripe_access_token_test' );
 
-                return $stripe_settings['eh_stripe_test_secret_key'];
+                    }
+                    else{
+                        return self::wtst_refresh_token();
+                    }
+
                 } else {
-                return $stripe_settings['eh_stripe_live_secret_key'];
+                    if('wtst_oauth_expriy' === get_transient( 'wtst_oauth_expriy_live')){
+                        return get_option( 'wt_stripe_access_token_live' );
+
+                    }
+                    else{
+                        return self::wtst_refresh_token();
+                    }               
+                }
+            }
+            else{
+
+                if ('test' === $mode) {
+                    $secret_key = isset($stripe_settings['eh_stripe_test_secret_key']) ? $stripe_settings['eh_stripe_test_secret_key'] : null;
+                    return $secret_key;
+                } else {
+                    $secret_key = isset($stripe_settings['eh_stripe_live_secret_key']) ? $stripe_settings['eh_stripe_live_secret_key'] : null;
+
+                    return $secret_key;
+                }
+
             }
         }
     }
@@ -170,8 +217,11 @@ class EH_Stripe_Payment extends WC_Payment_Gateway {
      * Checks if gateway should be available to use.
      */
     public function is_available() {
-        $enable = true;
+
         if ('yes' === $this->enabled) {        
+            if(!Eh_Stripe_Admin_Handler::wtst_oauth_compatible($this->eh_stripe_mode)){
+                $enable = true;
+
                 if (!$this->eh_stripe_mode && is_checkout()) {
                     $enable = false;
                 }
@@ -184,11 +234,24 @@ class EH_Stripe_Payment extends WC_Payment_Gateway {
                         $enable =  false;
                     }
                 }
+
+
+            }
+            else{
+                $mode = $this->eh_stripe_mode;
+                $tokens = self::wtst_get_stripe_tokens($mode); 
+                $enable = self::wtst_is_valid($tokens);
+            }
+        
+
         }
         else{
             $enable = false;
         } 
-        return apply_filters('wt_stripe_gateway_available', $enable);
+
+         $enable =  apply_filters('wt_stripe_gateway_available', $enable);
+
+        return $enable;           
     }
     
     /**
@@ -252,15 +315,35 @@ class EH_Stripe_Payment extends WC_Payment_Gateway {
 
             $this->tokenization_script();
             wp_enqueue_script('eh_stripe_checkout', plugins_url('assets/js/eh_stripe_checkout.js', EH_STRIPE_MAIN_FILE), array('stripe_v3_js','jquery'),EH_STRIPE_VERSION, true);
-                if ('test' === $this->eh_stripe_mode) {
+
+
+            $wt_stripe_account_id = '';
+            if(Eh_Stripe_Admin_Handler::wtst_oauth_compatible($this->eh_stripe_mode)){
+
+                if ('test' == $this->eh_stripe_mode) {
                     $public_key = $this->eh_stripe_test_publishable_key;
+                    $wt_stripe_account_id = $this->wt_stripe_account_id_test;
+
+                } else {
+                    $public_key = $this->eh_stripe_live_publishable_key;
+                    $wt_stripe_account_id = $this->wt_stripe_account_id_live;
+
+                }
+            }
+            else{
+                if ('test' === $this->eh_stripe_mode) {
+                    $public_key = $this->eh_stripe_test_publishable_key;;
                 } else {
                     $public_key = $this->eh_stripe_live_publishable_key;
                 }
+            }            
+
+
 
             $show_zip_code = apply_filters('eh_stripe_ccshow_zipcode',true);
             $stripe_params = array(
                 'key' => $public_key,
+                'account_id' => $wt_stripe_account_id,
                 'show_zip_code' => $show_zip_code,
                 'i18n_terms' => __('Please accept the terms and conditions first', 'payment-gateway-stripe-and-woocommerce-integration'),
                 'i18n_required_fields' => __('Please fill in required checkout fields first', 'payment-gateway-stripe-and-woocommerce-integration'),
@@ -450,7 +533,7 @@ class EH_Stripe_Payment extends WC_Payment_Gateway {
     /**
      *Reset stripe amount after charge response.
      */
-    public function reset_stripe_amount($total, $currency = '') {
+    public static function reset_stripe_amount($total, $currency = '') {
         if (!$currency) {
             $currency = get_woocommerce_currency();
         }
@@ -485,7 +568,7 @@ class EH_Stripe_Payment extends WC_Payment_Gateway {
         }
 
         $charge = array(
-            'payment_method' => $token,
+            //'payment_method' => $token,
             'amount' => $amount,
             'currency' => $currency,
             'metadata' => array(
@@ -501,6 +584,10 @@ class EH_Stripe_Payment extends WC_Payment_Gateway {
             'description' => wp_specialchars_decode( get_bloginfo( 'name' ), ENT_QUOTES ) . ' Order #' . $wc_order->get_order_number(),
         );
         
+        if(!empty($token)){
+            $charge['payment_method'] = $token;
+        }
+
         if( $this->get_option('eh_stripe_statement_descriptor') ) {
             
             $statement_descriptor = $this->get_option('eh_stripe_statement_descriptor');
@@ -525,7 +612,8 @@ class EH_Stripe_Payment extends WC_Payment_Gateway {
             
             $charge['description']=$charge['metadata']['Products'] .' '.wp_specialchars_decode( get_bloginfo( 'name' ), ENT_QUOTES ) . ' Order #' . $wc_order->get_order_number();
         }
-        $charge['confirm'] =  true ;
+
+        $charge['confirm'] = (isset($_REQUEST['payment_type']) &&  'express_element' === sanitize_text_field($_REQUEST['payment_type']))  ? false : true ;
 
         if ('other' != $card_brand) { 
             $charge['capture_method'] = $this->eh_stripe_capture ? 'automatic' : 'manual'; 
@@ -546,6 +634,11 @@ class EH_Stripe_Payment extends WC_Payment_Gateway {
                 'name' => ((WC()->version < '2.7.0') ? $wc_order->shipping_first_name : $wc_order->get_shipping_first_name()) . ' ' . ((WC()->version < '2.7.0') ? $wc_order->shipping_last_name : $wc_order->get_shipping_last_name()),
                 'phone' => (WC()->version < '2.7.0') ? $wc_order->billing_phone : $wc_order->get_billing_phone(),
             );
+
+            if(isset($_REQUEST['payment_type']) && 'express_element' === sanitize_text_field($_REQUEST['payment_type'])){
+                unset($charge['shipping']);
+                $charge['automatic_payment_methods']['enabled'] = true;
+            }
         }
        return apply_filters('eh_stripe_payment_intent_args', $charge);
     }
@@ -559,8 +652,8 @@ class EH_Stripe_Payment extends WC_Payment_Gateway {
         $origin_time = date('Y-m-d H:i:s', time() + get_option('gmt_offset') * 3600);
         $charge_parsed = array(
             "id" => $charge_data->id,
-            "amount" => $this->reset_stripe_amount($charge_data->amount, $charge_data->currency),
-            "amount_refunded" => $this->reset_stripe_amount($charge_data->amount_refunded, $charge_data->currency),
+            "amount" => self::reset_stripe_amount($charge_data->amount, $charge_data->currency),
+            "amount_refunded" => self::reset_stripe_amount($charge_data->amount_refunded, $charge_data->currency),
             "currency" => strtoupper($charge_data->currency),
             "order_amount" => (WC()->version < '2.7.0') ? $wc_order->order_total : $wc_order->get_total(),
             "order_currency" => (WC()->version < '2.7.0') ? $wc_order->order_currency : $wc_order->get_currency(),
@@ -605,7 +698,7 @@ class EH_Stripe_Payment extends WC_Payment_Gateway {
         $refund_parsed = array(
             "id" => $refund_data->id,
             "object" => $refund_data->object,
-            "amount" => $this->reset_stripe_amount($refund_data->amount, $refund_data->currency),
+            "amount" => self::reset_stripe_amount($refund_data->amount, $refund_data->currency),
             "transaction_id" => $refund_data->balance_transaction,
             "currency" => strtoupper($refund_data->currency),
             "order_amount" => $amount,
@@ -634,7 +727,6 @@ class EH_Stripe_Payment extends WC_Payment_Gateway {
             $params = array(
                 'description' => "Customer for Order #" . $order_no,
                 "email" => $user_email,
-                "payment_method" => $token,
                 "address" => array(
                     'city' => method_exists($order, 'get_billing_city') ? $order->get_billing_city() : $order->billing_city,
                     'country' => method_exists($order, 'get_billing_country') ? $order->get_billing_country() : $order->billing_country,
@@ -654,9 +746,12 @@ class EH_Stripe_Payment extends WC_Payment_Gateway {
                 'description' => 'Added manually',
                 'name' => $fname . " " . $lname,
                 "email" => $user_email,
-                "payment_method" => $token,
             );
         
+        }
+
+        if(!empty($token)){
+            $params['payment_method'] = $token;            
         }
         $params = apply_filters("wt_stripe_alter_customer_request", $params);
         $response = \Stripe\Customer::create($params);
@@ -698,10 +793,6 @@ class EH_Stripe_Payment extends WC_Payment_Gateway {
 
             $this->eh_stripe_checkout_cards = apply_filters('wt_stripe_add_new_card_brand_filter', $this->eh_stripe_checkout_cards);
             
-             /**
-             * 
-             */
-
 
             
             if (!in_array($card_brand, $this->eh_stripe_checkout_cards)) {
@@ -730,8 +821,8 @@ class EH_Stripe_Payment extends WC_Payment_Gateway {
                     $card_brand = 'China UnionPay';
                 }
                 
-                if(in_array($card_brand, $this->eh_stripe_checkout_cards)){
-                $process_auth = true; 
+                if(in_array($card_brand, $this->eh_stripe_checkout_cards) || 'other' == $card_brand ){
+                    $process_auth = true; 
                 }
             }
 
@@ -826,6 +917,13 @@ class EH_Stripe_Payment extends WC_Payment_Gateway {
                 $payment_intent_args  = $this->get_charge_details($wc_order, $token, $order_type, $client, $card_brand, $currency, $amount,$customer);
                 
                 $intent = $this->get_payment_intent_from_order( $wc_order );
+
+                if(!empty($payment_method)){
+                    $idempotency_key = $wc_order->get_order_key().'-'.$payment_method;                    
+                }
+                else{
+                    $idempotency_key = $wc_order->get_order_key().'-'.$_REQUEST['_wpnonce'];     
+                }
                 if(! empty($intent)){
 
                     if ( $intent->status === 'succeeded' ) {
@@ -833,12 +931,12 @@ class EH_Stripe_Payment extends WC_Payment_Gateway {
                         wp_redirect(wc_get_checkout_url());
                     }else{
                         $intent = \Stripe\PaymentIntent::create( $payment_intent_args , array(
-                            'idempotency_key' => $wc_order->get_order_key().'-'.$payment_method
+                            'idempotency_key' => $idempotency_key
                         ));
                     }
                 }else{
                     $intent = \Stripe\PaymentIntent::create( $payment_intent_args , array(
-                        'idempotency_key' => $wc_order->get_order_key().'-'.$payment_method
+                        'idempotency_key' => $idempotency_key
                     ));
                 }
                     
@@ -877,7 +975,15 @@ class EH_Stripe_Payment extends WC_Payment_Gateway {
                             'createaccount' => (int) ! empty( $_POST['createaccount'] ), // WPCS: input var ok, CSRF ok.
                         );
                     }
-                }    
+                }  
+                elseif('requires_payment_method' === $intent->status) {
+                    return array (
+                        'result' => 'success',
+                        'client_secret' => $intent->client_secret,
+                        'redirect' => $this->get_return_url($wc_order),
+
+                    );
+                }
                  else {
                       return $this->process_order(   end( $intent->charges->data ),$wc_order );
                  }
@@ -900,14 +1006,20 @@ class EH_Stripe_Payment extends WC_Payment_Gateway {
 
             if (method_exists($error, 'getJsonBody')) {
                 $oops = $error->getJsonBody();
-                $error_message = $oops['error']['message'];
+                    $error_message = isset( $oops['error']['message'] ) ? $oops['error']['message'] : 'Unknown Error';
             } else {
                 $oops = array('message' => $error->getMessage());
                 $error_message = $error->getMessage();
             }
 
+            if(isset($oops['error']['code']) && 'platform_api_key_expired' === $oops['error']['code']){
+                EH_Stripe_Log::log_update('dead', 'expired and recall', get_bloginfo('blogname') . ' - Charge - Order #' . $wc_order->get_order_number());
+
+                $this->process_payment($order_id);
+            }
+
             wc_add_notice(__('Payment Failed ', 'payment-gateway-stripe-and-woocommerce-integration') . "( " . $error_message . " )." . __('Refresh and try again', 'payment-gateway-stripe-and-woocommerce-integration'), $notice_type = 'error');
-            EH_Stripe_Log::log_update('dead', array_merge($user_detail, $oops), get_bloginfo('blogname') . ' - Charge - Order #' . $wc_order->get_order_number());
+            EH_Stripe_Log::log_update('dead', array_merge($user_detail, (array) $oops), get_bloginfo('blogname') . ' - Charge - Order #' . $wc_order->get_order_number());
             return array (
                 'result' => 'failure'
             );
@@ -975,12 +1087,12 @@ class EH_Stripe_Payment extends WC_Payment_Gateway {
             else{
                 if (method_exists($error, 'getJsonBody')) {
                     $oops = $error->getJsonBody();
-                    $error_message = $oops['error']['message'];
-                    $error_type =  $oops['error']['type'];
+                    $error_message = isset( $oops['error']['message'] ) ? $oops['error']['message'] : 'Unknown Error';
+                    $error_type =  isset( $oops['error']['type'] ) ? $oops['error']['type'] : 'Unknown Type';
                 } else {
                     $oops = array('message' => $error->getMessage());
                     $error_message = $error->getMessage();
-                    $error_type =  $oops['error']['type'];
+                    $error_type =  isset( $oops['error']['type'] ) ? $oops['error']['type'] : '#Unknown Type';
                 }        
             }
             wc_add_notice( $error_message, 'error' );
@@ -1004,7 +1116,13 @@ class EH_Stripe_Payment extends WC_Payment_Gateway {
         if ($charge_response->paid == true) {
 
             if($charge_response->captured == true){
-                $wc_order->payment_complete($data['id']);
+
+                //SFRWDF-814 - To avoid Stocks getting reduced twice.
+                $process_order = apply_filters( 'wt_stripe_process_card_payment_only_through_webhook', false );
+                
+                if ( ! $process_order ) {
+                    $wc_order->payment_complete($data['id']);
+                }
             }
             if (!$charge_response->captured) {
                 $wc_order->update_status('on-hold');
@@ -1470,4 +1588,168 @@ class EH_Stripe_Payment extends WC_Payment_Gateway {
         }
     }     
 
+
+    /**
+     * Function calling Refresh token API.
+     * @return refresh token and access token
+     * @since 4.0.0
+     * 
+     */
+    public static function wtst_refresh_token()
+    {
+        try{
+            //To prevent multiple API call
+            if("yes" === get_transient("wtst_refresh_token_calling")){
+                return;
+            }
+            else{
+                //Set transient to know that refresh token API is calling now
+                set_transient("wtst_refresh_token_calling", "yes");
+
+            }
+            $stripe_settings = get_option("woocommerce_eh_stripe_pay_settings");
+            $stripe_settings["eh_stripe_mode"] = (isset($stripe_settings["eh_stripe_mode"]) && !empty($stripe_settings["eh_stripe_mode"])) ? $stripe_settings["eh_stripe_mode"] : 'live';
+            
+            $access_token_url = EH_STRIPE_OAUTH_WT_URL . 'get-access-token';
+
+            if('test' === $stripe_settings["eh_stripe_mode"]){ 
+                $refresh_token = get_option("wt_stripe_refresh_token_test");
+                $account_id = get_option("wt_stripe_account_id_test");
+            }
+            else{ 
+                $refresh_token = get_option("wt_stripe_refresh_token_live");
+                $account_id = get_option("wt_stripe_account_id_live");
+
+            }
+
+            if(!$refresh_token){
+                throw new Exception('Refresh token not found!');
+            }
+
+            // JSON data to send in the POST request body.
+            $access_token_req_data = array(
+                'refresh_token' => sanitize_text_field($refresh_token),
+                'mode' => sanitize_text_field($stripe_settings["eh_stripe_mode"]),
+                'account_id' => sanitize_text_field($account_id),
+
+            );
+
+            wc_get_logger()->log('Refresh token API request', print_r($access_token_req_data, true), array( 'source' => 'wt_stripe_oauth' )  );
+
+            // Convert the data to JSON format.
+            $access_token_json_data = json_encode( $access_token_req_data );
+
+            // Arguments for the POST request.
+            $access_token_args = array(
+                'body'    => $access_token_json_data,
+                'headers' => array(
+                    'Content-Type' => 'application/json', // Tell the server it's JSON.
+                ),
+                'timeout' => apply_filters("wtst_refresh_token_timeout", 45), // Optional: Set a timeout for the request.
+            );
+
+            // Make the POST request.
+            $access_token_response = wp_safe_remote_post( $access_token_url, $access_token_args );
+
+            wc_get_logger()->log('Refresh token API response', print_r($access_token_response, true), array( 'source' => 'wt_stripe_oauth' )  );
+
+
+            // Check for errors
+            if ( is_wp_error( $access_token_response ) ) {
+                // There was an error in the request.
+                $error_message = $access_token_response->get_error_message();
+                throw new Exception('WP error - ' . $error_message);
+            } else {
+                // Decode JSON response
+                $decoded_response = json_decode(wp_remote_retrieve_body($access_token_response), true);
+                wc_get_logger()->log('Refresh token API response parsed', print_r($decoded_response, true), array( 'source' => 'wt_stripe_oauth' )  );
+
+                // Check if response contains any error
+                if (isset($decoded_response['error'])) {
+                    throw new Exception('Error: ' . (isset($decoded_response['error']) ? $decoded_response['error'] . ' - ' : '') . (isset($decoded_response['error_description']) ? $decoded_response['error_description'] : ''));
+                } elseif(isset($decoded_response['access_token']) && isset($decoded_response['refresh_token'])) { 
+                    $access_token = sanitize_text_field($decoded_response['access_token']);
+                    $refresh_token = (isset($decoded_response['refresh_token']) ? sanitize_text_field($decoded_response['refresh_token'])  : '');
+                    $account_id = (isset($decoded_response['stripe_user_id']) ? sanitize_text_field($decoded_response['stripe_user_id'])  : '');
+                    $stripe_publishable_key = (isset($decoded_response['stripe_publishable_key']) ? sanitize_text_field($decoded_response['stripe_publishable_key'])  : '');
+                    $expiry_time = (isset($decoded_response['transient_expiry']) ? sanitize_text_field($decoded_response['transient_expiry'])  : '');
+
+                
+                    if('test' === $stripe_settings["eh_stripe_mode"]){                                    
+                        //Set expiry
+                        set_transient( 'wtst_oauth_expriy_test', 'wtst_oauth_expriy', $expiry_time );
+                        update_option("wt_stripe_account_id_test", $account_id);
+                        update_option("wt_stripe_access_token_test", $access_token);
+                        update_option("wt_stripe_refresh_token_test", $refresh_token);
+                        update_option("wt_stripe_test_publishable_key", $stripe_publishable_key);
+
+                    }
+                    else{
+                        //Set expiry
+                        set_transient( 'wtst_oauth_expriy_live', 'wtst_oauth_expriy', $expiry_time ); 
+                        update_option("wt_stripe_account_id_live", $account_id);
+                        update_option("wt_stripe_access_token_live", $access_token);
+                        update_option("wt_stripe_refresh_token_live", $refresh_token);
+                        update_option("wt_stripe_live_publishable_key", $stripe_publishable_key);
+
+                    }
+
+                    //delete the transient to know that refresh token API call was done
+                    delete_transient("wtst_refresh_token_calling");
+                    return $access_token;
+
+                }       
+                else{
+                    throw new Exception('Unknown response!');
+                }  
+            }
+        }
+        catch(Exception $e){
+            delete_transient("wtst_refresh_token_calling");
+             wc_get_logger()->log('Refresh token API', $e->getMessage(), array( 'source' => 'wt_stripe_oauth' )  );
+
+        }
+    }
+
+    /**
+     * function to get stripe  token.
+     * @param $mode string current payment mode
+     * @since 4.0.0
+     * 
+     */
+    public static function wtst_get_stripe_tokens($mode){
+
+        if(!empty($mode)){
+        
+            if ('test' === $mode) {
+                return $arr_tokens = array(
+                   "wt_stripe_account_id" =>   get_option("wt_stripe_account_id_test"),
+                   "wt_stripe_access_token" =>  get_option("wt_stripe_access_token_test"),
+                   "wt_stripe_refresh_token" => get_option("wt_stripe_refresh_token_test"),
+                   "wt_stripe_publishable_key" => get_option("wt_stripe_test_publishable_key"),
+                );
+            } else {
+                return $arr_tokens = array(
+                   "wt_stripe_account_id" => get_option("wt_stripe_account_id_live"),
+                   "wt_stripe_access_token" =>  get_option("wt_stripe_access_token_live"),
+                   "wt_stripe_refresh_token" => get_option("wt_stripe_refresh_token_live"),
+                   "wt_stripe_publishable_key" => get_option("wt_stripe_live_publishable_key"),
+
+                );             
+            }
+        }
+    } 
+
+
+    static public function wtst_is_valid( $tokens)
+    {     
+       
+            if (!isset($tokens['wt_stripe_publishable_key']) || !isset($tokens['wt_stripe_access_token']) || ! $tokens['wt_stripe_refresh_token'] || ! $tokens['wt_stripe_account_id']) {
+                return false;
+            }
+            else{
+                return true;
+            }
+        
+    }   
 }

@@ -26,9 +26,9 @@ jQuery(function ($) {
   
         var data = eh_payment_request_gen.OrderDetails( PaymentMethod );
   
-              return  $.ajax( {
-                  type:    'POST',
-                  data:    data,
+          return  $.ajax( {
+            type:    'POST',
+            data:    data,
           dataType: 'json',
           url: eh_payment_request_params.wc_ajaxurl.toString().replace( '%%change_end%%', "eh_spg_gen_payment_request_create_order"),
         } );
@@ -37,11 +37,11 @@ jQuery(function ($) {
   
       OrderDetails: function( evt ) {
   
-              var payment_method   = evt.paymentMethod;
-              var email            = payment_method.billing_details.email;
-              var phone            = payment_method.billing_details.phone;
-              var billing          = payment_method.billing_details.address;
-              var name             = evt.payerName;
+              //var payment_method   = evt.paymentMethod;
+              var email            = evt.billingDetails.email;
+              var phone            = evt.billingDetails.phone;
+              var billing          = evt.billingDetails.address;              
+              var name             = evt.billingDetails.name;
               var shipping         = evt.shippingAddress;
               var data = {
                _wpnonce:                   eh_payment_request_params.eh_checkout_nonce,
@@ -65,25 +65,25 @@ jQuery(function ($) {
                   shipping_city:             '',
                   shipping_state:            '',
                   shipping_postcode:         '',
-                  shipping_method:           [ null === evt.shippingOption ? null : evt.shippingOption.id ],
+                  shipping_method:           [ null === evt.shippingRate ? null : evt.shippingRate.id ],
                   order_comments:            '',
                   payment_method:            'eh_stripe_pay',
+                  payment_type:              'express_element',
                   ship_to_different_address: 1,
                   terms:                     1,
-          eh_stripe_pay_token:       payment_method.id,
-          eh_stripe_card_type:       payment_method.card.brand,
+                  eh_stripe_pay_token:       null,
               };
   
               if ( shipping ) {
-                  data.shipping_first_name = shipping.recipient.split( ' ' ).slice( 0, 1 ).join( ' ' );
-                  data.shipping_last_name  = shipping.recipient.split( ' ' ).slice( 1 ).join( ' ' );
-                  data.shipping_company    = shipping.organization;
-                  data.shipping_country    = shipping.country;
-                  data.shipping_address_1  = typeof shipping.addressLine[0] === 'undefined' ? '' : shipping.addressLine[0];
-                  data.shipping_address_2  = typeof shipping.addressLine[1] === 'undefined' ? '' : shipping.addressLine[1];
-                  data.shipping_city       = shipping.city;
-                  data.shipping_state      = shipping.region;
-                  data.shipping_postcode   = shipping.postalCode;
+                  data.shipping_first_name = shipping.name.split( ' ' ).slice( 0, 1 ).join( ' ' );
+                  data.shipping_last_name  = shipping.name.split( ' ' ).slice( 1 ).join( ' ' );
+                  data.shipping_company    = '';//shipping.organization;
+                  data.shipping_country    = shipping.address.country;
+                  data.shipping_address_1  = 'undefined' === typeof shipping.address.line1 ? '' : shipping.address.line1;
+                  data.shipping_address_2  =  'undefined' === typeof shipping.address.line2 ? '' : shipping.address.line2;
+                  data.shipping_city       = shipping.address.city;
+                  data.shipping_state      = shipping.address.state;
+                  data.shipping_postcode   = shipping.address.postal_code;
               }
   
               return data;
@@ -127,100 +127,178 @@ jQuery(function ($) {
         }
         
         $( document ).trigger("wt-stripe-paymentdetails-data", paymentdetails);
-        var paymentRequest = stripe.paymentRequest(paymentdetails);
-  
-        var elements = stripe.elements();
-        var prButton = elements.create('paymentRequestButton', {
-          paymentRequest: paymentRequest,
-          style: {
-                      paymentRequestButton: {
-                          type: eh_payment_request_params.button_type,
-                          theme: eh_payment_request_params.button_theme,
-                          height: eh_payment_request_params.button_height + 'px'
-                      },
-                  }
-        });
-       
-        paymentRequest.canMakePayment().then(function(result) {
-              
-          if (result) {
-              
-            if (true === result['applePay']) {
-              // document.getElementById('eh-stripe-payment-request-button').style.display = 'none';
-              //show applepay button
-              $('.apple-pay-button-div').show();               
-              $('.woocommerce-checkout .apple-pay-button').css('visibility', 'visible');
-              
-              $('#eh-payment-request-button-seperator').hide();
-              
-            }else if (true === result['googlePay']) {
+        
+        var elementOptions =  {
+                                mode: 'payment',
+                                amount: paymentdetails.total.amount,
+                                currency: eh_payment_request_params.currency_code,
+                              };
+        var elements = stripe.elements(elementOptions);
 
-              $('.apple-pay-button-div').hide();
-              if(eh_payment_request_params.product){ 
-                prButton.on( 'click', function( evt ) 
-                {
-                  var applepay = '';
-                  eh_payment_request_gen.add_to_cart(evt,paymentRequest,applepay);
-                });
-              }
-              prButton.mount('#eh-stripe-payment-request-button');
-            }
-          } else {
-            document.getElementById('eh-stripe-payment-request-button').style.display = 'none';
-            
-            $('#eh-payment-request-button-seperator').hide();
-            $('.apple-pay-button-div').hide();
-          }
+        var expressOptions = {
+          paymentMethods : {
+            googlePay : ('yes' === eh_payment_request_params.gpay_enabled) ? 'always' : 'never',
+            applePay : ('yes' === eh_payment_request_params.apple_pay_enabled) ? 'always' : 'never',
+            amazonPay : 'never',
+            link :  'never',
+            paypal : 'never',
+          },
+          buttonTheme: {
+            applePay: eh_payment_request_params.apple_pay_color,
+            googlePay: eh_payment_request_params.gpay_button_theme,
+          },
+          buttonType: {
+            applePay: eh_payment_request_params.apple_pay_type,
+            googlePay: eh_payment_request_params.gpay_button_type,            
+          },
+          buttonHeight: parseInt(eh_payment_request_params.button_height, 10),
+        };
+        const expressCheckoutElement = elements.create("expressCheckout", expressOptions);
+        expressCheckoutElement.mount("#eh-stripe-payment-request-button");
+
+
+          var shippingReqData = {
+            '_wpnonce': eh_payment_request_params.eh_payment_request_get_shipping_nonce,
+            is_product:   (eh_payment_request_params.product) ? 'yes' : 'no',
+            country:   eh_payment_request_params.country_code,
+            state:     '',
+            postcode:  '',
+            city:      '',
+            address:   '',
+            address_2: '',
+          };
+
+        
+        $( document ).trigger("wt-stripe-get-shipping-request-data", shippingReqData);
+
+        var result = $.ajax( {
+          type:    'POST',
+          data:    shippingReqData,
+          url:     eh_payment_request_params.wc_ajaxurl.toString().replace( '%%change_end%%', "eh_spg_payment_request_get_shippings"),
+
         });
-  
-        $(document.body).on('click', '.apple-pay-button', function (e) {
-          e.preventDefault();
-         
+
+        expressCheckoutElement.on('click', (event) => {
           if(eh_payment_request_params.product){ 
-            var applepay = 1;
-            eh_payment_request_gen.add_to_cart(e,paymentRequest,applepay);
-          }else{
-            paymentRequest.show();
+            eh_payment_request_gen.add_to_cart(event);
+          }
+
+          if((eh_payment_request_params.product && eh_payment_request_params.product_data.needs_shipping)|| 'yes' === eh_payment_request_params.needs_shipping){
+
+            $.when(result).then(
+              function (response) { 
+                // Success callback
+                 const options = {
+                  emailRequired: true,
+                  phoneNumberRequired: true,
+                  shippingAddressRequired: true,
+                  shippingRates: response.shipping_options,
+
+                };
+                event.resolve(options);
+              },
+              function (jqXHR, textStatus, errorThrown) {
+                // Error callback
+                console.error('Error:', textStatus, errorThrown);
+              }
+
+              
+            );
+          }
+          else{
+            const options = {
+              emailRequired: true,
+              phoneNumberRequired: true,
+            }; 
+            event.resolve(options);
+           
+          }
+
+          
+        });
+
+
+        expressCheckoutElement.on('confirm', async (evt) => { 
+
+          try {
+            const response = await eh_payment_request_gen.ProcessPaymentMethod(evt);
+
+            
+            if (response.result === 'success') {
+              const { error } = await stripe.confirmPayment({
+                // `Elements` instance that's used to create the Express Checkout Element.
+                elements,
+                // `clientSecret` from the created PaymentIntent
+                clientSecret: response.client_secret,
+                confirmParams: {
+                  return_url: response.redirect,
+                },
+                // Uncomment below if you only want redirect for redirect-based payments.
+                // redirect: 'if_required',
+              });
+
+              if (error) {
+                console.log(error);
+                // This point is reached only if there's an immediate error when confirming the payment. Show the error to your customer (for example, payment details incomplete).
+              } else {
+                // Your customer will be redirected to your `return_url`.
+              }              
+            } else {
+              eh_payment_request_gen.paymentFailure(evt, response.messages);
+            }
+          } catch (error) {
+            console.log('An error occurred:', error);
+            // Handle any errors that occurred during the payment processing
           }
         });
-        
-        paymentRequest.on( 'shippingaddresschange', function( evt ) {
-            
-          $.when( eh_payment_request_gen.updateShippingOptions( paymentdetails, evt.shippingAddress ) ).then( function( response ) {
-        
-            evt.updateWith( { status: response.result, shippingOptions: response.shipping_options, total: response.total, displayItems: response.displayItems } );
-            
-          });
-        });
-  
-  
-        paymentRequest.on( 'shippingoptionchange', function( evt ) {
+
+        expressCheckoutElement.on( 'shippingaddresschange', async( evt ) => {
           
-          $.when( eh_payment_request_gen.updateShippingDetails( paymentdetails, evt.shippingOption ) ).then( function( response ) {
+          try{
+            const response = await eh_payment_request_gen.updateShippingOptions( paymentdetails, evt.address );
+            if (response && response.total && response.total.amount !== undefined) {
+              var amount = response.total.amount;
+            }
+            else if (response && response.product_data && response.product_data.total && response.product_data.total.amount !== undefined) {
+              var amount = response.product_data.total.amount;
+            }  
+            elements.update({amount: amount})            
+            evt.resolve( { shippingRates: response.shipping_options,  lineItems: response.displayItems } );
               
-            if ( 'success' === response.result ) {
-              evt.updateWith( { status: 'success', total: response.total, displayItems: response.displayItems } );
-            }
-  
-            if ( 'fail' === response.result ) {
-              evt.updateWith( { status: 'fail' } );
-            }
-          });                                                
+            
+          }
+          catch (error) {
+            console.log('An error occurred:', error);
+            evt.reject(new Error('Unable to update shipping options.'));
+            // Handle any errors that occurred during the payment processing
+          }          
         });
-  
-        paymentRequest.on('paymentmethod', function(evt) {
-          
-          $.when( eh_payment_request_gen.ProcessPaymentMethod( evt) ).then( function( response ) {
-            if ( 'success' === response.result ) {
-              eh_payment_request_gen.completePayment( evt, response.redirect );
-            } else {
-              eh_payment_request_gen.paymentFailure( evt, response.messages );
+        
+        expressCheckoutElement.on( 'shippingratechange', async( evt ) => {
+            
+          try{
+            const response = await eh_payment_request_gen.updateShippingDetails( paymentdetails, evt.shippingRate );
+            if (response && response.total && response.total.amount !== undefined) {
+              var amount = response.total.amount;
             }
-          });
+            else if (response && response.product_data && response.product_data.total && response.product_data.total.amount !== undefined) {
+              var amount = response.product_data.total.amount;
+            }            
+            elements.update({amount: amount})            
+            evt.resolve( {  lineItems: response.displayItems } );
+              
+            
+          }
+          catch (error) {
+            console.log('An error occurred:', error);
+            evt.reject(new Error('Unable to update shipping rates.'));
+            // Handle any errors that occurred during the payment processing
+          }          
         });
+
       },
   
-      add_to_cart: function(e,paymentRequest,applepay){
+      add_to_cart: function(e){
        
         if ( $( '.single_add_to_cart_button' ).is( '.disabled' ) ) {
           e.preventDefault();
@@ -235,10 +313,6 @@ jQuery(function ($) {
          
         eh_payment_request_gen.add_to_cart_ajax_call();
   
-        if(applepay){
-          
-          paymentRequest.show();
-        }
       },
   
       add_to_cart_ajax_call: function(){
@@ -277,11 +351,11 @@ jQuery(function ($) {
         var data = {
           '_wpnonce': eh_payment_request_params.eh_payment_request_get_shipping_nonce,
           country:   address.country,
-          state:     address.region,
-          postcode:  address.postalCode,
+          state:     address.state,
+          postcode:  address.postal_code,
           city:      address.city,
-          address:   typeof address.addressLine[0] === 'undefined' ? '' : address.addressLine[0],
-          address_2: typeof address.addressLine[1] === 'undefined' ? '' : address.addressLine[1],
+          address:   'undefined' === typeof address.line1 ? '' : address.line1,
+          address_2:  'undefined' === typeof address.line2 ? '' : address.line2,
         };
         
         $( document ).trigger("wt-stripe-get-shippings-data", data);
@@ -310,27 +384,8 @@ jQuery(function ($) {
         
       },
   
-      completePayment: function( payment, url ) {
-        eh_payment_request_gen.block();
-  
-        payment.complete( 'success' );
-  
-        // Success, then redirect to the Thank You page.
-        window.location = url;
-      },
-  
-      block: function() {
-        $.blockUI( {
-          message: null,
-          overlayCSS: {
-            background: '#fff',
-            opacity: 0.6
-          }
-        } );
-      },
   
       paymentFailure: function( payment, message ) {
-        payment.complete( 'fail' );
   
         var $target = $( '.woocommerce-notices-wrapper:first' ) || $( '.cart-empty' ).closest( '.woocommerce' ) || $( '.woocommerce-cart-form' );
   
@@ -360,6 +415,10 @@ jQuery(function ($) {
   
     
     $(document.body).on('updated_checkout', function () {
+      eh_payment_request_gen.init();
+    });
+
+     $(document.body).on('found_variation', function () {
       eh_payment_request_gen.init();
     });
   

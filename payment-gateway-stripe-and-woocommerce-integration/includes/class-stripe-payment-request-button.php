@@ -24,50 +24,27 @@ class Eh_Stripe_Payment_Request_Class {
             $this->eh_stripe_apple_pay_options = $this->eh_stripe_option['eh_stripe_apple_pay_options'] ? $this->eh_stripe_option['eh_stripe_apple_pay_options'] : array();
         }
 
-        if(isset($this->eh_stripe_option['eh_payment_request']) && ($this->eh_stripe_option['eh_payment_request'] === 'yes')){
-       
-            //adds payment request button to cart page
-            $eh_payment_request_button_position_cart = apply_filters("wt_stripe_gpay_cart_position", "woocommerce_proceed_to_checkout");
 
-            add_action($eh_payment_request_button_position_cart, array($this, 'eh_add_payment_request_button'));
-            add_action($eh_payment_request_button_position_cart, array($this, 'display_payment_request_button_separator'));
+        // Get the position of express buttons
+        $express_button_position = isset($this->eh_stripe_option['eh_stripe_express_button_position']) ? $this->eh_stripe_option['eh_stripe_express_button_position'] : 'below';
+        $priority = ('below' === $express_button_position) ? 20 : 0;
+
+        //check whether apple pay or gpay is enabled
+        if((isset($this->eh_stripe_option['eh_stripe_apple_pay']) && 'yes' === $this->eh_stripe_option['eh_stripe_apple_pay']) || (isset($this->eh_stripe_option['eh_payment_request']) && ($this->eh_stripe_option['eh_payment_request'] === 'yes'))){
+
+            add_action('woocommerce_proceed_to_checkout', array($this, 'eh_add_payment_request_button'), $priority);
             
-            //adds payment request button to checkout page
-            $eh_payment_request_button_position_checkout = apply_filters("wt_stripe_gpay_checkout_position", "woocommerce_before_checkout_form");
-
-            add_action($eh_payment_request_button_position_checkout, array($this, 'eh_add_payment_request_button'));
-            add_action($eh_payment_request_button_position_checkout, array($this, 'display_payment_request_button_separator'));
-
-            //adds payment request button to product page
-            $eh_payment_request_button_position_product = apply_filters("wt_stripe_gpay_product_position", "woocommerce_after_add_to_cart_button");
-
-            add_action( $eh_payment_request_button_position_product, array( $this, 'display_payment_request_button_separator' ));
-            add_action( $eh_payment_request_button_position_product, array( $this, 'eh_add_payment_request_button' ));
-
-
-        }
-
-        if(isset($this->eh_stripe_option['eh_stripe_apple_pay']))
-        {
-            if ($this->eh_stripe_option['eh_stripe_apple_pay'] === 'yes') {
-                
-                if(isset($this->eh_stripe_option['eh_stripe_apple_pay_position_checkout'])){
-                    $priority = ($this->eh_stripe_option['eh_stripe_apple_pay_position_checkout'] === 'below') ? 20 : 0;
-                    add_action('woocommerce_proceed_to_checkout', array($this, 'add_apple_pay_button'), $priority);
-                    $position = ($this->eh_stripe_option['eh_stripe_apple_pay_position_checkout']);
-                    
-                    if($position  === 'above'){ 
-                    add_action('woocommerce_before_checkout_form', array($this, 'add_apple_pay_button'));
-                    add_action( 'woocommerce_before_add_to_cart_button', array( $this, 'add_apple_pay_button' ));
-                    }else{ 
-                        add_action('woocommerce_review_order_after_submit', array($this, 'add_apple_pay_button'),10);
-                        add_action( 'woocommerce_after_add_to_cart_button', array( $this, 'add_apple_pay_button' ));
-                    }
-                }
-                
-                
+            if('above'  === $express_button_position){ 
+                add_action('woocommerce_before_checkout_form', array($this, 'eh_add_payment_request_button'));
+                add_action( 'woocommerce_before_add_to_cart_button', array( $this, 'eh_add_payment_request_button' ));
+            }else{ 
+                add_action('woocommerce_review_order_after_submit', array($this, 'eh_add_payment_request_button'),10);
+                add_action( 'woocommerce_after_add_to_cart_button', array( $this, 'eh_add_payment_request_button' ));
             }
+
         }
+        
+            
 
         add_action('wp_enqueue_scripts', array($this, 'payment_request_scripts'));
 
@@ -105,27 +82,49 @@ class Eh_Stripe_Payment_Request_Class {
                 wp_enqueue_style('eh_apple_pay_style', EH_STRIPE_MAIN_URL_PATH . 'assets/css/apple-pay.css',EH_STRIPE_VERSION);
                 wp_enqueue_script('eh_payment_request', EH_STRIPE_MAIN_URL_PATH . 'assets/js/eh-payment-request-button.js',array('stripe_v3_js','jquery'),EH_STRIPE_VERSION);
 
+                //Test mode
                 if ('test' == $this->eh_stripe_option['eh_stripe_mode']) {
-                    $public_key = $this->eh_stripe_option['eh_stripe_test_publishable_key'];
-                    $secret_key = $this->eh_stripe_option['eh_stripe_test_secret_key'];
+                    //get tokens based on plugin authentication method
+                    if(Eh_Stripe_Admin_Handler::wtst_oauth_compatible($this->eh_stripe_option['eh_stripe_mode'])){   
+                        $secret_key = get_option('wt_stripe_access_token_test');
+                        $public_key = get_option('wt_stripe_test_publishable_key');
+                    
+                    }
+                    else{                 
+                        $public_key = $this->eh_stripe_option['eh_stripe_test_publishable_key'];
+                        $secret_key = $this->eh_stripe_option['eh_stripe_test_secret_key'];
+                    }
+                //Live mode    
                 } else {
-                    $public_key = $this->eh_stripe_option['eh_stripe_live_publishable_key'];
-                    $secret_key = $this->eh_stripe_option['eh_stripe_live_secret_key'];
+                    if(Eh_Stripe_Admin_Handler::wtst_oauth_compatible($this->eh_stripe_option['eh_stripe_mode'])){   
+                        $secret_key = get_option('wt_stripe_access_token_live');
+                        $public_key = get_option('wt_stripe_live_publishable_key');                    
+                    }
+                    else{                     
+                        $public_key = $this->eh_stripe_option['eh_stripe_live_publishable_key'];
+                        $secret_key = $this->eh_stripe_option['eh_stripe_live_secret_key'];
+                    }
                 }
                 if ( empty( $site ) ) {
                     $site = $_SERVER['SERVER_NAME'];
                 }
                 
-                $button_type   = isset($this->eh_stripe_option['eh_payment_request_button_type'])   ? $this->eh_stripe_option['eh_payment_request_button_type']   : 'default';
-                $button_theme  = isset($this->eh_stripe_option['eh_payment_request_button_theme'])  ? $this->eh_stripe_option['eh_payment_request_button_theme']  : 'dark';
+                $gpay_button_type   = isset($this->eh_stripe_option['eh_payment_request_button_type'])   ? $this->eh_stripe_option['eh_payment_request_button_type']   : 'buy';
+                $gpay_button_theme  = isset($this->eh_stripe_option['eh_payment_request_button_theme'])  ? $this->eh_stripe_option['eh_payment_request_button_theme']  : 'black';
                 $button_height = isset($this->eh_stripe_option['eh_payment_request_button_height']) ? $this->eh_stripe_option['eh_payment_request_button_height'] : '44';
 
+                $apple_pay_color = isset($this->eh_stripe_option['eh_stripe_apple_color'])   ? $this->eh_stripe_option['eh_stripe_apple_color']   : 'black';
+                $apple_pay_type = isset($this->eh_stripe_option['eh_stripe_apple_pay_type'])   ? $this->eh_stripe_option['eh_stripe_apple_pay_type']   : 'plain';
                 $eh_payment_request_params = array(
                     'key'                                           => $public_key,
+                    'gpay_enabled'                                  => (true === $this->is_payment_request_button_enabled() ? 'yes' : 'no'),
+                    'apple_pay_enabled'                             => (true === $this->is_apple_pay_enabled() ? 'yes' : 'no'),
                     'label'                                         => $site,
-                    'button_type'                                   => $button_type,
-                    'button_theme'                                  => $button_theme,
-                    'button_height'                                 => $button_height,
+                    'gpay_button_type'                              => $gpay_button_type,
+                    'gpay_button_theme'                             => $gpay_button_theme,
+                    'apple_pay_color'                               => $apple_pay_color,
+                    'apple_pay_type'                                => $apple_pay_type,
+                    'button_height'                                 => (int) $button_height,
                     'currency_code'                                 => strtolower(get_woocommerce_currency()),
                     'country_code'                                  => substr( get_option( 'woocommerce_default_country' ), 0, 2 ),
                     'wp_ajaxurl'                                    => admin_url("admin-ajax.php"),
@@ -201,7 +200,7 @@ class Eh_Stripe_Payment_Request_Class {
      */
     public function is_payment_request_button_enabled(){
        
-        if ((is_cart() && isset($this->eh_stripe_payment_request_button_options) && in_array('cart', $this->eh_stripe_payment_request_button_options)) || (is_checkout() && isset($this->eh_stripe_payment_request_button_options) && in_array('checkout', $this->eh_stripe_payment_request_button_options)) || (is_product() && isset($this->eh_stripe_payment_request_button_options) && in_array('product', $this->eh_stripe_payment_request_button_options)) ) {
+        if ((isset($this->eh_stripe_option['eh_payment_request']) && ('yes' === $this->eh_stripe_option['eh_payment_request'] )) && ((is_cart() && isset($this->eh_stripe_payment_request_button_options) && in_array('cart', $this->eh_stripe_payment_request_button_options)) || (is_checkout() && isset($this->eh_stripe_payment_request_button_options) && in_array('checkout', $this->eh_stripe_payment_request_button_options)) || (is_product() && isset($this->eh_stripe_payment_request_button_options) && in_array('product', $this->eh_stripe_payment_request_button_options))) ) {
             return true;
         }else{
             return false;
@@ -328,7 +327,7 @@ class Eh_Stripe_Payment_Request_Class {
             $_product =  wc_get_product( $cart_item['data']->get_id()); 
 
             $item = array(
-                    'label'  => ((WC()->version < '3.0') ? $_product->name : $_product->get_name()). $quantity_label,
+                    'name'  => ((WC()->version < '3.0') ? $_product->name : $_product->get_name()). $quantity_label,
                     'amount' =>  (int) EH_Stripe_Payment::get_stripe_amount($amount),
             );
 
@@ -342,21 +341,21 @@ class Eh_Stripe_Payment_Request_Class {
 
         if ( wc_tax_enabled() ) {
                 $items[] = array(
-                        'label'  => esc_html( __( 'Tax', 'payment-gateway-stripe-and-woocommerce-integration' ) ),
+                        'name'  => esc_html( __( 'Tax', 'payment-gateway-stripe-and-woocommerce-integration' ) ),
                         'amount' => (int) $tax,
                 );
         }
 
         if ( WC()->cart->needs_shipping() ) {
                 $items[] = array(
-                        'label'  => esc_html( __( 'Shipping', 'payment-gateway-stripe-and-woocommerce-integration' ) ),
+                        'name'  => esc_html( __( 'Shipping', 'payment-gateway-stripe-and-woocommerce-integration' ) ),
                         'amount' => (int) $shipping,
                 );
         }
 
         if ( WC()->cart->has_discount() ) {
                 $items[] = array(
-                        'label'  => esc_html( __( 'Discount', 'payment-gateway-stripe-and-woocommerce-integration' ) ),
+                        'name'  => esc_html( __( 'Discount', 'payment-gateway-stripe-and-woocommerce-integration' ) ),
                         'amount' => (int) $discounts,
                 );
         }
@@ -460,16 +459,13 @@ class Eh_Stripe_Payment_Request_Class {
         
         try {
 
-            $address = filter_input_array(
-                INPUT_POST,
-                array(
-                    'country'   => FILTER_SANITIZE_STRING,
-                    'state'     => FILTER_SANITIZE_STRING,
-                    'postcode'  => FILTER_SANITIZE_STRING,
-                    'city'      => FILTER_SANITIZE_STRING,
-                    'address'   => FILTER_SANITIZE_STRING,
-                    'address_2' => FILTER_SANITIZE_STRING,
-                )
+            $address = array(
+                'country'   => sanitize_text_field($_POST['country']),
+                'state'     => sanitize_text_field($_POST['state']),
+                'postcode'  => sanitize_text_field($_POST['postcode']),
+                'city'      => sanitize_text_field($_POST['city']),
+                'address'   => sanitize_text_field($_POST['address']),
+                'address_2' => sanitize_text_field($_POST['address_2']),
             );
 
             $this->calculate_shipping( $address );
@@ -489,7 +485,7 @@ class Eh_Stripe_Payment_Request_Class {
                     foreach ( $package['rates'] as $key => $rate ) {
                         $data['shipping_options'][] = array(
                             'id'       => $rate->id,
-                            'label'    => $rate->label,
+                            'displayName'    => $rate->label,
                             'amount' => (int) EH_Stripe_Payment::get_stripe_amount( $rate->cost ),
                                             
                         );
@@ -504,10 +500,12 @@ class Eh_Stripe_Payment_Request_Class {
                 WC()->session->set( 'chosen_shipping_methods', array( $data[0]['id'] ) );
             }
 
+            if(isset($_REQUEST['is_product']) && 'yes' !== sanitize_text_field($_REQUEST['is_product'])){
+                WC()->cart->calculate_totals();
 
-            WC()->cart->calculate_totals();
+                $data += $this->get_params_cc_payment_request();
+            }
 
-            $data += $this->get_params_cc_payment_request();
             $data['result'] = 'success';
             
             wp_send_json( $data );
@@ -624,7 +622,7 @@ class Eh_Stripe_Payment_Request_Class {
 
     public function is_apple_pay_enabled(){
               
-        if ((is_cart() && isset($this->eh_stripe_apple_pay_options) && in_array('cart', $this->eh_stripe_apple_pay_options))  || (is_checkout() && isset($this->eh_stripe_apple_pay_options) && in_array('checkout', $this->eh_stripe_apple_pay_options))  || (is_product() && isset($this->eh_stripe_apple_pay_options) && in_array('product', $this->eh_stripe_apple_pay_options))) {
+        if ( ( isset($this->eh_stripe_option['eh_stripe_apple_pay']) && ('yes' === $this->eh_stripe_option['eh_stripe_apple_pay']) ) && ((is_cart() && isset($this->eh_stripe_apple_pay_options) && in_array('cart', $this->eh_stripe_apple_pay_options))  || (is_checkout() && isset($this->eh_stripe_apple_pay_options) && in_array('checkout', $this->eh_stripe_apple_pay_options))  || (is_product() && isset($this->eh_stripe_apple_pay_options) && in_array('product', $this->eh_stripe_apple_pay_options)))) {
             return true;
         }else{
             return false;

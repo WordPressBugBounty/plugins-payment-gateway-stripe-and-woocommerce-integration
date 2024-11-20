@@ -123,18 +123,27 @@ class EH_Grabpay extends WC_Payment_Gateway {
         $stripe_settings   = get_option( 'woocommerce_eh_stripe_pay_settings' );
 
         if (!empty($stripe_settings) && 'yes' === $this->enabled) {
+           $mode = isset($stripe_settings['eh_stripe_mode']) ? $stripe_settings['eh_stripe_mode'] : 'live';
 
-            if (isset($stripe_settings['eh_stripe_mode']) && 'test' === $stripe_settings['eh_stripe_mode']) {
-                if (!isset($stripe_settings['eh_stripe_test_publishable_key']) || !isset($stripe_settings['eh_stripe_test_secret_key']) || ! $stripe_settings['eh_stripe_test_publishable_key'] || ! $stripe_settings['eh_stripe_test_secret_key']) {
-                    return false;
+            if(!Eh_Stripe_Admin_Handler::wtst_oauth_compatible()){
+                if (isset($stripe_settings['eh_stripe_mode']) && 'test' === $stripe_settings['eh_stripe_mode']) {
+                    if (!isset($stripe_settings['eh_stripe_test_publishable_key']) || !isset($stripe_settings['eh_stripe_test_secret_key']) || ! $stripe_settings['eh_stripe_test_publishable_key'] || ! $stripe_settings['eh_stripe_test_secret_key']) {
+                        return false;
+                    }
+                } else {
+                    if (!isset($stripe_settings['eh_stripe_live_secret_key']) || !isset($stripe_settings['eh_stripe_live_publishable_key']) || !$stripe_settings['eh_stripe_live_secret_key'] || !$stripe_settings['eh_stripe_live_publishable_key']) {
+                        return false;
+                    }
                 }
-            } else {
-                if (!isset($stripe_settings['eh_stripe_live_secret_key']) || !isset($stripe_settings['eh_stripe_live_publishable_key']) || !$stripe_settings['eh_stripe_live_secret_key'] || !$stripe_settings['eh_stripe_live_publishable_key']) {
-                    return false;
-                }
+
+                return true;
+                            
             }
+            else{
 
-            return true;
+                $tokens = EH_Stripe_Payment::wtst_get_stripe_tokens($mode); 
+                return $enable = EH_Stripe_Payment::wtst_is_valid($tokens);
+            }
         }
         return false; 
     }
@@ -154,18 +163,16 @@ class EH_Grabpay extends WC_Payment_Gateway {
             wp_register_script('stripe_v3_js', 'https://js.stripe.com/v3/');
 
            wp_enqueue_script('eh_grabpay_pay', plugins_url('assets/js/eh-grabpay.js', EH_STRIPE_MAIN_FILE), array('stripe_v3_js','jquery'),EH_STRIPE_VERSION, true);
-            if (isset($stripe_settings['eh_stripe_mode']) && 'test' === $stripe_settings['eh_stripe_mode']) {
-                if (!isset($stripe_settings['eh_stripe_test_publishable_key']) || !isset($stripe_settings['eh_stripe_test_secret_key']) || ! $stripe_settings['eh_stripe_test_publishable_key'] || ! $stripe_settings['eh_stripe_test_secret_key']) {
-                    return false;
-                }
-                else{
+           $mode = isset($stripe_settings['eh_stripe_mode']) ? $stripe_settings['eh_stripe_mode'] : 'live';
+
+            if(Eh_Stripe_Admin_Handler::wtst_oauth_compatible()){
+                $tokens = EH_Stripe_Payment::wtst_get_stripe_tokens($mode); 
+                $public_key = $tokens['wt_stripe_publishable_key'];
+            }
+            else{
+                if (isset($stripe_settings['eh_stripe_mode']) && 'test' === $stripe_settings['eh_stripe_mode']) {
                     $public_key = $stripe_settings['eh_stripe_test_publishable_key'];
-                }
-            } else {
-                if (!isset($stripe_settings['eh_stripe_live_secret_key']) || !isset($stripe_settings['eh_stripe_live_publishable_key']) || !$stripe_settings['eh_stripe_live_secret_key'] || !$stripe_settings['eh_stripe_live_publishable_key']) {
-                    return false;
-                }
-                else{
+                } else {
                     $public_key = $stripe_settings['eh_stripe_live_publishable_key'];
                 }
             }
