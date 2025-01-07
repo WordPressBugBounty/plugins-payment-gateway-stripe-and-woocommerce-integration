@@ -48,9 +48,7 @@ class EH_Alipay_Stripe_Gateway extends WC_Payment_Gateway {
 
 
         // Set stripe API key.
-       
-        \Stripe\Stripe::setApiKey(EH_Stripe_Payment::get_stripe_api_key());
-		\Stripe\Stripe::setAppInfo( 'WordPress payment-gateway-stripe-and-woocommerce-integration', EH_STRIPE_VERSION, 'https://wordpress.org/plugins/payment-gateway-stripe-and-woocommerce-integration/', 'pp_partner_KHip9dhhenLx0S' );
+        EH_Stripe_Token_Handler::get_instance()->init_stripe_api();
         
 	}
 
@@ -147,8 +145,8 @@ class EH_Alipay_Stripe_Gateway extends WC_Payment_Gateway {
             }
             else{
 
-                $tokens = EH_Stripe_Payment::wtst_get_stripe_tokens($mode); 
-                return $enable = EH_Stripe_Payment::wtst_is_valid($tokens);
+                $tokens = EH_Stripe_Token_Handler::wtst_get_stripe_tokens($mode); 
+                return  EH_Stripe_Token_Handler::wtst_is_valid($tokens);
             }                
 	    }
         return false; 
@@ -173,7 +171,7 @@ class EH_Alipay_Stripe_Gateway extends WC_Payment_Gateway {
            wp_enqueue_script('eh_alipay', plugins_url('assets/js/eh-alipay.js', EH_STRIPE_MAIN_FILE), array('stripe_v3_js','jquery'),EH_STRIPE_VERSION, true);
 
             if(Eh_Stripe_Admin_Handler::wtst_oauth_compatible($mode)){
-                $tokens = EH_Stripe_Payment::wtst_get_stripe_tokens($mode); 
+                $tokens = EH_Stripe_Token_Handler::wtst_get_stripe_tokens($mode);  
                 $public_key = $tokens['wt_stripe_publishable_key'];
             }
             else{
@@ -204,7 +202,7 @@ class EH_Alipay_Stripe_Gateway extends WC_Payment_Gateway {
                     $stripe_params['billing_country']    = method_exists($order, 'get_billing_country')    ? $order->get_billing_country()    : $order->billing_country;
                 }                       
             }
-            $stripe_params['version'] = EH_Stripe_Payment::wt_get_api_version(); 
+            $stripe_params['version'] = EH_Stripe_Token_Handler::wt_get_api_version();  
             wp_localize_script('eh_alipay', 'eh_alipay_val', apply_filters('eh_alipay_val', $stripe_params));
         }
     }

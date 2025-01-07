@@ -44,9 +44,7 @@ class EH_Multibanco extends WC_Payment_Gateway {
         add_action( 'woocommerce_update_options_payment_gateways_' . $this->id, array( $this, 'process_admin_options' ) );
 
         // Set stripe API key.
-       
-        \Stripe\Stripe::setApiKey(EH_Stripe_Payment::get_stripe_api_key());
-        \Stripe\Stripe::setAppInfo( 'WordPress Stripe Payment Gateway for WooCommerce', EH_STRIPE_VERSION, 'https://www.webtoffee.com/product/woocommerce-stripe-payment-gateway/', 'pp_partner_KHip9dhhenLx0S' );
+        EH_Stripe_Token_Handler::get_instance()->init_stripe_api();
 
         // Hooks
         add_action('wp_enqueue_scripts', array($this, 'payment_scripts'));
@@ -142,8 +140,8 @@ class EH_Multibanco extends WC_Payment_Gateway {
             }
             else{
 
-                $tokens = EH_Stripe_Payment::wtst_get_stripe_tokens($mode); 
-                return $enable = EH_Stripe_Payment::wtst_is_valid($tokens);
+                $tokens = EH_Stripe_Token_Handler::wtst_get_stripe_tokens($mode); 
+                return  EH_Stripe_Token_Handler::wtst_is_valid($tokens);
             }
         }
         return false; 

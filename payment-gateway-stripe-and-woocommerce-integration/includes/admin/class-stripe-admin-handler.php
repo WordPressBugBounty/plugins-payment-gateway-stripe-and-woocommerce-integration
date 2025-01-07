@@ -27,6 +27,7 @@ class Eh_Stripe_Admin_Handler  {
         add_action('wp_ajax_wtst_dismiss_sofort_notice', array($this, 'wtst_dismiss_sofort_notice' ));
         add_action('after_plugin_row_payment-gateway-stripe-and-woocommerce-integration/payment-gateway-stripe-and-woocommerce-integration.php', array($this, 'wt_oauth_upgrade_notice'), 10, 3);
 
+        add_action('in_plugin_update_message-payment-gateway-stripe-and-woocommerce-integration/payment-gateway-stripe-and-woocommerce-integration.php', array($this, 'wt_stripe_upgrade_notice'), 10, 2);
 
     }
 
@@ -1215,7 +1216,7 @@ class Eh_Stripe_Admin_Handler  {
 
         $option = ('test' === $mode) ? 'wt_stripe_oauth_connected_test' : 'wt_stripe_oauth_connected_live';
        
-        if("yes" === get_option($option)){
+        if("yes" === EH_Stripe_Token_Handler::wtst_get_site_option('get', array('name' => $option))){
             return true;
         }
         else{ 
@@ -1297,32 +1298,32 @@ class Eh_Stripe_Admin_Handler  {
 
             if('test' === $mode){
                 if(isset($_REQUEST['expire']) && 'access_token' === sanitize_text_field($_REQUEST['expire']) ){ 
-                    delete_transient("wtst_oauth_expriy_test"); 
-                    delete_transient("wtst_refresh_token_calling");                   
+                    EH_Stripe_Token_Handler::wtst_get_site_option('delete', null, array('name' => 'wtst_oauth_expriy_test')); 
+                    EH_Stripe_Token_Handler::wtst_get_site_option('delete', null, array('name' => 'wtst_refresh_token_calling'));                   
 
                 }
                 else{                  
-                    delete_option("wt_stripe_account_id_test");
-                    delete_option("wt_stripe_access_token_test");
-                    delete_option("wt_stripe_refresh_token_test");
-                    delete_option("wt_stripe_oauth_connected_test");
-                    delete_transient("wtst_oauth_expriy_test");
-                    delete_transient("wtst_refresh_token_calling"); 
+                    EH_Stripe_Token_Handler::wtst_get_site_option('delete', array('name' => 'wt_stripe_account_id_test'));
+                    EH_Stripe_Token_Handler::wtst_get_site_option('delete', array('name' => 'wt_stripe_access_token_test')); 
+                    EH_Stripe_Token_Handler::wtst_get_site_option('delete', array('name' => 'wt_stripe_refresh_token_test'));
+                    EH_Stripe_Token_Handler::wtst_get_site_option('delete', array('name' => 'wt_stripe_oauth_connected_test'));
+                    EH_Stripe_Token_Handler::wtst_get_site_option('delete', null, array('name' => 'wtst_oauth_expriy_test'));
+                    EH_Stripe_Token_Handler::wtst_get_site_option('delete', null, array('name' => 'wtst_refresh_token_calling')); 
                 }
 
             }
             else{
                 if(isset($_REQUEST['expire']) && 'access_token' === sanitize_text_field($_REQUEST['expire']) ){
-                   delete_transient("wtst_oauth_expriy_live");                   
-                    delete_transient("wtst_refresh_token_calling");
+                    EH_Stripe_Token_Handler::wtst_get_site_option('delete', null, array('name' => 'wtst_oauth_expriy_live'));                   
+                    EH_Stripe_Token_Handler::wtst_get_site_option('delete', null, array('name' => 'wtst_refresh_token_calling'));
                 }
                 else{                  
-                    delete_option("wt_stripe_account_id_live");
-                    delete_option("wt_stripe_access_token_live");
-                    delete_option("wt_stripe_refresh_token_live");
-                    delete_option("wt_stripe_oauth_connected_live");
-                    delete_transient("wtst_oauth_expriy_live");
-                    delete_transient("wtst_refresh_token_calling");
+                    EH_Stripe_Token_Handler::wtst_get_site_option('delete', array('name' => 'wt_stripe_account_id_live'));
+                    EH_Stripe_Token_Handler::wtst_get_site_option('delete', array('name' => 'wt_stripe_access_token_live'));
+                    EH_Stripe_Token_Handler::wtst_get_site_option('delete', array('name' => 'wt_stripe_refresh_token_live')); 
+                    EH_Stripe_Token_Handler::wtst_get_site_option('delete', array('name' => 'wt_stripe_oauth_connected_live'));
+                    EH_Stripe_Token_Handler::wtst_get_site_option('delete', null, array('name' => 'wtst_oauth_expriy_live'));
+                    EH_Stripe_Token_Handler::wtst_get_site_option('delete', null, array('name' => 'wtst_refresh_token_calling'));
                 }
             }
 
@@ -1375,5 +1376,52 @@ class Eh_Stripe_Admin_Handler  {
         }
         return true;
     }
+
+    /**
+     *  @since 4.0.4
+     *  Changelog in plugins page
+     */
+    public function wt_stripe_upgrade_notice( $data, $response )
+    { 
+     
+    
+        if ( isset( $data['upgrade_notice'] ) )
+        {
+
+            
+            add_action('admin_print_footer_scripts', 'wt_st_plugin_screen_update_notice_js');
+           $msg = str_replace(array( '<p>', '</p>' ), array( '<div>', '</div>' ), $data['upgrade_notice']);
+            echo '<style type="text/css">
+            #payment-gateway-stripe-and-woocommerce-integration-update .update-message p:last-child{ display:none;}     
+            #payment-gateway-stripe-and-woocommerce-integration-update . ul{ list-style:disc; margin-left:30px;}
+            .wt_st_update_message{ padding-left:30px;}
+            </style>
+            <div class="update-message wt_st_update_message">' . wp_kses_post( wpautop( $msg ) ) . '</div>';
+        }
+    }
+
+    /**
+     *  @since 4.0.4
+     *  Javascript code for changelog in plugins page
+     */
+    public function wt_st_plugin_screen_update_notice_js() 
+    {   
+        global $pagenow;
+        if('plugins.php' != $pagenow)
+        {
+            return;
+        }
+        ?>
+        <script>
+            ( function( $ ){
+                var update_dv=$('#payment-gateway-stripe-and-woocommerce-integration-update');
+                update_dv.find('.wt_st_update_message').next('p').remove();
+                update_dv.find('a.update-link:eq(0)').on('click', function(){
+                    $('.wt_st_update_message').remove();
+                });
+            })( jQuery );
+        </script>
+        <?php
+    }     
     
 }

@@ -86,8 +86,9 @@ class Eh_Stripe_Payment_Request_Class {
                 if ('test' == $this->eh_stripe_option['eh_stripe_mode']) {
                     //get tokens based on plugin authentication method
                     if(Eh_Stripe_Admin_Handler::wtst_oauth_compatible($this->eh_stripe_option['eh_stripe_mode'])){   
-                        $secret_key = get_option('wt_stripe_access_token_test');
-                        $public_key = get_option('wt_stripe_test_publishable_key');
+                        $tokens = EH_Stripe_Token_Handler::wtst_get_stripe_tokens('test');
+                        $secret_key = $tokens['wt_stripe_access_token'];
+                        $public_key = $tokens['wt_stripe_publishable_key'];
                     
                     }
                     else{                 
@@ -97,8 +98,9 @@ class Eh_Stripe_Payment_Request_Class {
                 //Live mode    
                 } else {
                     if(Eh_Stripe_Admin_Handler::wtst_oauth_compatible($this->eh_stripe_option['eh_stripe_mode'])){   
-                        $secret_key = get_option('wt_stripe_access_token_live');
-                        $public_key = get_option('wt_stripe_live_publishable_key');                    
+                        $tokens = EH_Stripe_Token_Handler::wtst_get_stripe_tokens('live');
+                        $secret_key = $tokens['wt_stripe_access_token']; 
+                        $public_key = $tokens['wt_stripe_publishable_key'];                     
                     }
                     else{                     
                         $public_key = $this->eh_stripe_option['eh_stripe_live_publishable_key'];
@@ -139,7 +141,7 @@ class Eh_Stripe_Payment_Request_Class {
                     'product_data'                                  => $this->product_data(),
                     'product'                                       => is_product(),
                 );
-                $eh_payment_request_params['version'] = EH_Stripe_Payment::wt_get_api_version();
+                $eh_payment_request_params['version'] = EH_Stripe_Token_Handler::wt_get_api_version();  
                 wp_localize_script( 'eh_payment_request', 'eh_payment_request_params', $eh_payment_request_params);
             }
            

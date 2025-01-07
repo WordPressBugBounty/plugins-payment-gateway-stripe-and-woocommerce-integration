@@ -5,9 +5,9 @@
  * Description: Accept payments from your WooCommerce store via Credit/Debit Cards, Stripe Checkout, Apple Pay, Google Pay, Alipay, SEPA Pay, Klarna, Afterpay, WeChat Pay, iDEAL, Bancontact, EPS, P24, Bacs Debit, BECS Debit, FPX, Boleto, OXXO, GrabPay, Multibanco and Affirm using Stripe.
  * Author: WebToffee
  * Author URI: https://www.webtoffee.com/product/woocommerce-stripe-payment-gateway/
- * Version: 4.0.3
+ * Version: 4.0.4
  * WC requires at least: 3.0
- * WC tested up to: 9.3.3
+ * WC tested up to: 9.5.1
  * License: GPLv3
  * License URI: https://www.gnu.org/licenses/gpl-3.0.html
  * Text Domain: payment-gateway-stripe-and-woocommerce-integration
@@ -25,7 +25,7 @@ if (!defined('EH_STRIPE_MAIN_PATH')) {
     define('EH_STRIPE_MAIN_PATH', plugin_dir_path(__FILE__));
 }
 if (!defined('EH_STRIPE_VERSION')) {
-    define('EH_STRIPE_VERSION', '4.0.3');
+    define('EH_STRIPE_VERSION', '4.0.4');
 }
 if (!defined('EH_STRIPE_MAIN_FILE')) {
     define('EH_STRIPE_MAIN_FILE', __FILE__);
@@ -154,7 +154,8 @@ if(is_plugin_active('eh-stripe-payment-gateway/stripe-payment-gateway.php')){
          * Includes the Black Friday and Cyber Monday CTA banners for 2024
          */ 
         require_once EH_STRIPE_MAIN_PATH . 'includes/admin/banner/class-wtst-bfcm-twenty-twenty-four.php';        
-        new Eh_Stripe_Admin_Handler();          
+        new Eh_Stripe_Admin_Handler();  
+         include_once(EH_STRIPE_MAIN_PATH . "includes/class-eh-stripe-token-handler.php");        
         if (!class_exists('EH_Stripe_Payment')) {
 
             include(EH_STRIPE_MAIN_PATH . "includes/class-stripe-api.php");

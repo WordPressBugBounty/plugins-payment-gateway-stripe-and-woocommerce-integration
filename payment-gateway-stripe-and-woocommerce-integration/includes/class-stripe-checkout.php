@@ -55,8 +55,7 @@ class Eh_Stripe_Checkout extends WC_Payment_Gateway {
         add_action( 'woocommerce_api_eh_stripe_checkout', array( $this, 'eh_spg_stripe_checkout_order_callback' ) );
 
         // Set stripe API key.
-        \Stripe\Stripe::setApiKey(EH_Stripe_Payment::get_stripe_api_key());
-        \Stripe\Stripe::setAppInfo( 'WordPress payment-gateway-stripe-and-woocommerce-integration', EH_STRIPE_VERSION, 'https://wordpress.org/plugins/payment-gateway-stripe-and-woocommerce-integration/', 'pp_partner_KHip9dhhenLx0S' );
+        EH_Stripe_Token_Handler::get_instance()->init_stripe_api();
         
 	}
     
@@ -202,8 +201,8 @@ class Eh_Stripe_Checkout extends WC_Payment_Gateway {
             }
             else{
 
-                $tokens = EH_Stripe_Payment::wtst_get_stripe_tokens($mode); 
-                return $enable = EH_Stripe_Payment::wtst_is_valid($tokens);
+                $tokens = EH_Stripe_Token_Handler::wtst_get_stripe_tokens($mode); 
+                return  EH_Stripe_Token_Handler::wtst_is_valid($tokens);
             }
         }
         return false; 

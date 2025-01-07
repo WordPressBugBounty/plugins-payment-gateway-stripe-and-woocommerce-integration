@@ -334,8 +334,9 @@ class EH_Stripe_General_Settings extends EH_Stripe_Payment {
         $settings = get_option("woocommerce_eh_stripe_pay_settings");
          $mode = isset($settings['eh_stripe_mode']) ? $settings['eh_stripe_mode'] : 'live'; 
          if('test' === $mode ){       
-            if(true === Eh_Stripe_Admin_Handler::wtst_oauth_compatible() && !empty(get_option("wt_stripe_access_token_test"))){
-                $wt_stripe_account_id = get_option("wt_stripe_account_id_test");
+            if(true === Eh_Stripe_Admin_Handler::wtst_oauth_compatible() && 
+                !empty(EH_Stripe_Token_Handler::wtst_get_site_option('get', array('name' => 'wt_stripe_access_token_test')))) {
+                $wt_stripe_account_id = EH_Stripe_Token_Handler::wtst_get_site_option('get', array('name' => 'wt_stripe_account_id_test'));
 
 
 
@@ -363,10 +364,10 @@ class EH_Stripe_General_Settings extends EH_Stripe_Payment {
         }
         //Live mode
         else{
-            if(true === Eh_Stripe_Admin_Handler::wtst_oauth_compatible() && !empty(get_option("wt_stripe_access_token_live"))){
+            if(true === Eh_Stripe_Admin_Handler::wtst_oauth_compatible() &&                 
+                !empty(EH_Stripe_Token_Handler::wtst_get_site_option('get', array('name' => 'wt_stripe_access_token_live')))) {
+                $wt_stripe_account_id = EH_Stripe_Token_Handler::wtst_get_site_option('get', array('name' => 'wt_stripe_account_id_live'));
 
-
-                $wt_stripe_account_id = get_option("wt_stripe_account_id_live");
                 $html = '<tr valign="top">
                     <th scope="row" class="titledesc">
                         <label for="woocommerce_eh_stripe_live_oauth">Stripe account </label>

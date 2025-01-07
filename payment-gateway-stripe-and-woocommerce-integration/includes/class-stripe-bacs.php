@@ -50,8 +50,7 @@ class Eh_Bacs extends WC_Payment_Gateway {
         add_action( 'set_logged_in_cookie', array( $this, 'eh_set_cookie_on_current_request' ) );
 
         // Set stripe API key.
-        \Stripe\Stripe::setApiKey(EH_Stripe_Payment::get_stripe_api_key());
-        \Stripe\Stripe::setAppInfo( 'WordPress Stripe Payment Gateway for WooCommerce', EH_STRIPE_VERSION, 'https://www.webtoffee.com/product/woocommerce-stripe-payment-gateway/', 'pp_partner_KHip9dhhenLx0S' );
+        EH_Stripe_Token_Handler::get_instance()->init_stripe_api();
         
 	}
 
@@ -174,8 +173,8 @@ class Eh_Bacs extends WC_Payment_Gateway {
             }
             else{
 
-                $tokens = EH_Stripe_Payment::wtst_get_stripe_tokens($mode); 
-                return $enable = EH_Stripe_Payment::wtst_is_valid($tokens);
+                $tokens = EH_Stripe_Token_Handler::wtst_get_stripe_tokens($mode); 
+                return  EH_Stripe_Token_Handler::wtst_is_valid($tokens);
             }            
         }
         return false; 
@@ -233,7 +232,7 @@ class Eh_Bacs extends WC_Payment_Gateway {
             $mode = isset($stripe_settings['eh_stripe_mode']) ? $stripe_settings['eh_stripe_mode'] : 'live';
             
             if(Eh_Stripe_Admin_Handler::wtst_oauth_compatible($mode)){
-                $tokens = EH_Stripe_Payment::wtst_get_stripe_tokens($mode); 
+                $tokens = EH_Stripe_Token_Handler::wtst_get_stripe_tokens($mode); 
                 $public_key = $tokens['wt_stripe_publishable_key'];
             }
             else{
@@ -248,7 +247,7 @@ class Eh_Bacs extends WC_Payment_Gateway {
                 'wp_ajaxurl'                                    => admin_url("admin-ajax.php"),
                 'wc_ajaxurl'                                    => WC_AJAX::get_endpoint( '%%change_end%%' ),
             );
-            $eh_bacs_params['version'] = EH_Stripe_Payment::wt_get_api_version(); 
+            $eh_bacs_params['version'] = EH_Stripe_Token_Handler::wt_get_api_version();  
             wp_localize_script( 'eh_checkout_script', 'eh_stripe_checkout_params', $eh_bacs_params);
         }
     }

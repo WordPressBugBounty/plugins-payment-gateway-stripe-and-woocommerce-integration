@@ -41,13 +41,19 @@ class EH_Stripe_Payment extends WC_Payment_Gateway {
 
         //get tokens based on plugin authentication method
         if(Eh_Stripe_Admin_Handler::wtst_oauth_compatible($this->eh_stripe_mode)){
-            //Test access token
-            $this->eh_stripe_test_secret_key = get_option('wt_stripe_access_token_test');
-            $this->eh_stripe_test_publishable_key = get_option('wt_stripe_test_publishable_key');
-            $this->eh_stripe_live_secret_key = get_option('wt_stripe_access_token_live');
-            $this->eh_stripe_live_publishable_key = get_option('wt_stripe_live_publishable_key');
-            $this->wt_stripe_account_id_test = get_option('wt_stripe_account_id_test');
-            $this->wt_stripe_account_id_live = get_option('wt_stripe_account_id_live');
+            //get all test tokens using single function call
+            $test_tokens = EH_Stripe_Token_Handler::wtst_get_stripe_tokens('test');            
+
+            //assign tokens to respective variables
+            $this->eh_stripe_test_secret_key = $test_tokens['wt_stripe_access_token']; 
+            $this->eh_stripe_test_publishable_key = $test_tokens['wt_stripe_publishable_key'];
+            $this->wt_stripe_account_id_test = $test_tokens['wt_stripe_account_id'];
+
+            //for live mode tokens are already included in the response
+            $live_tokens = EH_Stripe_Token_Handler::wtst_get_stripe_tokens('live');
+            $this->eh_stripe_live_secret_key = $live_tokens['wt_stripe_access_token'];
+            $this->eh_stripe_live_publishable_key = $live_tokens['wt_stripe_publishable_key']; 
+            $this->wt_stripe_account_id_live = $live_tokens['wt_stripe_account_id'];            
 
         }
         else{
@@ -68,9 +74,7 @@ class EH_Stripe_Payment extends WC_Payment_Gateway {
         }
 
          // Set stripe API key.
-        \Stripe\Stripe::setApiKey( self::get_stripe_api_key() );
-        \Stripe\Stripe::setApiVersion( self::wt_get_api_version() );
-        \Stripe\Stripe::setAppInfo( 'WordPress payment-gateway-stripe-and-woocommerce-integration', EH_STRIPE_VERSION, 'https://wordpress.org/plugins/payment-gateway-stripe-and-woocommerce-integration/', 'pp_partner_KHip9dhhenLx0S' );
+        EH_Stripe_Token_Handler::get_instance()->init_stripe_api();
 
         if (is_admin()) {
             add_action('woocommerce_update_options_payment_gateways_' . $this->id, array($this, 'process_admin_options'));
@@ -105,51 +109,7 @@ class EH_Stripe_Payment extends WC_Payment_Gateway {
 
     }
    
-    /**
-     * function to get stripe access token.
-     */
-    public static function get_stripe_api_key(){ 
-    
-        $stripe_settings = get_option("woocommerce_eh_stripe_pay_settings");
-        if(!$stripe_settings){
-            return false;
-        }
-        $mode = isset($stripe_settings['eh_stripe_mode']) ? $stripe_settings['eh_stripe_mode'] : 'live';
-        if(!empty($mode)){
-            if(Eh_Stripe_Admin_Handler::wtst_oauth_compatible($mode)){
-                if ('test' === $mode) { 
-                    if('wtst_oauth_expriy' === get_transient( 'wtst_oauth_expriy_test')){ 
-                        return get_option( 'wt_stripe_access_token_test' );
 
-                    }
-                    else{
-                        return self::wtst_refresh_token();
-                    }
-
-                } else {
-                    if('wtst_oauth_expriy' === get_transient( 'wtst_oauth_expriy_live')){
-                        return get_option( 'wt_stripe_access_token_live' );
-
-                    }
-                    else{
-                        return self::wtst_refresh_token();
-                    }               
-                }
-            }
-            else{
-
-                if ('test' === $mode) {
-                    $secret_key = isset($stripe_settings['eh_stripe_test_secret_key']) ? $stripe_settings['eh_stripe_test_secret_key'] : null;
-                    return $secret_key;
-                } else {
-                    $secret_key = isset($stripe_settings['eh_stripe_live_secret_key']) ? $stripe_settings['eh_stripe_live_secret_key'] : null;
-
-                    return $secret_key;
-                }
-
-            }
-        }
-    }
 
     /**
      * Processes and saves options.
@@ -239,8 +199,8 @@ class EH_Stripe_Payment extends WC_Payment_Gateway {
             }
             else{
                 $mode = $this->eh_stripe_mode;
-                $tokens = self::wtst_get_stripe_tokens($mode); 
-                $enable = self::wtst_is_valid($tokens);
+                $tokens = EH_Stripe_Token_Handler::wtst_get_stripe_tokens($mode); 
+                $enable = EH_Stripe_Token_Handler::wtst_is_valid($tokens);
             }
         
 
@@ -383,7 +343,7 @@ class EH_Stripe_Payment extends WC_Payment_Gateway {
                     $stripe_params['billing_country']    = method_exists($order, 'get_billing_country')    ? $order->get_billing_country()    : $order->billing_country;
                 }                       
             }
-            $stripe_params['version'] = self::wt_get_api_version(); 
+            $stripe_params['version'] = EH_Stripe_Token_Handler::wt_get_api_version();  
             wp_localize_script('eh_stripe_checkout', 'eh_stripe_val', apply_filters('eh_stripe_val', $stripe_params));
         }
     }
@@ -1575,9 +1535,6 @@ class EH_Stripe_Payment extends WC_Payment_Gateway {
         }
     }       
 
-    static function wt_get_api_version(){
-        return apply_filters('wt_stripe_api_version', '2022-08-01');
-    }
 
     static function wt_stripe_is_HPOS_compatibile()
     {
@@ -1587,169 +1544,5 @@ class EH_Stripe_Payment extends WC_Payment_Gateway {
             return false;
         }
     }     
-
-
-    /**
-     * Function calling Refresh token API.
-     * @return refresh token and access token
-     * @since 4.0.0
-     * 
-     */
-    public static function wtst_refresh_token()
-    {
-        try{
-            //To prevent multiple API call
-            if("yes" === get_transient("wtst_refresh_token_calling")){
-                return;
-            }
-            else{
-                //Set transient to know that refresh token API is calling now
-                set_transient("wtst_refresh_token_calling", "yes");
-
-            }
-            $stripe_settings = get_option("woocommerce_eh_stripe_pay_settings");
-            $stripe_settings["eh_stripe_mode"] = (isset($stripe_settings["eh_stripe_mode"]) && !empty($stripe_settings["eh_stripe_mode"])) ? $stripe_settings["eh_stripe_mode"] : 'live';
-            
-            $access_token_url = EH_STRIPE_OAUTH_WT_URL . 'get-access-token';
-
-            if('test' === $stripe_settings["eh_stripe_mode"]){ 
-                $refresh_token = get_option("wt_stripe_refresh_token_test");
-                $account_id = get_option("wt_stripe_account_id_test");
-            }
-            else{ 
-                $refresh_token = get_option("wt_stripe_refresh_token_live");
-                $account_id = get_option("wt_stripe_account_id_live");
-
-            }
-
-            if(!$refresh_token){
-                throw new Exception('Refresh token not found!');
-            }
-
-            // JSON data to send in the POST request body.
-            $access_token_req_data = array(
-                'refresh_token' => sanitize_text_field($refresh_token),
-                'mode' => sanitize_text_field($stripe_settings["eh_stripe_mode"]),
-                'account_id' => sanitize_text_field($account_id),
-
-            );
-
-            wc_get_logger()->log('Refresh token API request', print_r($access_token_req_data, true), array( 'source' => 'wt_stripe_oauth' )  );
-
-            // Convert the data to JSON format.
-            $access_token_json_data = json_encode( $access_token_req_data );
-
-            // Arguments for the POST request.
-            $access_token_args = array(
-                'body'    => $access_token_json_data,
-                'headers' => array(
-                    'Content-Type' => 'application/json', // Tell the server it's JSON.
-                ),
-                'timeout' => apply_filters("wtst_refresh_token_timeout", 45), // Optional: Set a timeout for the request.
-            );
-
-            // Make the POST request.
-            $access_token_response = wp_safe_remote_post( $access_token_url, $access_token_args );
-
-            wc_get_logger()->log('Refresh token API response', print_r($access_token_response, true), array( 'source' => 'wt_stripe_oauth' )  );
-
-
-            // Check for errors
-            if ( is_wp_error( $access_token_response ) ) {
-                // There was an error in the request.
-                $error_message = $access_token_response->get_error_message();
-                throw new Exception('WP error - ' . $error_message);
-            } else {
-                // Decode JSON response
-                $decoded_response = json_decode(wp_remote_retrieve_body($access_token_response), true);
-                wc_get_logger()->log('Refresh token API response parsed', print_r($decoded_response, true), array( 'source' => 'wt_stripe_oauth' )  );
-
-                // Check if response contains any error
-                if (isset($decoded_response['error'])) {
-                    throw new Exception('Error: ' . (isset($decoded_response['error']) ? $decoded_response['error'] . ' - ' : '') . (isset($decoded_response['error_description']) ? $decoded_response['error_description'] : ''));
-                } elseif(isset($decoded_response['access_token']) && isset($decoded_response['refresh_token'])) { 
-                    $access_token = sanitize_text_field($decoded_response['access_token']);
-                    $refresh_token = (isset($decoded_response['refresh_token']) ? sanitize_text_field($decoded_response['refresh_token'])  : '');
-                    $account_id = (isset($decoded_response['stripe_user_id']) ? sanitize_text_field($decoded_response['stripe_user_id'])  : '');
-                    $stripe_publishable_key = (isset($decoded_response['stripe_publishable_key']) ? sanitize_text_field($decoded_response['stripe_publishable_key'])  : '');
-                    $expiry_time = (isset($decoded_response['transient_expiry']) ? sanitize_text_field($decoded_response['transient_expiry'])  : '');
-
-                
-                    if('test' === $stripe_settings["eh_stripe_mode"]){                                    
-                        //Set expiry
-                        set_transient( 'wtst_oauth_expriy_test', 'wtst_oauth_expriy', $expiry_time );
-                        update_option("wt_stripe_account_id_test", $account_id);
-                        update_option("wt_stripe_access_token_test", $access_token);
-                        update_option("wt_stripe_refresh_token_test", $refresh_token);
-                        update_option("wt_stripe_test_publishable_key", $stripe_publishable_key);
-
-                    }
-                    else{
-                        //Set expiry
-                        set_transient( 'wtst_oauth_expriy_live', 'wtst_oauth_expriy', $expiry_time ); 
-                        update_option("wt_stripe_account_id_live", $account_id);
-                        update_option("wt_stripe_access_token_live", $access_token);
-                        update_option("wt_stripe_refresh_token_live", $refresh_token);
-                        update_option("wt_stripe_live_publishable_key", $stripe_publishable_key);
-
-                    }
-
-                    //delete the transient to know that refresh token API call was done
-                    delete_transient("wtst_refresh_token_calling");
-                    return $access_token;
-
-                }       
-                else{
-                    throw new Exception('Unknown response!');
-                }  
-            }
-        }
-        catch(Exception $e){
-            delete_transient("wtst_refresh_token_calling");
-             wc_get_logger()->log('Refresh token API', $e->getMessage(), array( 'source' => 'wt_stripe_oauth' )  );
-
-        }
-    }
-
-    /**
-     * function to get stripe  token.
-     * @param $mode string current payment mode
-     * @since 4.0.0
-     * 
-     */
-    public static function wtst_get_stripe_tokens($mode){
-
-        if(!empty($mode)){
-        
-            if ('test' === $mode) {
-                return $arr_tokens = array(
-                   "wt_stripe_account_id" =>   get_option("wt_stripe_account_id_test"),
-                   "wt_stripe_access_token" =>  get_option("wt_stripe_access_token_test"),
-                   "wt_stripe_refresh_token" => get_option("wt_stripe_refresh_token_test"),
-                   "wt_stripe_publishable_key" => get_option("wt_stripe_test_publishable_key"),
-                );
-            } else {
-                return $arr_tokens = array(
-                   "wt_stripe_account_id" => get_option("wt_stripe_account_id_live"),
-                   "wt_stripe_access_token" =>  get_option("wt_stripe_access_token_live"),
-                   "wt_stripe_refresh_token" => get_option("wt_stripe_refresh_token_live"),
-                   "wt_stripe_publishable_key" => get_option("wt_stripe_live_publishable_key"),
-
-                );             
-            }
-        }
-    } 
-
-
-    static public function wtst_is_valid( $tokens)
-    {     
-       
-            if (!isset($tokens['wt_stripe_publishable_key']) || !isset($tokens['wt_stripe_access_token']) || ! $tokens['wt_stripe_refresh_token'] || ! $tokens['wt_stripe_account_id']) {
-                return false;
-            }
-            else{
-                return true;
-            }
-        
-    }   
+  
 }

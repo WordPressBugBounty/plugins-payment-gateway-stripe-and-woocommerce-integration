@@ -3,9 +3,9 @@ Contributors: webtoffee
 Donate link: https://www.webtoffee.com/plugins/
 Tags: stripe checkout, credit card, google pay, apple pay, stripe, woocommerce, alipay, payment gateway, debit card, sepa, stripe payment gateway, sca ready
 Requires at least: 5.6
-Tested up to: 6.6.2
+Tested up to: 6.7.1
 Requires PHP: 5.6
-Stable tag: 4.0.3
+Stable tag: 4.0.4
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
@@ -218,6 +218,13 @@ Yes. The plugin allows you to enable Stripe checkout that lets you collect payme
 24. Stripe General Settings
 
 == Changelog ==
+
+= 4.0.4 2025-01-07 =
+* [Enhancement] - Prevent cache issue when accessing option table values
+* [Enhancement] - Optimized code to prevent multiple token initialization
+* [Enhancement] - Added filter and improved token storage to support using the same Stripe account across a multisite.
+* [Compatibility] - WordPress 6.7.1
+* [Compatibility] - WooCommerce 9.5.1
 
 = 4.0.3 2024-11-20 =
 * [Fix] - Resolved security issue with OAuth authentication
@@ -713,5 +720,9 @@ Yes. The plugin allows you to enable Stripe checkout that lets you collect payme
  
 == Upgrade Notice ==
 
-= 4.0.3 =
-* [Fix] - Resolved security issue with OAuth authentication
+= 4.0.4 =
+* [Enhancement] - Prevent cache issue when accessing option table values
+* [Enhancement] - Optimized code to prevent multiple token initialization
+* [Enhancement] - Added filter and improved token storage to support using the same Stripe account across a multisite.
+* [Compatibility] - WordPress 6.7.1
+* [Compatibility] - WooCommerce 9.5.1

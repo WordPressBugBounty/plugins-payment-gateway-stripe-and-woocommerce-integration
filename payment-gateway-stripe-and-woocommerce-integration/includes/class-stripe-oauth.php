@@ -50,24 +50,62 @@ class EH_Stripe_Oauth {
                 $stripe_settings = get_option("woocommerce_eh_stripe_pay_settings");
                 $mode = (isset($stripe_settings["eh_stripe_mode"]) ?  $stripe_settings["eh_stripe_mode"] : 'live');
                 if('test' === $mode){
-                    update_option("wt_stripe_account_id_test", $account_id);
-                    update_option("wt_stripe_access_token_test", $access_token);
-                    update_option("wt_stripe_refresh_token_test", $refresh_token);
-                    update_option("wt_stripe_test_publishable_key", $stripe_publishable_key);
-                    set_transient( 'wtst_oauth_expriy_test', 'wtst_oauth_expriy', (MINUTE_IN_SECONDS*50) );
-                    update_option("wt_stripe_oauth_connected_test", "yes");
+                    EH_Stripe_Token_Handler::wtst_get_site_option('update', array(
+                        'name' => 'wt_stripe_account_id_test',
+                        'value' => $account_id
+                    ));
+                    EH_Stripe_Token_Handler::wtst_get_site_option('update', array(
+                        'name' => 'wt_stripe_access_token_test',
+                        'value' => base64_encode($access_token)
+                    ));
+                    EH_Stripe_Token_Handler::wtst_get_site_option('update', array(
+                        'name' => 'wt_stripe_refresh_token_test',
+                        'value' => base64_encode($refresh_token)
+                    ));
+                    EH_Stripe_Token_Handler::wtst_get_site_option('update', array(
+                        'name' => 'wt_stripe_test_publishable_key',
+                        'value' => $stripe_publishable_key
+                    ));
+                    EH_Stripe_Token_Handler::wtst_get_site_option('update', null, array(
+                        'name' => 'wtst_oauth_expriy_test',
+                        'value' => 'wtst_oauth_expriy',
+                        'expiry' => (MINUTE_IN_SECONDS*50)
+                    ));
+                    EH_Stripe_Token_Handler::wtst_get_site_option('update', array(
+                        'name' => 'wt_stripe_oauth_connected_test',
+                        'value' => 'yes'
+                    ));
 
                     $stripe_settings['eh_stripe_mode'] = 'test';
                     update_option("woocommerce_eh_stripe_pay_settings", $stripe_settings);
 
                 }
                 else{
-                    update_option("wt_stripe_account_id_live", $account_id);
-                    update_option("wt_stripe_access_token_live", $access_token);
-                    update_option("wt_stripe_refresh_token_live", $refresh_token);
-                    update_option("wt_stripe_live_publishable_key", $stripe_publishable_key);
-                    set_transient( 'wtst_oauth_expriy_live', 'wtst_oauth_expriy', (MINUTE_IN_SECONDS*50) );
-                    update_option("wt_stripe_oauth_connected_live", "yes");
+                    EH_Stripe_Token_Handler::wtst_get_site_option('update', array(
+                        'name' => 'wt_stripe_account_id_live',
+                        'value' => $account_id
+                    ));
+                    EH_Stripe_Token_Handler::wtst_get_site_option('update', array(
+                        'name' => 'wt_stripe_access_token_live',
+                        'value' => base64_encode($access_token)
+                    ));
+                    EH_Stripe_Token_Handler::wtst_get_site_option('update', array(
+                        'name' => 'wt_stripe_refresh_token_live',
+                        'value' => base64_encode($refresh_token)
+                    ));
+                    EH_Stripe_Token_Handler::wtst_get_site_option('update', array(
+                        'name' => 'wt_stripe_live_publishable_key',
+                        'value' => $stripe_publishable_key
+                    ));
+                    EH_Stripe_Token_Handler::wtst_get_site_option('update', null, array(
+                        'name' => 'wtst_oauth_expriy_live',
+                        'value' => 'wtst_oauth_expriy',
+                        'expiry' => (MINUTE_IN_SECONDS*50)
+                    ));
+                    EH_Stripe_Token_Handler::wtst_get_site_option('update', array(
+                        'name' => 'wt_stripe_oauth_connected_live',
+                        'value' => 'yes'
+                    ));
 
                     $stripe_settings['eh_stripe_mode'] = 'live';
                     update_option("woocommerce_eh_stripe_pay_settings", $stripe_settings);
