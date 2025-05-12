@@ -22,7 +22,7 @@ class Eh_Stripe_Admin_Handler  {
         add_action('init', 'add_thickbox' );
         //add_action('admin_notices', array($this, 'add_wt_stripe_notice' ), 99);
         add_action('wp_ajax_wtst_oauth_connect_later', array($this, 'wtst_oauth_connect_later' ));
-        add_action('wp_ajax_wtst_oauth_disconnect', array($this, 'wtst_oauth_disconnect' ));
+        add_action('wp_ajax_wtst_oauth_disconnect', array('EH_Stripe_Oauth', 'wtst_oauth_disconnect' )); 
         add_action('wp_ajax_wtst_dismiss_oauth_notice', array($this, 'wtst_dismiss_oauth_notice' ));
         add_action('wp_ajax_wtst_dismiss_sofort_notice', array($this, 'wtst_dismiss_sofort_notice' ));
         add_action('after_plugin_row_payment-gateway-stripe-and-woocommerce-integration/payment-gateway-stripe-and-woocommerce-integration.php', array($this, 'wt_oauth_upgrade_notice'), 10, 3);
@@ -38,8 +38,7 @@ class Eh_Stripe_Admin_Handler  {
     public function wt_oauth_upgrade_notice($plugin_file, $plugin_data, $context) { 
 
         if(true !== Eh_Stripe_Admin_Handler::wtst_oauth_compatible() && !Eh_Stripe_Admin_Handler::wtst_new_installation()){
-            echo sprintf(__('%1$sCritical update!%2$sWe are enhancing security and require you to switch from API keys to a more %3$ssecure mode of authentication%4$s for connecting with Stripe account. OAuth provides better control and limits access to only the necessary data, protecting your business from unauthorized access.%5$sUpdate to 4.0.0 to re-authenticate your stripe connection.%6$s', 'payment-gateway-stripe-and-woocommerce-integration'), '<tr class="plugin-update-tr installer-plugin-update-tr wt-cli-plugin-inline-notice-tr active"><td colspan="4" class="plugin-update colspanchange"><div class="update-message notice notice-error inline wt-oauth-notice-section"><h2>', '</h2><p>', '<a href="https://support.stripe.com/questions/plugin-user-migration-guide">', '</a>', '</p><p>', '</p></div></td></tr>');
-        }
+            echo sprintf(__('%1$sCritical update!%2$sWe are enhancing security and require you to switch from API keys to a more %3$ssecure mode of authentication%4$s for connecting with Stripe account. OAuth provides better control and limits access to only the necessary data, protecting your business from unauthorized access.', 'eh-stripe-gateway'), '<tr class="plugin-update-tr installer-plugin-update-tr wt-cli-plugin-inline-notice-tr active"><td colspan="4" class="plugin-update colspanchange"><div class="update-message notice notice-error inline wt-oauth-notice-section"><h2>', '</h2>', '<a href="https://support.stripe.com/questions/plugin-user-migration-guide">', '</a>', '</div></td></tr>');        }
     }
 
     /**
@@ -740,7 +739,7 @@ class Eh_Stripe_Admin_Handler  {
                                     ?>
                                     <p class="submit">
                                         <?php if ( ! isset( $GLOBALS['hide_save_button'] ) ) : ?>
-                                            <input name="save" class="button-primary" type="submit" value="<?php _e( 'Save changes', 'payment_gateway_stripe_and_woocommerce_integration' ); ?>" />
+                                            <input name="save" class="button-primary" type="submit" value="<?php _e( 'Save changes', 'payment-gateway-stripe-and-woocommerce-integration' ); ?>" />
                                         <?php endif; ?>
                                         
                                     </p>
@@ -1136,7 +1135,7 @@ class Eh_Stripe_Admin_Handler  {
                                     ?>
                                     <p class="submit">
                                         <?php if ( ! isset( $GLOBALS['hide_save_button'] ) ) : ?>
-                                            <input name="save" class="button-primary" type="submit" value="<?php _e( 'Save changes', 'payment_gateway_stripe_and_woocommerce_integration' ); ?>" />
+                                            <input name="save" class="button-primary" type="submit" value="<?php _e( 'Save changes', 'payment-gateway-stripe-and-woocommerce-integration' ); ?>" />
                                         <?php endif; ?>
                                         
                                     </p>
@@ -1188,7 +1187,7 @@ class Eh_Stripe_Admin_Handler  {
 
                 <li id="eh-li-local"><a <?php ($clicked_tab == 'afterpay') ? print('style="color:#9c9696"') : '' ?>   id="eh-ach-link" class="nav-link"  href="?page=wt_stripe_menu&tab=afterpay"><?php _e('Afterpay', 'payment-gateway-stripe-and-woocommerce-integration') ?></a>|</li>
                 <li id="eh-li-local"><a <?php ($clicked_tab == 'wechat') ? print('style="color:#9c9696"') : '' ?>   id="eh-ach-link" class="nav-link"  href="?page=wt_stripe_menu&tab=wechat"><?php _e('WeChat', 'payment-gateway-stripe-and-woocommerce-integration') ?></a>|</li>
-                <li id="eh-li-local"><a <?php ($clicked_tab == 'ideal') ? print('style="color:#9c9696"') : '' ?>   id="eh-ideal-link" class="nav-link"  href="?page=wt_stripe_menu&tab=ideal"><?php _e('iDEAL', 'payment_gateway_stripe_and_woocommerce_integration') ?></a>|</li>
+                <li id="eh-li-local"><a <?php ($clicked_tab == 'ideal') ? print('style="color:#9c9696"') : '' ?>   id="eh-ideal-link" class="nav-link"  href="?page=wt_stripe_menu&tab=ideal"><?php _e('iDEAL', 'payment-gateway-stripe-and-woocommerce-integration') ?></a>|</li>
                 <li id="eh-li-local"><a <?php ($clicked_tab == 'bancontact') ? print('style="color:#9c9696"') : '' ?>   id="eh-bancontact-link" class="nav-link"  href="?page=wt_stripe_menu&tab=bancontact"><?php _e('Bancontact', 'payment-gateway-stripe-and-woocommerce-integration') ?></a>|</li>
                 <li id="eh-li-local"><a <?php ($clicked_tab == 'eps') ? print('style="color:#9c9696"') : '' ?>   id="eh-eps-link" class="nav-link"  href="?page=wt_stripe_menu&tab=eps"><?php _e('EPS', 'payment-gateway-stripe-and-woocommerce-integration') ?></a>|</li>
                 <li id="eh-li-local"><a <?php ($clicked_tab == 'p24') ? print('style="color:#9c9696"') : '' ?>   id="eh-p24-link" class="nav-link"  href="?page=wt_stripe_menu&tab=p24"><?php _e('Przelewy24', 'payment-gateway-stripe-and-woocommerce-integration') ?></a>|</li>
@@ -1236,11 +1235,11 @@ class Eh_Stripe_Admin_Handler  {
         $client_id_live = 'ca_Pl5sCXjmB1vQPLI6ewCrUibnq1DojGbA';        
 
         if('test' === $mode){
-            return add_query_arg( array('client_id' => $client_id_test, "redirect_uri" => EH_STRIPE_OAUTH_WT_URL ."oauth", "state" => $site_url_encoded ), "https://marketplace.stripe.com/oauth/v2/authorize" );
+            return add_query_arg( array('client_id' => $client_id_test, "redirect_uri" => EH_STRIPE_OAUTH_WT_URL ."oauth", "state" => $site_url_encoded, 'scope' => 'read_write' ), "https://marketplace.stripe.com/oauth/v2/authorize" );
 
         }
         else{
-            return add_query_arg( array('client_id' => $client_id_live, "redirect_uri" => EH_STRIPE_OAUTH_WT_URL ."oauth", "state" => $site_url_encoded ), "https://marketplace.stripe.com/oauth/v2/authorize" );
+            return add_query_arg( array('client_id' => $client_id_live, "redirect_uri" => EH_STRIPE_OAUTH_WT_URL ."oauth", "state" => $site_url_encoded, 'scope' => 'read_write' ), "https://marketplace.stripe.com/oauth/v2/authorize" );
 
         }
     } 
@@ -1287,49 +1286,6 @@ class Eh_Stripe_Admin_Handler  {
      } 
 
 
-    public function wtst_oauth_disconnect()
-    {
-       if(wp_verify_nonce($_REQUEST['_wpnonce'], "eh_stripe_oauth_connect")){
-            $stripe_settings = get_option("woocommerce_eh_stripe_pay_settings");            
-            $mode = (isset($stripe_settings['eh_stripe_mode']) ? $stripe_settings['eh_stripe_mode'] : 'live');
-
-            //If mode is passed override 
-            $mode = (isset($_REQUEST['mode']) ? sanitize_text_field($_REQUEST['mode']) : $mode);
-
-            if('test' === $mode){
-                if(isset($_REQUEST['expire']) && 'access_token' === sanitize_text_field($_REQUEST['expire']) ){ 
-                    EH_Stripe_Token_Handler::wtst_get_site_option('delete', null, array('name' => 'wtst_oauth_expriy_test')); 
-                    EH_Stripe_Token_Handler::wtst_get_site_option('delete', null, array('name' => 'wtst_refresh_token_calling'));                   
-
-                }
-                else{                  
-                    EH_Stripe_Token_Handler::wtst_get_site_option('delete', array('name' => 'wt_stripe_account_id_test'));
-                    EH_Stripe_Token_Handler::wtst_get_site_option('delete', array('name' => 'wt_stripe_access_token_test')); 
-                    EH_Stripe_Token_Handler::wtst_get_site_option('delete', array('name' => 'wt_stripe_refresh_token_test'));
-                    EH_Stripe_Token_Handler::wtst_get_site_option('delete', array('name' => 'wt_stripe_oauth_connected_test'));
-                    EH_Stripe_Token_Handler::wtst_get_site_option('delete', null, array('name' => 'wtst_oauth_expriy_test'));
-                    EH_Stripe_Token_Handler::wtst_get_site_option('delete', null, array('name' => 'wtst_refresh_token_calling')); 
-                }
-
-            }
-            else{
-                if(isset($_REQUEST['expire']) && 'access_token' === sanitize_text_field($_REQUEST['expire']) ){
-                    EH_Stripe_Token_Handler::wtst_get_site_option('delete', null, array('name' => 'wtst_oauth_expriy_live'));                   
-                    EH_Stripe_Token_Handler::wtst_get_site_option('delete', null, array('name' => 'wtst_refresh_token_calling'));
-                }
-                else{                  
-                    EH_Stripe_Token_Handler::wtst_get_site_option('delete', array('name' => 'wt_stripe_account_id_live'));
-                    EH_Stripe_Token_Handler::wtst_get_site_option('delete', array('name' => 'wt_stripe_access_token_live'));
-                    EH_Stripe_Token_Handler::wtst_get_site_option('delete', array('name' => 'wt_stripe_refresh_token_live')); 
-                    EH_Stripe_Token_Handler::wtst_get_site_option('delete', array('name' => 'wt_stripe_oauth_connected_live'));
-                    EH_Stripe_Token_Handler::wtst_get_site_option('delete', null, array('name' => 'wtst_oauth_expriy_live'));
-                    EH_Stripe_Token_Handler::wtst_get_site_option('delete', null, array('name' => 'wtst_refresh_token_calling'));
-                }
-            }
-
-            exit;
-       }
-    }
 
     /**
      * Function to set transient when oAuth notice is dismissed and to identify the no of times user dismissed the notice 
@@ -1389,8 +1345,8 @@ class Eh_Stripe_Admin_Handler  {
         {
 
             
-            add_action('admin_print_footer_scripts', 'wt_st_plugin_screen_update_notice_js');
-           $msg = str_replace(array( '<p>', '</p>' ), array( '<div>', '</div>' ), $data['upgrade_notice']);
+            add_action('admin_print_footer_scripts', array($this, 'wt_st_plugin_screen_update_notice_js'));      
+            $msg = str_replace(array( '<p>', '</p>' ), array( '<div>', '</div>' ), $data['upgrade_notice']);
             echo '<style type="text/css">
             #payment-gateway-stripe-and-woocommerce-integration-update .update-message p:last-child{ display:none;}     
             #payment-gateway-stripe-and-woocommerce-integration-update . ul{ list-style:disc; margin-left:30px;}

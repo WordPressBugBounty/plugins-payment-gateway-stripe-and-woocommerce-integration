@@ -585,7 +585,7 @@ class EH_Alipay_Stripe_Gateway extends WC_Payment_Gateway {
 		elseif($response->status == 'succeeded'){
 			if ( 'Captured' === $captured ) {
 			
-				if ( 'pending' === $charge_response->status ) {
+				if ( 'pending' === $charge_response->status && ( $order->get_transaction_id( $charge_response->id ) !== $charge_response->id || $order->get_status() !== 'on-hold' ) ) {
 					$order_stock_reduced = $order->get_meta( '_order_stock_reduced', true );
 
 					if ( ! $order_stock_reduced ) {
@@ -597,7 +597,7 @@ class EH_Alipay_Stripe_Gateway extends WC_Payment_Gateway {
 					$order->add_order_note( __('Payment Status : ', 'payment-gateway-stripe-and-woocommerce-integration') . ucfirst($charge_response->status) .' [ ' . $order_time . ' ] . ' . __('Source : ', 'payment-gateway-stripe-and-woocommerce-integration') . $charge_response->source->type . '. ' . __('Charge Status :', 'payment-gateway-stripe-and-woocommerce-integration') . $captured . (is_null($charge_response->balance_transaction) ? '' :'. Transaction ID : ' . $charge_response->balance_transaction) );
 				}
 				
-				if ( 'succeeded' === $charge_response->status ) {
+				if ( 'succeeded' === $charge_response->status && $order->needs_payment() ) {
 					$order->payment_complete( $charge_response->id );
 
 					$order->add_order_note( __('Payment Status : ', 'payment-gateway-stripe-and-woocommerce-integration') . ucfirst($charge_response->status) .' [ ' . $order_time . ' ] . ' . __('Source : ', 'payment-gateway-stripe-and-woocommerce-integration') . $charge_response->payment_method_details->type . '. ' . __('Charge Status :', 'payment-gateway-stripe-and-woocommerce-integration') . $captured . (is_null($charge_response->balance_transaction) ? '' :'. Transaction ID : ' . $charge_response->balance_transaction) );

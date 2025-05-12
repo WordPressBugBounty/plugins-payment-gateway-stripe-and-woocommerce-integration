@@ -348,7 +348,7 @@ class EH_Stripe_Overview
 
         for($i=0;$i<count($result);$i++)
         {
-            $data = (isset($result[$i]->meta_value) && !empty($result[$i]->meta_value)) ? unserialize($result[$i]->meta_value) : array();
+            $data = (isset($result[$i]->meta_value) && !empty($result[$i]->meta_value)) ? maybe_unserialize($result[$i]->meta_value) : array();
             if(isset($data['captured']) && $data['captured']=='Uncaptured')
             {
                 $count++;

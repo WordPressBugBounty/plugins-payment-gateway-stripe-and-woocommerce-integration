@@ -260,7 +260,15 @@ class Eh_Stripe_Checkout extends WC_Payment_Gateway {
 
             $featured_image = wp_get_attachment_image_src( get_post_thumbnail_id($_product->get_id()));
             if(isset($featured_image[0])){
-                $images[] = sanitize_url($featured_image[0]);
+                $sanitized_url = sanitize_url($featured_image[0]);
+
+                if (preg_match('/[^\x20-\x7E]/', $sanitized_url)) {
+                    $images[]  = preg_replace_callback('/[^\x20-\x7E]/', function($matches) {
+                        return rawurlencode($matches[0]);
+                    }, $sanitized_url);
+                } else {
+                    $images[] = $sanitized_url;
+                }
             }
            
         }
@@ -272,6 +280,34 @@ class Eh_Stripe_Checkout extends WC_Payment_Gateway {
                 $capture_method = 'manual';
             }
         }
+        //WPML Language URL format compatibility.
+        $language = isset($_GET['lang']) ? sanitize_text_field($_GET['lang']) : '';
+        $home_url =  $language ? wp_sanitize_redirect( home_url('/')) : wp_sanitize_redirect(home_url());
+
+        $query_args_success = array(
+            'sessionid' => '{CHECKOUT_SESSION_ID}',
+            'order_id' => $order_id,
+            '_wpnonce' => wp_create_nonce('eh_checkout_nonce')
+        );
+
+        if (!empty($language)) {
+            $query_args_success['lang'] = $language;
+        }
+
+        $success_url = add_query_arg($query_args_success, WC()->api_request_url('Eh_Stripe_Checkout'));
+
+        $query_args_cancel = array(
+            'action' => 'cancel_checkout',
+            'order_id' => $order_id,
+            '_wpnonce' => wp_create_nonce('eh_checkout_nonce')
+        );
+
+        if (!empty($language)) {
+            $query_args_cancel['lang'] = $language;
+        }
+        
+        $cancel_url = add_query_arg($query_args_cancel, WC()->api_request_url('Eh_Stripe_Checkout'));
+
 
         $session_data = array(
 
@@ -282,8 +318,8 @@ class Eh_Stripe_Checkout extends WC_Payment_Gateway {
                 'description' => wp_specialchars_decode( get_bloginfo( 'name' ), ENT_QUOTES ) . ' Order #' . $order->get_order_number(),
                 'capture_method' => $capture_method,
             ],
-            'success_url'=>  add_query_arg(array('sessionid' => '{CHECKOUT_SESSION_ID}', 'order_id'=> $order_id, '_wpnonce' => wp_create_nonce('eh_checkout_nonce')), WC()->api_request_url('Eh_Stripe_Checkout')) ,
-            'cancel_url' => add_query_arg(array('action' => 'cancel_checkout', 'order_id'=> $order_id, '_wpnonce' => wp_create_nonce('eh_checkout_nonce')), WC()->api_request_url('Eh_Stripe_Checkout')) ,
+            'success_url' => $success_url,
+            'cancel_url' => $cancel_url,
             'metadata' => ['order_id' => $order_id],
             'expires_at' => time() + (3600 * 1),
             'phone_number_collection' => ['enabled' => true],            
@@ -334,7 +370,17 @@ class Eh_Stripe_Checkout extends WC_Payment_Gateway {
 
                 $featured_image = wp_get_attachment_image_src( get_post_thumbnail_id($prod->get_id()));
                 if(isset($featured_image[0])){
-                    $session_data['line_items'][$index]['price_data']['product_data']['images'][] =  array(sanitize_url($featured_image[0]));        
+                    $sanitized_url = sanitize_url($featured_image[0]);
+        
+                    if (preg_match('/[^\x20-\x7E]/', $sanitized_url)) {
+                        $encoded_url = preg_replace_callback('/[^\x20-\x7E]/', function($matches) {
+                            return rawurlencode($matches[0]);
+                        }, $sanitized_url);
+                    } else {
+                         $encoded_url = $sanitized_url;
+                    }
+        
+                    $session_data['line_items'][$index]['price_data']['product_data']['images'][] = array($encoded_url);  
                 }
                 $index++;
             }
@@ -642,17 +688,18 @@ class Eh_Stripe_Checkout extends WC_Payment_Gateway {
             
             if ($charge_response->paid == true) {
 
-                if($charge_response->captured == true){
+                if($charge_response->captured == true && $order->needs_payment()){
                     $order->payment_complete($data['id']);
+                    $order->add_order_note(__('Payment Status : ', 'payment-gateway-stripe-and-woocommerce-integration') . ucfirst($data['status']) . ' [ ' . $order_time . ' ] . ' . __('Source : ', 'payment-gateway-stripe-and-woocommerce-integration') . $data['source_type'] . '. ' . __('Charge Status :', 'payment-gateway-stripe-and-woocommerce-integration') . $data['captured'] . (is_null($data['transaction_id']) ? '' : '.'.__('Transaction ID : ','payment-gateway-stripe-and-woocommerce-integration') . $data['transaction_id']));
                 }
 
-                if (!$charge_response->captured) {
+                if (!$charge_response->captured && $order->get_status() !== 'on-hold') {
                     $order->update_status('on-hold');
+                    $order->add_order_note(__('Payment Status : ', 'payment-gateway-stripe-and-woocommerce-integration') . ucfirst($data['status']) . ' [ ' . $order_time . ' ] . ' . __('Source : ', 'payment-gateway-stripe-and-woocommerce-integration') . $data['source_type'] . '. ' . __('Charge Status :', 'payment-gateway-stripe-and-woocommerce-integration') . $data['captured'] . (is_null($data['transaction_id']) ? '' : '.'.__('Transaction ID : ','payment-gateway-stripe-and-woocommerce-integration') . $data['transaction_id']));
                 }
 
                 $order->set_transaction_id( $data['transaction_id'] );
 
-                $order->add_order_note(__('Payment Status : ', 'payment-gateway-stripe-and-woocommerce-integration') . ucfirst($data['status']) . ' [ ' . $order_time . ' ] . ' . __('Source : ', 'payment-gateway-stripe-and-woocommerce-integration') . $data['source_type'] . '. ' . __('Charge Status :', 'payment-gateway-stripe-and-woocommerce-integration') . $data['captured'] . (is_null($data['transaction_id']) ? '' : '.'.__('Transaction ID : ','payment-gateway-stripe-and-woocommerce-integration') . $data['transaction_id']));
                 WC()->cart->empty_cart();
                 
                 EH_Helper_Class::wt_stripe_order_db_operations($order_id, $order, 'add', '_eh_stripe_payment_charge', $data, false); 
@@ -785,16 +832,18 @@ class Eh_Stripe_Checkout extends WC_Payment_Gateway {
             /*true if the charge succeeded, or was successfully authorized for later capture.*/
             if (true === $charge_response->paid) {
 
-                if(true === $charge_response->captured){
+                if(true === $charge_response->captured && $order->needs_payment()){
+                    $order->add_order_note(__('Payment Status : ', 'payment-gateway-stripe-and-woocommerce-integration') . ucfirst($data['status']) . ' [ ' . $order_time . ' ] . ' . __('Source : ', 'payment-gateway-stripe-and-woocommerce-integration') . $data['source_type'] . '. ' . __('Charge Status :', 'payment-gateway-stripe-and-woocommerce-integration') . $data['captured'] . (is_null($transaction_id) ? '' : '. <br>'.__('Transaction ID : ','payment-gateway-stripe-and-woocommerce-integration') . $transaction_id));
                     $order->payment_complete($data['id']);
                 }
 
-                if (!$charge_response->captured) {
+                if (!$charge_response->captured && $order->get_status() !== 'on-hold') {
                     $order->update_status('on-hold');
+                    $order->add_order_note(__('Payment Status : ', 'payment-gateway-stripe-and-woocommerce-integration') . ucfirst($data['status']) . ' [ ' . $order_time . ' ] . ' . __('Source : ', 'payment-gateway-stripe-and-woocommerce-integration') . $data['source_type'] . '. ' . __('Charge Status :', 'payment-gateway-stripe-and-woocommerce-integration') . $data['captured'] . (is_null($transaction_id) ? '' : '. <br>'.__('Transaction ID : ','payment-gateway-stripe-and-woocommerce-integration') . $transaction_id));
+
                 }
 
 
-                $order->add_order_note(__('Payment Status : ', 'payment-gateway-stripe-and-woocommerce-integration') . ucfirst($data['status']) . ' [ ' . $order_time . ' ] . ' . __('Source : ', 'payment-gateway-stripe-and-woocommerce-integration') . $data['source_type'] . '. ' . __('Charge Status :', 'payment-gateway-stripe-and-woocommerce-integration') . $data['captured'] . (is_null($transaction_id) ? '' : '. <br>'.__('Transaction ID : ','payment-gateway-stripe-and-woocommerce-integration') . $transaction_id));
                 WC()->cart->empty_cart();
                 
                 EH_Helper_Class::wt_stripe_order_db_operations($order_id, $order, 'update', '_eh_stripe_payment_charge', $data, false);

@@ -1,34 +1,73 @@
-=== Stripe Payment Plugin for WooCommerce  ===
+=== Stripe Payment Gateway for WooCommerce  ===
 Contributors: webtoffee
 Donate link: https://www.webtoffee.com/plugins/
-Tags: stripe checkout, credit card, google pay, apple pay, stripe, woocommerce, alipay, payment gateway, debit card, sepa, stripe payment gateway, sca ready
+Tags: stripe checkout, credit card, google pay, apple pay, stripe payments
 Requires at least: 5.6
-Tested up to: 6.7.1
+Tested up to: 6.8
 Requires PHP: 5.6
-Stable tag: 4.0.4
+Stable tag: 5.0.0
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
-This WooCommerce Stripe Payment Plugin adds Stripe Payment Gateway to your WooCommerce store. Accept credit/debit card payments, Google Pay, Apple Pay, Alipay, SEPA, Klarna, and more.
+Easily accept Stripe payments on your WooCommerce store — including credit cards, Apple Pay, Google Pay, and more. Get started with Stripe Checkout and the Stripe payment gateway in just a few minutes.
 
 == Description ==
-Easily integrate the Stripe Payment Gateway into your WooCommerce store and start accepting Stripe payments with ease.
+This WooCommerce Stripe Payment Plugin adds Stripe Payment Gateway to your WooCommerce store. Accept Stripe payments via credit  card, debit card, Google Pay, Apple Pay and more with the Stripe payment gateway integration.
 
 ### Introduction ###
-Stripe Payment Plugin for WooCommerce lets you accept credit cards/debit cards (Mastercard, Visa, American Express, Discover, JCB, Diners Club), Alipay, Apple Pay, Google Pay, SEPA, Klarna, Afterpay/Clearpay, iDEAL, and WeChat Pay within your website via the Stripe Payment Gateway.
 
-With this WooCommerce Stripe plugin, you can activate Stripe checkout on your store site and let your customers pay with their credit or debit cards at the checkout. This ensures a smooth and secure payment experience for your users. 
+Stripe Payment Plugin for WooCommerce enables your store to accept a wide range of payment methods, including credit cards and debit cards (Visa, Mastercard, American Express, Discover, JCB, Diners Club), along with region-specific and digital wallets like Alipay, Apple Pay, Google Pay, Klarna, SEPA, Afterpay, iDEAL, and WeChat Pay — all through the Stripe payment gateway for WooCommerce plugin.
 
-This free payment plugin offers a unique and intuitive Stripe overview page for your WooCommerce store. It provides you with a consolidated overview of Stripe payments, where you can do one-click capture and offer refunds.
+With this WooCommerce Stripe plugin, you can activate Stripe checkout on your store site and make Stripe payments with their credit or debit cards at the checkout. This ensures a smooth and secure payment experience for your users. 
 
-Integrating the Stripe Payments Gateway in your WooCommerce store would be the best way to enable a smooth payment flow for your customers and business.
+This free WooCommerce Stripe plugin offers a unique and intuitive Stripe overview page for your WooCommerce store. It provides you with a consolidated overview of Stripe payments, where you can do one-click capture and offer refunds.
+
+The Stripe Payments Gateway integration in your WooCommerce store would be the best way to enable a smooth payment flow for your customers and business.
+
+### Payments with Stripe ###
+
+The Stripe Payment Plugin for WooCommerce supports a wide range of global and regional payment methods, ensuring flexible and secure payment options for your customers.
+
+####Major Card Payments####
+
+Stripe’s secure credit card gateway allows WooCommerce store owners to offer fast, PCI-compliant card payments directly at checkout.
+
+ * Visa
+ * Mastercard
+ * American Express
+ * Discover
+ * JCB
+ * Diners Club
+
+####Digital Wallets####
+
+Enable Stripe payment methods like:
+
+ * Apple Pay
+ * Google Pay
+ * Alipay
+ * WeChat Pay
+
+####Local Payment Methods####
+
+Stripe for WooCommerce plugin supports popular local methods like:
+
+ * Klarna (Pay Later)
+ * SEPA Direct Debit
+ * iDEAL
+ * Afterpay 
+ * Bancontact
+ * EPS
+ * P24
+ * Boletto 
+ * OXXO and more
 
 ### Easily Connect WooCommerce with Stripe Dashboard  ###
 We’ve launched a new Stripe Authenticator app in Stripe Marketplace that lets you easily connect your WooCommerce store to the Stripe dashboard. This will simplify your efforts to manually add the API keys from the Stripe dashboard.
 
-### Set up Stripe Checkout ###
+### Set up Stripe Checkout with WooCommerce Stripe Payment Gateway###
 
-The plugin allows you to easily set up Stripe checkout in your WooCommerce store. Stripe checkout is a prebuilt checkout page hosted by Stripe. By enabling Stripe checkout, you can relieve yourself from having to build a checkout page from scratch for your WooCommerce store. 
+The Stripe payment gateway plugin allows you to easily set up Stripe checkout in your WooCommerce store. Stripe checkout is a prebuilt checkout page hosted by Stripe. By enabling Stripe checkout, you can relieve yourself from having to build a checkout page from scratch for your WooCommerce store. 
 
 The Stripe checkout page is well optimized for conversion with less loading time, address auto-complete, real-time card validation, descriptive error messages, responsive checkout, [and more](https://stripe.com/in/payments/checkout). 
 
@@ -53,18 +92,17 @@ To learn how to install the plugin, navigate to the Installation tab. For detail
 
 Stripe is available in [47+ countries](https://stripe.com/global)
 
-## Premium Version Features ##
+## Stripe Payment Gateway for WooCommerce - Premium Features##
 
-✅ Supports [WooCommerce Subscriptions](https://woocommerce.com/products/woocommerce-subscriptions/) and [Subscriptions for WooCommerce by WebToffee](https://www.webtoffee.com/product/woocommerce-subscriptions/). 
-✅ Link payment method
-✅ Multiple payment methods in Stripe checkout
-✅ Timely compatibility updates and bug fixes.
-✅ Premium support!
+ *  Supports [WooCommerce Subscriptions](https://woocommerce.com/products/woocommerce-subscriptions/) and [Subscriptions for WooCommerce by WebToffee](https://www.webtoffee.com/product/woocommerce-subscriptions/). 
+ *  Link payment method
+ *  Multiple payment methods in Stripe checkout
+ *  Timely compatibility updates and bug fixes.
+ *  Premium support!
 
 The following video explains how to set up Stripe checkout in WooCommerce
 
 [youtube https://www.youtube.com/watch?v=ZOROWwknLmA&ab_channel=WebToffee]
-
 
 
 For complete list of features and details, please visit <a rel="nofollow" href="https://www.webtoffee.com/product/woocommerce-stripe-payment-gateway/">Stripe Payment Gateway for WooCommerce</a>
@@ -82,7 +120,7 @@ Apple Pay offers an easy, secure, and private way to pay on iPhone, iPad, Apple 
 Within websites in Safari, you can use Apple Pay on your iPhone, iPad, and Mac. To use Apple Pay with Safari on a Mac model without a built-in Touch ID, go to Settings > Wallet & Apple Pay and turn on Allow Payments on Mac.
 
 ### About Payment Request Button ###
-This WooCommerce stripe plugin accepts payments via Google Pay or chrome payment methods. It works if the customer has set up google pay on a device or has cards saved on a supporting browser.
+This WooCommerce Stripe plugin accepts payments via Google Pay or chrome payment methods. It works if the customer has set up google pay on a device or has cards saved on a supporting browser.
 
 ### About Alipay ###
 Alipay, or Zhifubao in Chinese, is a third-party mobile and online payment platform, established in Hangzhou, China. Alipay operates with more than 65 financial institutions including Visa and MasterCard to provide payment services for more than 460,000 Chinese businesses.
@@ -190,6 +228,13 @@ Yes. This WooCommerce Stripe plugin allows you to accept debit payments via SEPA
 
 = Does this plugin support Stripe checkout? =
 Yes. The plugin allows you to enable Stripe checkout that lets you collect payments via Stripe hosted page. 
+
+= Can I integrate Stripe credit card payments with WooCommerce? =
+Yes, you can integrate Stripe credit card payments with WooCommerce using the Stripe Payment Plugin for WooCommerce. The plugin enables your store to accept all major credit and debit cards including Visa, Mastercard, American Express, Discover, JCB, and Diners Club. If you're looking to support additional payment methods like Apple Pay, Google Pay, or SEPA, the plugin has those covered too.
+
+= How does the Stripe payment gateway work with WooCommerce? =
+The Stripe payment gateway for WooCommerce acts as a secure bridge between your WooCommerce store and Stripe’s payment infrastructure. Once you install and activate the Stripe Payment Gateway Plugin for WooCommerce, you can connect your Stripe account and start accepting online payments via credit cards, debit cards, digital wallets, and local payment methods.
+
 == Screenshots ==
 
 1. Stripe Credit/Debit Card Checkout
@@ -218,6 +263,14 @@ Yes. The plugin allows you to enable Stripe checkout that lets you collect payme
 24. Stripe General Settings
 
 == Changelog ==
+
+= 5.0.0 2025-05-12 =
+* [Enhancement] - Enhanced token refresh logic for returning Stripe API keys.
+* [Fix] - Resolved Stripe Checkout redirect issues when WPML plugin is active.
+* [Fix] - Addressed issue with Stripe Checkout when line item image URLs contained non-ASCII characters.
+* [Fix] - Restricted phone number collection in Stripe Checkout to only "payment" and "subscription" modes, as required by Stripe's supported methods.
+* [Compatibility] - WordPress 6.8
+* [Compatibility] - WooCommerce 9.8.4
 
 = 4.0.4 2025-01-07 =
 * [Enhancement] - Prevent cache issue when accessing option table values
@@ -720,9 +773,10 @@ Yes. The plugin allows you to enable Stripe checkout that lets you collect payme
  
 == Upgrade Notice ==
 
-= 4.0.4 =
-* [Enhancement] - Prevent cache issue when accessing option table values
-* [Enhancement] - Optimized code to prevent multiple token initialization
-* [Enhancement] - Added filter and improved token storage to support using the same Stripe account across a multisite.
-* [Compatibility] - WordPress 6.7.1
-* [Compatibility] - WooCommerce 9.5.1
+= 5.0.0 =
+* [Enhancement] - Enhanced token refresh logic for returning Stripe API keys.
+* [Fix] - Resolved Stripe Checkout redirect issues when WPML plugin is active.
+* [Fix] - Addressed issue with Stripe Checkout when line item image URLs contained non-ASCII characters.
+* [Fix] - Restricted phone number collection in Stripe Checkout to only "payment" and "subscription" modes, as required by Stripe's supported methods.
+* [Compatibility] - WordPress 6.8
+* [Compatibility] - WooCommerce 9.8.4

@@ -435,7 +435,7 @@ class EH_Multibanco extends WC_Payment_Gateway {
 
         if ( 'Captured' === $captured ) {
             
-            if ( 'pending' === $response->status ) {
+            if ( 'pending' === $response->status && $order->get_status() !== 'on-hold' ) {
                 $order_stock_reduced = $order->get_meta( '_order_stock_reduced', true );
 
                 if ( ! $order_stock_reduced ) {
@@ -447,7 +447,7 @@ class EH_Multibanco extends WC_Payment_Gateway {
                 $order->add_order_note( __('Payment Status : ', 'payment-gateway-stripe-and-woocommerce-integration') . ucfirst($response->status) .' [ ' . $order_time . ' ] . ' . __('Source : ', 'payment-gateway-stripe-and-woocommerce-integration') . $response->source->type . '. ' . __('Charge Status :', 'payment-gateway-stripe-and-woocommerce-integration') . $captured . (is_null($response->balance_transaction) ? '' :'. Transaction ID : ' . $response->balance_transaction) );
             }
             
-            if ( 'succeeded' === $response->status ) {
+            if ( 'succeeded' === $response->status && $order->needs_payment() ) {
                 $order->payment_complete( $response->id );
 
                 $order->add_order_note( __('Payment Status : ', 'payment-gateway-stripe-and-woocommerce-integration') . ucfirst($response->status) .' [ ' . $order_time . ' ] . ' . __('Source : ', 'payment-gateway-stripe-and-woocommerce-integration') . $response->source->type . '. ' . __('Charge Status :', 'payment-gateway-stripe-and-woocommerce-integration') . $captured . (is_null($response->balance_transaction) ? '' :'. Transaction ID : ' . $response->balance_transaction) );

@@ -248,7 +248,7 @@ class EH_Wechat extends WC_Payment_Gateway {
                     $qr_style = apply_filters('eh_stripe_qr_style', $qr_style);
 
                     
-                   ?><div id="eh-wechat-qr" <?php print($qr_style) ?> ><center><img width="<?php print esc_attr($width); ?>" src="<?php print esc_url($intent->next_action->wechat_pay_display_qr_code->image_url_png) ?>" ></center>
+                   ?><div id="eh-wechat-qr" <?php print esc_attr($qr_style); ?> ><center><img width="<?php print esc_attr($width); ?>" src="<?php print esc_url($intent->next_action->wechat_pay_display_qr_code->image_url_png) ?>" ></center>
 
                     <style>.payment_methods{ display: none; }</style>
                     <p style="text-align: center; font-weight: bold; font-family: Arial, sans-serif;"><?php esc_html_e("WeChat Pay QR", "payment-gateway-stripe-and-woocommerce-integration") ?></p>
@@ -263,9 +263,10 @@ class EH_Wechat extends WC_Payment_Gateway {
 
             $redirect_time = 1;
             $redirect_time = apply_filters('eh_stripe_redirect_time_in_minute', $redirect_time);
-            $redirect_time = $redirect_time * 60000;
-            if (empty($redirect_time)) {
-               $redirect_time = 60000;
+            if (empty($redirect_time) || !is_numeric($redirect_time)) {
+                $redirect_time = 60000;
+            } else {
+                $redirect_time = intval($redirect_time) * 60000;
             }
 
             echo '<script>
@@ -286,7 +287,7 @@ class EH_Wechat extends WC_Payment_Gateway {
                      window.setTimeout(function() { 
                        
                         if(confirm("When you have finished scanning the QR Code, click OK to redirect to the order received page.")){
-                            window.location.href = "' . $redirect_url . '";
+                            window.location.href = "' . esc_js($redirect_url) . '";
                         }
                         else{
                             confirmBox();
@@ -701,13 +702,16 @@ class EH_Wechat extends WC_Payment_Gateway {
         if($response->status == 'succeeded' || $response->status == 'requires_capture'){
             if ($charge_response->paid == true) {
 
-                if($charge_response->captured == true){
+                if($charge_response->captured == true && $order->needs_payment()){
                     $order->payment_complete( $charge_response->id );
+                    $order->add_order_note( __('Payment Status : ', 'payment-gateway-stripe-and-woocommerce-integration') . ucfirst($charge_response->status) .' [ ' . $order_time . ' ] . ' . __('Source : ', 'payment-gateway-stripe-and-woocommerce-integration') . $charge_response->payment_method_details->type . '. ' . __('Charge Status :', 'payment-gateway-stripe-and-woocommerce-integration') . $captured . (is_null($charge_response->balance_transaction) ? '' :'. Transaction ID : ' . $charge_response->balance_transaction) );
+
                 }
-                if (!$charge_response->captured) {
+                if (!$charge_response->captured && $order->get_status() !== 'on-hold') {
                     $order->update_status('on-hold');
+                    $order->add_order_note( __('Payment Status : ', 'payment-gateway-stripe-and-woocommerce-integration') . ucfirst($charge_response->status) .' [ ' . $order_time . ' ] . ' . __('Source : ', 'payment-gateway-stripe-and-woocommerce-integration') . $charge_response->payment_method_details->type . '. ' . __('Charge Status :', 'payment-gateway-stripe-and-woocommerce-integration') . $captured . (is_null($charge_response->balance_transaction) ? '' :'. Transaction ID : ' . $charge_response->balance_transaction) );
+
                 }
-                $order->add_order_note( __('Payment Status : ', 'payment-gateway-stripe-and-woocommerce-integration') . ucfirst($charge_response->status) .' [ ' . $order_time . ' ] . ' . __('Source : ', 'payment-gateway-stripe-and-woocommerce-integration') . $charge_response->payment_method_details->type . '. ' . __('Charge Status :', 'payment-gateway-stripe-and-woocommerce-integration') . $captured . (is_null($charge_response->balance_transaction) ? '' :'. Transaction ID : ' . $charge_response->balance_transaction) );
                 WC()->cart->empty_cart();
                 EH_Stripe_Log::log_update('live', $charge_response, get_bloginfo('blogname') . ' - Charge - Order #' . $order->get_order_number());
                 return array(
@@ -722,7 +726,7 @@ class EH_Wechat extends WC_Payment_Gateway {
         }
         else{
             $order->update_status( 'failed', __( 'Stripe payment failed.', 'payment-gateway-stripe-and-woocommerce-integration' ) );
-                wc_add_notice($$charge_response->status, $notice_type = 'error');
+                wc_add_notice($charge_response->status, $notice_type = 'error');
                 EH_Stripe_Log::log_update('dead', $charge_response, get_bloginfo('blogname') . ' - Charge - Order #' . $order->get_order_number());
 
         }

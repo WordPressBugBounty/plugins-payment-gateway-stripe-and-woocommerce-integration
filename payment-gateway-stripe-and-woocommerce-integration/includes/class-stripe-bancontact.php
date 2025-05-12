@@ -292,7 +292,7 @@ class EH_Bancontact extends WC_Payment_Gateway {
 
             $payment_method = isset($_POST['eh_bancontact_token']) ? sanitize_text_field($_POST['eh_bancontact_token']) : '';
             if (empty($payment_method)) {
-                throw new Exception(__('Unable to process this payment, please try again.', 'payment_gateway_stripe_and_woocommerce_integration' ));
+                throw new Exception(__('Unable to process this payment, please try again.', 'payment-gateway-stripe-and-woocommerce-integration' ));
                 
             }
             $currency =  $order->get_currency();
@@ -313,7 +313,7 @@ class EH_Bancontact extends WC_Payment_Gateway {
                 if(! empty($intent)){
 
                     if ( $intent->status === 'succeeded' ) {
-                        wc_add_notice(__('An error has occurred internally, due to which you are not redirected to the order received page. Please contact support for more assistance.', 'payment_gateway_stripe_and_woocommerce_integration'), 'error');
+                        wc_add_notice(__('An error has occurred internally, due to which you are not redirected to the order received page. Please contact support for more assistance.', 'payment-gateway-stripe-and-woocommerce-integration'), 'error');
                         wp_redirect(wc_get_checkout_url());
                     }else{
                         $intent = \Stripe\PaymentIntent::create( $payment_intent_args , array(
@@ -342,12 +342,12 @@ class EH_Bancontact extends WC_Payment_Gateway {
                 }
             }
             else{
-                throw new Exception( __( 'Unable to process this payment, please try again.', 'payment_gateway_stripe_and_woocommerce_integration' ));
+                throw new Exception( __( 'Unable to process this payment, please try again.', 'payment-gateway-stripe-and-woocommerce-integration' ));
             }
 
         }
         catch(Exception $e){
-            $order->update_status( 'failed', sprintf( __( 'Bancontact payment failed: %s', 'payment_gateway_stripe_and_woocommerce_integration' ),$e->getMessage() ) );
+            $order->update_status( 'failed', sprintf( __( 'Bancontact payment failed: %s', 'payment-gateway-stripe-and-woocommerce-integration' ),$e->getMessage() ) );
             
            wc_add_notice( $e->getMessage(), 'error' );
             return array (
@@ -601,6 +601,7 @@ class EH_Bancontact extends WC_Payment_Gateway {
     }
 
     public function eh_bancontact_callback_handler() { 
+       
         if (isset($_REQUEST['order_id']) && !empty($_REQUEST['order_id'])) {
             $order_id = sanitize_text_field($_REQUEST['order_id']);
             $order = wc_get_order( $order_id );
@@ -615,23 +616,21 @@ class EH_Bancontact extends WC_Payment_Gateway {
             }
             else{
                 if ($order) {
-                $order->update_status( 'failed', __( 'Stripe payment failed', 'payment_gateway_stripe_and_woocommerce_integration' ) );
+                $order->update_status( 'failed', __( 'Stripe payment failed', 'payment-gateway-stripe-and-woocommerce-integration' ) );
                 }
-                
-                wc_add_notice( __( 'Unable to process this payment.', 'payment_gateway_stripe_and_woocommerce_integration' ), 'error' );
+                    
+                wc_add_notice( __( 'Unable to process this payment.', 'payment-gateway-stripe-and-woocommerce-integration' ), 'error' );
                 wp_safe_redirect( wc_get_checkout_url() );
             }
         }
         else{
             if ($order) {
-                $order->update_status( 'failed', __( 'Stripe payment failed', 'payment_gateway_stripe_and_woocommerce_integration' ) );
+                $order->update_status( 'failed', __( 'Stripe payment failed', 'payment-gateway-stripe-and-woocommerce-integration' ) );
             }
-            
-            wc_add_notice( __( 'Unable to process this payment.', 'payment_gateway_stripe_and_woocommerce_integration' ), 'error' );
+                
+            wc_add_notice( __( 'Unable to process this payment.', 'payment-gateway-stripe-and-woocommerce-integration' ), 'error' );
             wp_safe_redirect( wc_get_checkout_url() );
-         }
-
-
+        }
     }
 
         /**
@@ -671,14 +670,17 @@ class EH_Bancontact extends WC_Payment_Gateway {
         $order->set_transaction_id( $charge_response->id );
         if(isset($response->status) && $response->status === 'succeeded'){
             if (isset($charge_response->paid) && $charge_response->paid === true) {
-
-                if(isset($charge_response->captured) && $charge_response->captured === true){
+                $order_need_processing = apply_filters('wt_stripe_order_need_processing_bancontact',true);
+                if(isset($charge_response->captured) && $charge_response->captured === true && $order->needs_payment() && $order_need_processing){
                     $order->payment_complete( $charge_response->id );
+                    $order->add_order_note( __('Payment Status : ', 'payment-gateway-stripe-and-woocommerce-integration') . ucfirst($charge_status) .' [ ' . $order_time . ' ] . ' . __('Source : ', 'payment-gateway-stripe-and-woocommerce-integration') . $payment_method_tye . '. ' . __('Charge Status :', 'payment-gateway-stripe-and-woocommerce-integration') . $captured . (is_null($charge_response->balance_transaction) ? '' :'. Transaction ID : ' . $charge_response->balance_transaction) );
+
                 }
-                else{
+                elseif($order->get_status() !== 'on-hold'){
                     $order->update_status('on-hold');
+                    $order->add_order_note( __('Payment Status : ', 'payment-gateway-stripe-and-woocommerce-integration') . ucfirst($charge_status) .' [ ' . $order_time . ' ] . ' . __('Source : ', 'payment-gateway-stripe-and-woocommerce-integration') . $payment_method_tye . '. ' . __('Charge Status :', 'payment-gateway-stripe-and-woocommerce-integration') . $captured . (is_null($charge_response->balance_transaction) ? '' :'. Transaction ID : ' . $charge_response->balance_transaction) );
+
                 }
-                $order->add_order_note( __('Payment Status : ', 'payment_gateway_stripe_and_woocommerce_integration') . ucfirst($charge_status) .' [ ' . $order_time . ' ] . ' . __('Source : ', 'payment_gateway_stripe_and_woocommerce_integration') . $payment_method_tye . '. ' . __('Charge Status :', 'payment_gateway_stripe_and_woocommerce_integration') . $captured . (is_null($charge_response->balance_transaction) ? '' :'. Transaction ID : ' . $charge_response->balance_transaction) );
                 WC()->cart->empty_cart();
                 EH_Stripe_Log::log_update('live', $charge_response, get_bloginfo('blogname') . ' - Charge - Order #' . $order->get_order_number());
                 return array(
@@ -686,23 +688,23 @@ class EH_Bancontact extends WC_Payment_Gateway {
                     'redirect' => $this->get_return_url($order),
                 );
             } else {
-                $order->update_status( 'failed', __( 'Stripe payment failed.', 'payment_gateway_stripe_and_woocommerce_integration' ) );
+                $order->update_status( 'failed', __( 'Stripe payment failed.', 'payment-gateway-stripe-and-woocommerce-integration' ) );
                 wc_add_notice($charge_status, 'error');
                 EH_Stripe_Log::log_update('dead', $charge_response, get_bloginfo('blogname') . ' - Charge - Order #' . $order->get_order_number());
             }
         }
         elseif($response->status == 'processing' || $response->status == 'pending'){
-            $order->update_status( 'on-hold', __( 'Waiting for the payment to succeed or fail.', 'payment_gateway_stripe_and_woocommerce_integration' ) );
+            $order->update_status( 'on-hold', __( 'Waiting for the payment to succeed or fail.', 'payment-gateway-stripe-and-woocommerce-integration' ) );
 
         }         
         elseif($response->status == 'requires_capture'){
-            $order->update_status( 'on-hold', __( 'Payment is authorized and requires a capture.', 'payment_gateway_stripe_and_woocommerce_integration' ) );
-            $order->add_order_note( __('Payment Status : ', 'payment_gateway_stripe_and_woocommerce_integration') . ucfirst($charge_status) .' [ ' . $order_time . ' ] . ' . __('Source : ', 'payment_gateway_stripe_and_woocommerce_integration') . $payment_method_tye . '. ' . __('Charge Status :', 'payment_gateway_stripe_and_woocommerce_integration') . $captured . (is_null($charge_response->balance_transaction) ? '' :'. Transaction ID : ' . $charge_response->balance_transaction) );
+            $order->update_status( 'on-hold', __( 'Payment is authorized and requires a capture.', 'payment-gateway-stripe-and-woocommerce-integration' ) );
+            $order->add_order_note( __('Payment Status : ', 'payment-gateway-stripe-and-woocommerce-integration') . ucfirst($charge_status) .' [ ' . $order_time . ' ] . ' . __('Source : ', 'payment-gateway-stripe-and-woocommerce-integration') . $payment_method_tye . '. ' . __('Charge Status :', 'payment-gateway-stripe-and-woocommerce-integration') . $captured . (is_null($charge_response->balance_transaction) ? '' :'. Transaction ID : ' . $charge_response->balance_transaction) );
 
 
         }        
         else{
-            $order->update_status( 'failed', __( 'Stripe payment failed.', 'payment_gateway_stripe_and_woocommerce_integration' ) );
+            $order->update_status( 'failed', __( 'Stripe payment failed.', 'payment-gateway-stripe-and-woocommerce-integration' ) );
                 wc_add_notice($charge_status, 'error');
                 EH_Stripe_Log::log_update('dead', $charge_response, get_bloginfo('blogname') . ' - Charge - Order #' . $order->get_order_number());
 

@@ -737,9 +737,9 @@ class EH_Stripe_Payment extends WC_Payment_Gateway {
         global $wp;
         $wc_order = wc_get_order($order_id);
         try {
- 
- 
-            $payment_method = $_POST['eh_stripe_pay_token'];
+        
+            
+
             $card_brand =  isset( $_POST['eh_stripe_card_type'] )? sanitize_text_field($_POST['eh_stripe_card_type']) : 'other';
             $currency = get_woocommerce_currency();
             $amount =  self::get_stripe_amount(((WC()->version < '2.7.0') ? $wc_order->order_total : $wc_order->get_total())) ;
@@ -840,7 +840,11 @@ class EH_Stripe_Payment extends WC_Payment_Gateway {
 
             } 
              //if payment using a new card
-            else{     
+            else{ 
+                 
+                if(!isset($_POST['eh_stripe_pay_token'])){
+                    throw new Exception(__("Invalid card. Please select another card or input a new card number", 'payment-gateway-stripe-and-woocommerce-integration'));
+                }   
                 $token = sanitize_text_field($_POST['eh_stripe_pay_token']);
                 $payment_method = sanitize_text_field($_POST['eh_stripe_pay_token']);
                 $customer = false;
@@ -1080,14 +1084,15 @@ class EH_Stripe_Payment extends WC_Payment_Gateway {
                 //SFRWDF-814 - To avoid Stocks getting reduced twice.
                 $process_order = apply_filters( 'wt_stripe_process_card_payment_only_through_webhook', false );
                 
-                if ( ! $process_order ) {
+                if ( ! $process_order && $wc_order->needs_payment() ) {
                     $wc_order->payment_complete($data['id']);
+                    $wc_order->add_order_note(__('Payment Status : ', 'payment-gateway-stripe-and-woocommerce-integration') . ucfirst($data['status']) . ' [ ' . $order_time . ' ] . ' . __('Source : ', 'payment-gateway-stripe-and-woocommerce-integration') . $data['source_type'] . '. ' . __('Charge Status :', 'payment-gateway-stripe-and-woocommerce-integration') . $data['captured'] . (is_null($data['transaction_id']) ? '' : '. <br>'.__('Transaction ID : ','payment-gateway-stripe-and-woocommerce-integration') . $data['transaction_id']));
                 }
             }
-            if (!$charge_response->captured) {
+            if (!$charge_response->captured && $wc_order->get_status() !== 'on-hold') {
                 $wc_order->update_status('on-hold');
+                $wc_order->add_order_note(__('Payment Status : ', 'payment-gateway-stripe-and-woocommerce-integration') . ucfirst($data['status']) . ' [ ' . $order_time . ' ] . ' . __('Source : ', 'payment-gateway-stripe-and-woocommerce-integration') . $data['source_type'] . '. ' . __('Charge Status :', 'payment-gateway-stripe-and-woocommerce-integration') . $data['captured'] . (is_null($data['transaction_id']) ? '' : '. <br>'.__('Transaction ID : ','payment-gateway-stripe-and-woocommerce-integration') . $data['transaction_id']));
             }
-            $wc_order->add_order_note(__('Payment Status : ', 'payment-gateway-stripe-and-woocommerce-integration') . ucfirst($data['status']) . ' [ ' . $order_time . ' ] . ' . __('Source : ', 'payment-gateway-stripe-and-woocommerce-integration') . $data['source_type'] . '. ' . __('Charge Status :', 'payment-gateway-stripe-and-woocommerce-integration') . $data['captured'] . (is_null($data['transaction_id']) ? '' : '. <br>'.__('Transaction ID : ','payment-gateway-stripe-and-woocommerce-integration') . $data['transaction_id']));
             WC()->cart->empty_cart();
             EH_Helper_Class::wt_stripe_order_db_operations($order_id, $wc_order, 'add', '_eh_stripe_payment_charge', $data, false); 
 

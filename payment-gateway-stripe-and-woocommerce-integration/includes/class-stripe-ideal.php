@@ -18,10 +18,10 @@ class EH_iDEAL extends WC_Payment_Gateway {
     public function __construct() {
         
         $this->id                 = 'eh_ideal_stripe';
-        $this->method_title       = __( 'iDEAL', 'payment_gateway_stripe_and_woocommerce_integration' );
+        $this->method_title       = __( 'iDEAL', 'payment-gateway-stripe-and-woocommerce-integration' );
 
         $url = add_query_arg( 'wc-api', 'wt_stripe', trailingslashit( get_home_url() ) );
-        $this->method_description = sprintf( __( 'iDEAL is a Netherlands-based payment method that allows customers to use bank credentials to complete transactions online. ' . '<a  class="thickbox" href="'.EH_STRIPE_MAIN_URL_PATH . 'assets/img/ideal-preview.png?TB_iframe=true&width=100&height=100">[Preview] </a>', 'payment_gateway_stripe_and_woocommerce_integration' ));
+        $this->method_description = sprintf( __( 'iDEAL is a Netherlands-based payment method that allows customers to use bank credentials to complete transactions online. ' . '<a  class="thickbox" href="'.EH_STRIPE_MAIN_URL_PATH . 'assets/img/ideal-preview.png?TB_iframe=true&width=100&height=100">[Preview] </a>', 'payment-gateway-stripe-and-woocommerce-integration' ));
         $this->supports = array(
             'products',
             'refunds',
@@ -40,7 +40,7 @@ class EH_iDEAL extends WC_Payment_Gateway {
         $this->description             = __($this->get_option( 'eh_stripe_ideal_description' ), 'payment-gateway-stripe-and-woocommerce-integration' );
         $this->enabled                 = $this->get_option( 'enabled' );
         $this->eh_order_button         = $this->get_option( 'eh_stripe_ideal_order_button');
-        $this->order_button_text       = __($this->eh_order_button, 'payment_gateway_stripe_and_woocommerce_integration');
+        $this->order_button_text       = __($this->eh_order_button, 'payment-gateway-stripe-and-woocommerce-integration');
 
         add_action( 'woocommerce_update_options_payment_gateways_' . $this->id, array( $this, 'process_admin_options' ) );
 
@@ -75,33 +75,33 @@ class EH_iDEAL extends WC_Payment_Gateway {
                 'class'       => 'eh-css-class',
             ),
             'enabled'                       => array(
-                'title'       => __('iDEAL Pay','payment_gateway_stripe_and_woocommerce_integration'),
-                'label'       => __('Enable','payment_gateway_stripe_and_woocommerce_integration'),
+                'title'       => __('iDEAL Pay','payment-gateway-stripe-and-woocommerce-integration'),
+                'label'       => __('Enable','payment-gateway-stripe-and-woocommerce-integration'),
                 'type'        => 'checkbox',
                 'default'     => isset($stripe_settings['eh_stripe_ideal']) ? $stripe_settings['eh_stripe_ideal'] : 'no',
-                'desc_tip'    => __('Enables customers in the Single Euro Payments Area (iDEAL) to pay by providing their bank account details.','payment_gateway_stripe_and_woocommerce_integration'),
+                'desc_tip'    => __('Enables customers in the Single Euro Payments Area (iDEAL) to pay by providing their bank account details.','payment-gateway-stripe-and-woocommerce-integration'),
             ),
             'eh_stripe_ideal_title'         => array(
-                'title'       => __('Title','payment_gateway_stripe_and_woocommerce_integration'),
+                'title'       => __('Title','payment-gateway-stripe-and-woocommerce-integration'),
                 'type'        => 'text',
-                'description' =>  __('Input title for the payment gateway displayed at the checkout.', 'payment_gateway_stripe_and_woocommerce_integration'),
-                'default'     =>isset($stripe_settings['eh_stripe_ideal_title']) ? $stripe_settings['eh_stripe_ideal_title'] : __('iDEAL Pay', 'payment_gateway_stripe_and_woocommerce_integration'),
+                'description' =>  __('Input title for the payment gateway displayed at the checkout.', 'payment-gateway-stripe-and-woocommerce-integration'),
+                'default'     =>isset($stripe_settings['eh_stripe_ideal_title']) ? $stripe_settings['eh_stripe_ideal_title'] : __('iDEAL Pay', 'payment-gateway-stripe-and-woocommerce-integration'),
                 'desc_tip'    => true,
             ),
             'eh_stripe_ideal_description'     => array(
-                'title'       => __('Description','payment_gateway_stripe_and_woocommerce_integration'),
+                'title'       => __('Description','payment-gateway-stripe-and-woocommerce-integration'),
                 'type'        => 'textarea',
                 'css'         => 'width:25em',
-                'description' => __('Input texts for the payment gateway displayed at the checkout.', 'payment_gateway_stripe_and_woocommerce_integration'),
-                'default'     =>isset($stripe_settings['eh_stripe_ideal_description']) ? $stripe_settings['eh_stripe_ideal_description'] : __('Secure debit payment via iDEAL.', 'payment_gateway_stripe_and_woocommerce_integration'),
+                'description' => __('Input texts for the payment gateway displayed at the checkout.', 'payment-gateway-stripe-and-woocommerce-integration'),
+                'default'     =>isset($stripe_settings['eh_stripe_ideal_description']) ? $stripe_settings['eh_stripe_ideal_description'] : __('Secure debit payment via iDEAL.', 'payment-gateway-stripe-and-woocommerce-integration'),
                 'desc_tip'    => true
             ),
 
             'eh_stripe_ideal_order_button'    => array(
-                'title'       => __('Order button text', 'payment_gateway_stripe_and_woocommerce_integration'),
+                'title'       => __('Order button text', 'payment-gateway-stripe-and-woocommerce-integration'),
                 'type'        => 'text',
-                'description' => __('Input a text that will appear on the order button to place order at the checkout.', 'payment_gateway_stripe_and_woocommerce_integration'),
-                'default'     => isset($stripe_settings['eh_stripe_ideal_order_button']) ? $stripe_settings['eh_stripe_ideal_order_button'] :__('Pay via iDEAL', 'payment_gateway_stripe_and_woocommerce_integration'),
+                'description' => __('Input a text that will appear on the order button to place order at the checkout.', 'payment-gateway-stripe-and-woocommerce-integration'),
+                'default'     => isset($stripe_settings['eh_stripe_ideal_order_button']) ? $stripe_settings['eh_stripe_ideal_order_button'] :__('Pay via iDEAL', 'payment-gateway-stripe-and-woocommerce-integration'),
                 'desc_tip'    => true
             )
         );   
@@ -242,7 +242,7 @@ class EH_iDEAL extends WC_Payment_Gateway {
             echo apply_filters('eh_ideal_desc', wpautop(wp_kses_post("<span>" . $description . "</span>")));
         }
         echo "</div>";
-        $pay_button_text = __('Pay', 'payment_gateway_stripe_and_woocommerce_integration');
+        $pay_button_text = __('Pay', 'payment-gateway-stripe-and-woocommerce-integration');
         if (is_checkout_pay_page()) {
             $order_id = get_query_var('order-pay');
             $order = wc_get_order($order_id);
@@ -287,7 +287,7 @@ class EH_iDEAL extends WC_Payment_Gateway {
                     Element container enables the Element to automatically gain focus
                     when the customer clicks on the label.
                     -->
-                    <label for="eh-stripe-ideal-accountholder-name"><?php esc_html_e( 'Name', 'payment_gateway_stripe_and_woocommerce_integration' ); ?> <span class="required"></span></label>
+                    <label for="eh-stripe-ideal-accountholder-name"><?php esc_html_e( 'Name', 'payment-gateway-stripe-and-woocommerce-integration' ); ?> <span class="required"></span></label>
                     <input id="eh-stripe-ideal-accountholder-name"  name="eh-stripe-ideal-accountholder-name">
                 </div>  
                <div class="form-row  form-row-wide">
@@ -296,7 +296,7 @@ class EH_iDEAL extends WC_Payment_Gateway {
                     Element container enables the Element to automatically gain focus
                     when the customer clicks on the label.
                     -->
-                    <label for="eh-stripe-ideal-element"><?php esc_html_e( 'iDEAL Bank', 'payment_gateway_stripe_and_woocommerce_integration' ); ?> <span class="required">*</span></label>
+                    <label for="eh-stripe-ideal-element"><?php esc_html_e( 'iDEAL Bank', 'payment-gateway-stripe-and-woocommerce-integration' ); ?> <span class="required">*</span></label>
                     <div id="eh-stripe-ideal-element"  class="eh-stripe-elements-field">
                         <!-- A Stripe Element will be inserted here. -->
                     </div>
@@ -336,7 +336,7 @@ class EH_iDEAL extends WC_Payment_Gateway {
                 if(! empty($intent)){
 
                     if ( $intent->status === 'succeeded' ) {
-                        wc_add_notice(__('An error has occurred internally, due to which you are not redirected to the order received page. Please contact support for more assistance.', 'payment_gateway_stripe_and_woocommerce_integration'), $notice_type = 'error');
+                        wc_add_notice(__('An error has occurred internally, due to which you are not redirected to the order received page. Please contact support for more assistance.', 'payment-gateway-stripe-and-woocommerce-integration'), $notice_type = 'error');
                         wp_redirect(wc_get_checkout_url());
                     }else{
                         $intent = \Stripe\PaymentIntent::create( $payment_intent_args , array(
@@ -368,18 +368,21 @@ class EH_iDEAL extends WC_Payment_Gateway {
                     );
                 }                 
                 else {
+                    print_r(123);
+                    print_r($intent);
+                    die;
                     return $this->eh_process_payment_response( $intent,$order );
                     $redirect_url = $this->get_return_url( $order );
                     wp_safe_redirect($redirect_url);
                 }
             }
             else{
-                throw new Exception( __( 'Unable to process this payment, please try again.', 'payment_gateway_stripe_and_woocommerce_integration' ));
+                throw new Exception( __( 'Unable to process this payment, please try again.', 'payment-gateway-stripe-and-woocommerce-integration' ));
             }
 
         }
         catch(Exception $e){
-            $order->update_status( 'failed', sprintf( __( 'iDEAL payment failed: %s', 'payment_gateway_stripe_and_woocommerce_integration' ),$e->getMessage() ) );
+            $order->update_status( 'failed', sprintf( __( 'iDEAL payment failed: %s', 'payment-gateway-stripe-and-woocommerce-integration' ),$e->getMessage() ) );
             
            wc_add_notice( $e->getMessage(), 'error' );
             return array (
@@ -541,22 +544,22 @@ class EH_iDEAL extends WC_Payment_Gateway {
                         
                         EH_Helper_Class::wt_stripe_order_db_operations($order_id, $order, 'add', '_eh_stripe_payment_refund', $data, false); 
 
-                        $order->add_order_note(__('Reason : ', 'payment_gateway_stripe_and_woocommerce_integration') . $reason . '.<br>' . __('Amount : ', 'payment_gateway_stripe_and_woocommerce_integration') . get_woocommerce_currency_symbol() . $amount . '.<br>' . __('Status : refunded ', 'payment_gateway_stripe_and_woocommerce_integration') . ' [ ' . $refund_time . ' ] ' . (is_null($data['transaction_id']) ? '' : '<br>' . __('Transaction ID : ', 'payment_gateway_stripe_and_woocommerce_integration') . $data['transaction_id']));
+                        $order->add_order_note(__('Reason : ', 'payment-gateway-stripe-and-woocommerce-integration') . $reason . '.<br>' . __('Amount : ', 'payment-gateway-stripe-and-woocommerce-integration') . get_woocommerce_currency_symbol() . $amount . '.<br>' . __('Status : refunded ', 'payment-gateway-stripe-and-woocommerce-integration') . ' [ ' . $refund_time . ' ] ' . (is_null($data['transaction_id']) ? '' : '<br>' . __('Transaction ID : ', 'payment-gateway-stripe-and-woocommerce-integration') . $data['transaction_id']));
                         EH_Stripe_Log::log_update('live', $data, get_bloginfo('blogname') . ' - Refund - Order #' . $order->get_order_number());
                         return true;
                     } else {
                         EH_Stripe_Log::log_update('dead', $data, get_bloginfo('blogname') . ' - Refund Error - Order #' . $order->get_order_number());
-                        $order->add_order_note(__('Reason : ', 'payment_gateway_stripe_and_woocommerce_integration') . $reason . '.<br>' . __('Amount : ', 'payment_gateway_stripe_and_woocommerce_integration') . get_woocommerce_currency_symbol() . $amount . '.<br>' . __(' Status : Failed ', 'payment_gateway_stripe_and_woocommerce_integration'));
+                        $order->add_order_note(__('Reason : ', 'payment-gateway-stripe-and-woocommerce-integration') . $reason . '.<br>' . __('Amount : ', 'payment-gateway-stripe-and-woocommerce-integration') . get_woocommerce_currency_symbol() . $amount . '.<br>' . __(' Status : Failed ', 'payment-gateway-stripe-and-woocommerce-integration'));
                         return new WP_Error('error', $data->message);
                     }
                 } catch (Exception $error) {
                     $oops = $error->getJsonBody();
                     EH_Stripe_Log::log_update('dead', $oops['error'], get_bloginfo('blogname') . ' - Refund Error - Order #' . $order->get_order_number());
-                    $order->add_order_note(__('Reason : ', 'payment_gateway_stripe_and_woocommerce_integration') . $reason . '.<br>' . __('Amount : ', 'payment_gateway_stripe_and_woocommerce_integration') . get_woocommerce_currency_symbol() . $amount . '.<br>' . __('Status : ', 'payment_gateway_stripe_and_woocommerce_integration') . $oops['error']['message']);
+                    $order->add_order_note(__('Reason : ', 'payment-gateway-stripe-and-woocommerce-integration') . $reason . '.<br>' . __('Amount : ', 'payment-gateway-stripe-and-woocommerce-integration') . get_woocommerce_currency_symbol() . $amount . '.<br>' . __('Status : ', 'payment-gateway-stripe-and-woocommerce-integration') . $oops['error']['message']);
                     return new WP_Error('error', $oops['error']['message']);
                 }
             } else {
-                return new WP_Error('error', __('Uncaptured Amount cannot be refunded', 'payment_gateway_stripe_and_woocommerce_integration'));
+                return new WP_Error('error', __('Uncaptured Amount cannot be refunded', 'payment-gateway-stripe-and-woocommerce-integration'));
             }
         } else {
             return false;
@@ -584,44 +587,42 @@ class EH_iDEAL extends WC_Payment_Gateway {
     }
 
     public function eh_ideal_callback_handler() {
-        if (isset($_REQUEST['order_id']) && !empty($_REQUEST['order_id'])) {
-            $order_id = $_REQUEST['order_id'];
-            $order = wc_get_order( $order_id );
-
-        }
-        if (!empty($order) && isset($_REQUEST['payment_intent']) && !empty($_REQUEST['payment_intent'])) {
-            if(true === apply_filters('wt_ideal_inline_processing', true)){               
-            $intent_id = $_REQUEST['payment_intent'];
-            $intent_result = \Stripe\PaymentIntent::retrieve( $intent_id );
-            if (!empty($intent_result)) {
-                $this->eh_process_payment_response($intent_result, $order);
-                 $redirect_url = $this->get_return_url( $order );
-                wp_safe_redirect($redirect_url);
+            if (isset($_REQUEST['order_id']) && !empty($_REQUEST['order_id'])) {
+                $order_id = $_REQUEST['order_id'];
+                $order = wc_get_order( $order_id );
+    
+            }
+            if (!empty($order) && isset($_REQUEST['payment_intent']) && !empty($_REQUEST['payment_intent'])) {
+                if(true === apply_filters('wt_ideal_inline_processing', true)){               
+                $intent_id = $_REQUEST['payment_intent'];
+                $intent_result = \Stripe\PaymentIntent::retrieve( $intent_id );
+                if (!empty($intent_result)) {
+                    $this->eh_process_payment_response($intent_result, $order);
+                     $redirect_url = $this->get_return_url( $order );
+                    wp_safe_redirect($redirect_url);
+                }
+                else{
+                    if ($order) {
+                    $order->update_status( 'failed', __( 'Stripe payment failed', 'payment-gateway-stripe-and-woocommerce-integration' ) );
+                    }
+                    
+                    wc_add_notice( __( 'Unable to process this payment.', 'payment-gateway-stripe-and-woocommerce-integration' ), 'error' );
+                    wp_safe_redirect( wc_get_checkout_url() );
+                }
+            }
+                else{
+                    wp_safe_redirect( $this->get_return_url($order) );
+                    exit;                
+                }
             }
             else{
                 if ($order) {
-                $order->update_status( 'failed', __( 'Stripe payment failed', 'payment_gateway_stripe_and_woocommerce_integration' ) );
+                    $order->update_status( 'failed', __( 'Stripe payment failed', 'payment-gateway-stripe-and-woocommerce-integration' ) );
                 }
                 
-                wc_add_notice( __( 'Unable to process this payment.', 'payment_gateway_stripe_and_woocommerce_integration' ), 'error' );
+                wc_add_notice( __( 'Unable to process this payment.', 'payment-gateway-stripe-and-woocommerce-integration' ), 'error' );
                 wp_safe_redirect( wc_get_checkout_url() );
-            }
-        }
-            else{
-                wp_safe_redirect( $this->get_return_url($order) );
-                exit;                
-            }
-        }
-        else{
-            if ($order) {
-                $order->update_status( 'failed', __( 'Stripe payment failed', 'payment_gateway_stripe_and_woocommerce_integration' ) );
-            }
-            
-            wc_add_notice( __( 'Unable to process this payment.', 'payment_gateway_stripe_and_woocommerce_integration' ), 'error' );
-            wp_safe_redirect( wc_get_checkout_url() );
-         }
-
-
+             }
     }
 
         /**
@@ -659,14 +660,17 @@ class EH_iDEAL extends WC_Payment_Gateway {
 
         if($response->status == 'succeeded'){
             if ($charge_response->paid == true) {
-
-                if($charge_response->captured == true){
+                $order_need_processing = apply_filters('wt_stripe_order_need_processing_ideal', true);
+                if($charge_response->captured == true && $order->needs_payment() && $order_need_processing){
                     $order->payment_complete( $charge_response->id );
+                    $order->add_order_note( __('Payment Status : ', 'payment-gateway-stripe-and-woocommerce-integration') . ucfirst($charge_response->status) .' [ ' . $order_time . ' ] . ' . __('Source : ', 'payment-gateway-stripe-and-woocommerce-integration') . $charge_response->payment_method_details->type . '. ' . __('Charge Status :', 'payment-gateway-stripe-and-woocommerce-integration') . $captured . (is_null($charge_response->balance_transaction) ? '' :'. Transaction ID : ' . $charge_response->balance_transaction) );
+
                 }
-                if (!$charge_response->captured) {
+                if (!$charge_response->captured && $order->get_status() !== 'on-hold' && $order_need_processing) {
                     $order->update_status('on-hold');
+                    $order->add_order_note( __('Payment Status : ', 'payment-gateway-stripe-and-woocommerce-integration') . ucfirst($charge_response->status) .' [ ' . $order_time . ' ] . ' . __('Source : ', 'payment-gateway-stripe-and-woocommerce-integration') . $charge_response->payment_method_details->type . '. ' . __('Charge Status :', 'payment-gateway-stripe-and-woocommerce-integration') . $captured . (is_null($charge_response->balance_transaction) ? '' :'. Transaction ID : ' . $charge_response->balance_transaction) );
+
                 }
-                $order->add_order_note( __('Payment Status : ', 'payment_gateway_stripe_and_woocommerce_integration') . ucfirst($charge_response->status) .' [ ' . $order_time . ' ] . ' . __('Source : ', 'payment_gateway_stripe_and_woocommerce_integration') . $charge_response->payment_method_details->type . '. ' . __('Charge Status :', 'payment_gateway_stripe_and_woocommerce_integration') . $captured . (is_null($charge_response->balance_transaction) ? '' :'. Transaction ID : ' . $charge_response->balance_transaction) );
                 WC()->cart->empty_cart();
                 EH_Stripe_Log::log_update('live', $charge_response, get_bloginfo('blogname') . ' - Charge - Order #' . $order->get_order_number());
                 return array(
@@ -674,14 +678,14 @@ class EH_iDEAL extends WC_Payment_Gateway {
                     'redirect' => $this->get_return_url($order),
                 );
             } else {
-                $order->update_status( 'failed', __( 'Stripe payment failed.', 'payment_gateway_stripe_and_woocommerce_integration' ) );
+                $order->update_status( 'failed', __( 'Stripe payment failed.', 'payment-gateway-stripe-and-woocommerce-integration' ) );
                 wc_add_notice($charge_response->status, $notice_type = 'error');
                 EH_Stripe_Log::log_update('dead', $charge_response, get_bloginfo('blogname') . ' - Charge - Order #' . $order->get_order_number());
             }
         }
         elseif($response->status != 'processing'){
-            $order->update_status( 'failed', __( 'Stripe payment failed.', 'payment_gateway_stripe_and_woocommerce_integration' ) );
-                wc_add_notice($$charge_response->status, $notice_type = 'error');
+            $order->update_status( 'failed', __( 'Stripe payment failed.', 'payment-gateway-stripe-and-woocommerce-integration' ) );
+                wc_add_notice($charge_response->status, $notice_type = 'error');
                 EH_Stripe_Log::log_update('dead', $charge_response, get_bloginfo('blogname') . ' - Charge - Order #' . $order->get_order_number());
 
         }

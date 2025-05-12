@@ -215,7 +215,7 @@ class Eh_Stripe_Payment_Request_Class {
      */
     public function eh_add_payment_request_button() {
 
-        if($this->is_payment_request_button_enabled()){
+        if($this->is_payment_request_button_enabled() || $this->is_apple_pay_enabled() ){
 
             if(! $this->eh_check_for_allowed_product()){
                 return;

@@ -32,6 +32,12 @@ class EH_Stripe_Log
                         $dead_context = array( 'source' => 'eh_stripe_pay_dead' );
                         $log->log("debug", $log_text,$dead_context);
                         break;
+                    case 'oauth':
+                        $head="<------------------- ".$title."------------------->\n";
+                        $log_text=$head.print_r((object)$msg,true);
+                        $oauth_context = array( 'source' => 'eh_stripe_pay_oauth' );
+                        $log->log("info", $log_text,$oauth_context);
+                        break;
                 }
             }
             else
@@ -47,6 +53,11 @@ class EH_Stripe_Log
                     case 'dead':
                         $log_text=$head.print_r((object)$msg,true);
                         $log->add("eh_stripe_pay_dead",$log_text);
+                        break;
+                     case 'oauth':
+                        $head="<------------------- ".$title."------------------->\n";
+                        $log_text=$head.print_r((object)$msg,true);
+                        $log->add("eh_stripe_pay_oauth",$log_text);
                         break;
                 }
             }

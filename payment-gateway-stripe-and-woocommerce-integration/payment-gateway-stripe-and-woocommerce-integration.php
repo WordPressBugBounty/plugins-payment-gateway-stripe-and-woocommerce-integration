@@ -5,9 +5,9 @@
  * Description: Accept payments from your WooCommerce store via Credit/Debit Cards, Stripe Checkout, Apple Pay, Google Pay, Alipay, SEPA Pay, Klarna, Afterpay, WeChat Pay, iDEAL, Bancontact, EPS, P24, Bacs Debit, BECS Debit, FPX, Boleto, OXXO, GrabPay, Multibanco and Affirm using Stripe.
  * Author: WebToffee
  * Author URI: https://www.webtoffee.com/product/woocommerce-stripe-payment-gateway/
- * Version: 4.0.4
+ * Version: 5.0.0
  * WC requires at least: 3.0
- * WC tested up to: 9.5.1
+ * WC tested up to: 9.8.4
  * License: GPLv3
  * License URI: https://www.gnu.org/licenses/gpl-3.0.html
  * Text Domain: payment-gateway-stripe-and-woocommerce-integration
@@ -25,7 +25,7 @@ if (!defined('EH_STRIPE_MAIN_PATH')) {
     define('EH_STRIPE_MAIN_PATH', plugin_dir_path(__FILE__));
 }
 if (!defined('EH_STRIPE_VERSION')) {
-    define('EH_STRIPE_VERSION', '4.0.4');
+    define('EH_STRIPE_VERSION', '5.0.0');
 }
 if (!defined('EH_STRIPE_MAIN_FILE')) {
     define('EH_STRIPE_MAIN_FILE', __FILE__);
@@ -59,7 +59,15 @@ if(is_plugin_active('eh-stripe-payment-gateway/stripe-payment-gateway.php')){
     return;
 } else {
     
-    add_action('plugins_loaded', 'eh_stripe_check', 99);
+    add_action('init', 'eh_stripe_check', 99);
+    register_deactivation_hook( __FILE__, 'deactivate_eh_stripe_gateway' );
+
+
+    function deactivate_eh_stripe_gateway() {
+        require_once(EH_STRIPE_MAIN_PATH . 'includes/class-stripe-oauth.php');
+        EH_Stripe_Oauth::wtst_oauth_disconnect(true);
+    }
+
 
     function eh_stripe_check() { 
 
@@ -116,8 +124,12 @@ if(is_plugin_active('eh-stripe-payment-gateway/stripe-payment-gateway.php')){
     }
    
     function eh_stripe_init() {
-        add_action('init', 'eh_stripe_lang_loader');
+        function eh_stripe_lang_loader() {
+            load_plugin_textdomain('payment-gateway-stripe-and-woocommerce-integration', false, dirname(plugin_basename(__FILE__)) . '/lang');
+        }
         
+        eh_stripe_lang_loader();
+
          //adds payment gateways
         function eh_section_add_stripe_gateway($methods) {
             $methods[] = 'EH_Stripe_Payment';
@@ -143,10 +155,7 @@ if(is_plugin_active('eh-stripe-payment-gateway/stripe-payment-gateway.php')){
         }
         
 
-        function eh_stripe_lang_loader() {
-            load_plugin_textdomain('payment-gateway-stripe-and-woocommerce-integration', false, dirname(plugin_basename(__FILE__)) . '/lang');
-        }
-        
+      
         //includes neccessary payment method files
         add_filter('woocommerce_payment_gateways', 'eh_section_add_stripe_gateway');
         include(EH_STRIPE_MAIN_PATH . "includes/admin/class-stripe-admin-handler.php");
@@ -206,7 +215,7 @@ if(is_plugin_active('eh-stripe-payment-gateway/stripe-payment-gateway.php')){
         include(EH_STRIPE_MAIN_PATH . "includes/class-stripe-affirm.php");
 
         include(EH_STRIPE_MAIN_PATH . 'includes/admin/class-wt-promotion-banner.php');
-        include(EH_STRIPE_MAIN_PATH . "includes/class-stripe-oauth.php");
+        include_once(EH_STRIPE_MAIN_PATH . "includes/class-stripe-oauth.php");
 
     }
     
