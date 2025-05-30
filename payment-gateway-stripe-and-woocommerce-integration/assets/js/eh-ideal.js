@@ -10,27 +10,12 @@ try {
 }
 
 var stripe_elements_option = Object.keys( eh_ideal_val.ideal_elements_option ).length ? eh_ideal_val.ideal_elements_option : {},
-    elements                = stripe.elements(),
-    iban;
+    elements                = stripe.elements();
     /**
      * Object to handle Stripe payment forms.
      */
     var eh_stripe_form = {
         
-
-        unmountElements: function() {
-            iban.unmount( '#eh-stripe-ideal-element' );
-
-        },
-        mountElements: function() {
-            if ( ! $( '#eh-stripe-ideal-element' ).length ) {
-                return;
-            }
-            
-            iban.mount( '#eh-stripe-ideal-element' );
-        },
-
-
         createElements: function() { 
             var elementStyles = {
                 base: {
@@ -46,35 +31,6 @@ var stripe_elements_option = Object.keys( eh_ideal_val.ideal_elements_option ).l
                 invalid: 'invalid',
             };
 
-            iban = elements.create( 'idealBank', stripe_elements_option, { style: elementStyles, classes: elementClasses } );
-
-           
-
-            /**
-             * Only in checkout page we need to delay the mounting of the
-             * card as some AJAX process needs to happen before we do.
-             */
-            if ( 'yes' === eh_ideal_val.is_checkout ) {
-                $( document.body ).on( 'updated_checkout', function() {
-                    // Don't mount elements a second time.
-                    if ( iban ) {
-                        eh_stripe_form.unmountElements();
-                    }
-
-                    eh_stripe_form.mountElements();
-                } );
-
-            } else if ( $( 'form#add_payment_method' ).length || $( 'form#order_review' ).length ) {
-                    eh_stripe_form.mountElements();
-            }
-
-            iban.on('change', function(event) {
-              if (event.error) { 
-                $('.ideal-source-errors').html('<ul class="woocommerce_error woocommerce-error eh-ideal-error"><li>'+ event.error.message +'</li></ul>');
-              } else {
-                $('.ideal-source-errors').html('');
-              }
-            });
         },
 
         /**
@@ -132,7 +88,7 @@ var stripe_elements_option = Object.keys( eh_ideal_val.ideal_elements_option ).l
                         intentClientSecret,
                         {
                           payment_method: {
-                            ideal: iban,
+                            ideal: {},
                             billing_details: {
                               name:$( '#eh-stripe-ideal-accountholder-name' ).length ? $( '#eh-stripe-ideal-accountholder-name' ).val() : $('#billing_first_name').val(),
                             }
@@ -243,9 +199,9 @@ var stripe_elements_option = Object.keys( eh_ideal_val.ideal_elements_option ).l
                 //extra_details.mandate  = { notification_method: eh_ideal_val.ideal_mandate_notification };
                 extra_details.type     = 'ideal_debit';
 
-                return stripe.createSource( iban, extra_details ).then( eh_stripe_form.sourceResponse );
+                // Remove iban and call createSource with only extra_details
+                return stripe.createSource(extra_details).then(eh_stripe_form.sourceResponse);
             }
-
         },
 
         getOwnerDetails: function() {
@@ -301,7 +257,7 @@ var stripe_elements_option = Object.keys( eh_ideal_val.ideal_elements_option ).l
          */
         sourceResponse: function( response ) { 
             if ( response.error ) {  
-                $('.ideal-source-errors').html('<ul class="woocommerce_error woocommerce-error eh-ideal-error"><li>'+ response.error.message +'</li></ul>');                return;
+                $('.ideal-source-errors').html('<ul class="woocommerce_error woocommerce-error eh-ideal-error"><li>'+ response.error.message +'</li></ul>');              
                 return false;
             }
             else{
@@ -315,7 +271,7 @@ var stripe_elements_option = Object.keys( eh_ideal_val.ideal_elements_option ).l
                 // $form.append( '<input type="text" class="eh_ideal_source_status" name="eh_ideal_source_status" value="' + response.source.status + '"/>' );
                
                 $form.submit();
-               // return true;               
+               return true;               
             }
 
 
@@ -328,7 +284,7 @@ var stripe_elements_option = Object.keys( eh_ideal_val.ideal_elements_option ).l
                 address_data = eh_stripe_form.getOwnerDetails(); 
                     stripe.createPaymentMethod ({
                         type: 'ideal',
-                        ideal:iban,
+                        ideal: {},
                        billing_details: address_data,
                     }).then(function(result) {   
 

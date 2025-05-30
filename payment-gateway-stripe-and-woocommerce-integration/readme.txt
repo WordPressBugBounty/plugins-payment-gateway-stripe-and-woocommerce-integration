@@ -3,9 +3,9 @@ Contributors: webtoffee
 Donate link: https://www.webtoffee.com/plugins/
 Tags: stripe checkout, credit card, google pay, apple pay, stripe payments
 Requires at least: 5.6
-Tested up to: 6.8
+Tested up to: 6.8.1
 Requires PHP: 5.6
-Stable tag: 5.0.0
+Stable tag: 5.0.1
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
@@ -263,6 +263,14 @@ The Stripe payment gateway for WooCommerce acts as a secure bridge between your 
 24. Stripe General Settings
 
 == Changelog ==
+
+= 5.0.1 2025-05-30 =
+* [Enhancement] - Invoice creation at stripe on stripe checkout payment option.
+* [Fix] - new iDEAL 2.0 integration.
+* [Fix] - Compatibility issue with wooocmerce quick pay plugin.
+* [Fix] - Improvement on stripe OAuth refresh logic.
+* [Compatibility] - WordPress 6.8.1
+* [Compatibility] - WooCommerce 9.8.5
 
 = 5.0.0 2025-05-12 =
 * [Enhancement] - Enhanced token refresh logic for returning Stripe API keys.
@@ -773,10 +781,10 @@ The Stripe payment gateway for WooCommerce acts as a secure bridge between your 
  
 == Upgrade Notice ==
 
-= 5.0.0 =
-* [Enhancement] - Enhanced token refresh logic for returning Stripe API keys.
-* [Fix] - Resolved Stripe Checkout redirect issues when WPML plugin is active.
-* [Fix] - Addressed issue with Stripe Checkout when line item image URLs contained non-ASCII characters.
-* [Fix] - Restricted phone number collection in Stripe Checkout to only "payment" and "subscription" modes, as required by Stripe's supported methods.
-* [Compatibility] - WordPress 6.8
-* [Compatibility] - WooCommerce 9.8.4
+= 5.0.1 =
+* [Enhancement] - Invoice creation at stripe on stripe checkout payment option.
+* [Enhancement] - new iDEAL 2.0 integration.
+* [Fix] - Compatibility issue with wooocmerce quick pay plugin.
+* [Fix] - Improvement on stripe OAuth refresh logic.
+* [Compatibility] - WordPress 6.8.1
+* [Compatibility] - WooCommerce 9.8.5

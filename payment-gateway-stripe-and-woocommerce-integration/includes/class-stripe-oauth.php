@@ -213,6 +213,8 @@ class EH_Stripe_Oauth {
             if (function_exists('as_unschedule_all_actions')) {
                 as_unschedule_all_actions('eh_stripe_refresh_oauth_token', null);
             }
+        }else{
+            EH_Stripe_Oauth::eh_stripe_schedule_oauth_refresh();
         }
     }
 

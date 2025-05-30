@@ -222,6 +222,13 @@ class EH_Stripe_Token_Handler {
                                 ]);
                             }
 
+                            if (function_exists('as_unschedule_all_actions')) {
+                                as_unschedule_all_actions('eh_stripe_refresh_oauth_token', null);
+                            }
+                            if (!as_next_scheduled_action('eh_stripe_refresh_oauth_token')) {
+                                as_schedule_recurring_action(time(), 50 * MINUTE_IN_SECONDS, 'eh_stripe_refresh_oauth_token');
+                            }
+
                             return $access_token;
 
                         }
@@ -244,7 +251,9 @@ class EH_Stripe_Token_Handler {
                     EH_Stripe_Log::log_update('oauth', $e->getMessage(),'Refresh token API error');
                    
                     if(!is_admin()){
-                        wc_add_notice(__('Please try again after some time', 'eh-stripe-gateway'), 'error');
+                        if (function_exists('wc_add_notice')) {
+                            wc_add_notice(__('Please try again after some time', 'eh-stripe-gateway'), 'error');
+                        }
                     }
                 }
                 finally {
@@ -266,8 +275,10 @@ class EH_Stripe_Token_Handler {
                     EH_Stripe_Log::log_update('oauth', 'Failed to acquire lock after multiple attempts.','Refresh token API error');
                  
                     if(!is_admin()){
-                        wc_add_notice(__('Please try again after some time', 'eh-stripe-gateway'), 'error');
-                     }
+                        if (function_exists('wc_add_notice')) {
+                            wc_add_notice(__('Please try again after some time', 'eh-stripe-gateway'), 'error');
+                        }
+                    }
                 }
             }
         }
@@ -446,7 +457,7 @@ class EH_Stripe_Token_Handler {
     public static function wtst_get_oauth_expired($mode){
         $wtst_oauth_expriy_name = $mode === 'test' ? 'wtst_oauth_expriy_test' : 'wtst_oauth_expriy_live';
         $expiry_time = self::wtst_get_site_option('get', array('name' => $wtst_oauth_expriy_name ));
-        if ($expiry_time && (time() - $expiry_time) <= 3300) { // 3000 seconds = 50 minutes
+        if ($expiry_time && (time() - $expiry_time) <= 3000) { // 3000 seconds = 50 minutes
             return false;
         }
         else{  

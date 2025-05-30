@@ -14,21 +14,25 @@ class Eh_Stripe_Admin_Handler  {
 	 * Constructor
 	 */
 	public function __construct() { 
+
+        add_action('init', function(){
+            add_action('admin_menu', array($this,'register_stripe_menu_page'));
+            add_filter( 'woocommerce_screen_ids', array($this,'add_eh_screen_id' ));
+            add_action('admin_enqueue_scripts', array($this,'register_admin_scripts'));
+            add_action( 'admin_notices', array( $this, 'eh_menu_admin_notices'), 5 );
+            add_thickbox();
+            //add_action('admin_notices', array($this, 'add_wt_stripe_notice' ), 99);
+            add_action('wp_ajax_wtst_oauth_connect_later', array($this, 'wtst_oauth_connect_later' ));
+            add_action('wp_ajax_wtst_oauth_disconnect', array('EH_Stripe_Oauth', 'wtst_oauth_disconnect' )); 
+            add_action('wp_ajax_wtst_dismiss_oauth_notice', array($this, 'wtst_dismiss_oauth_notice' ));
+            add_action('wp_ajax_wtst_dismiss_sofort_notice', array($this, 'wtst_dismiss_sofort_notice' ));
+            add_action('after_plugin_row_payment-gateway-stripe-and-woocommerce-integration/payment-gateway-stripe-and-woocommerce-integration.php', array($this, 'wt_oauth_upgrade_notice'), 10, 3);
+    
+            add_action('in_plugin_update_message-payment-gateway-stripe-and-woocommerce-integration/payment-gateway-stripe-and-woocommerce-integration.php', array($this, 'wt_stripe_upgrade_notice'), 10, 2);
+    
+        });
       
-        add_action('admin_menu', array($this,'register_stripe_menu_page'));
-        add_filter( 'woocommerce_screen_ids', array($this,'add_eh_screen_id' ));
-        add_action('admin_enqueue_scripts', array($this,'register_admin_scripts'));
-        add_action( 'admin_notices', array( $this, 'eh_menu_admin_notices'), 5 );
-        add_action('init', 'add_thickbox' );
-        //add_action('admin_notices', array($this, 'add_wt_stripe_notice' ), 99);
-        add_action('wp_ajax_wtst_oauth_connect_later', array($this, 'wtst_oauth_connect_later' ));
-        add_action('wp_ajax_wtst_oauth_disconnect', array('EH_Stripe_Oauth', 'wtst_oauth_disconnect' )); 
-        add_action('wp_ajax_wtst_dismiss_oauth_notice', array($this, 'wtst_dismiss_oauth_notice' ));
-        add_action('wp_ajax_wtst_dismiss_sofort_notice', array($this, 'wtst_dismiss_sofort_notice' ));
-        add_action('after_plugin_row_payment-gateway-stripe-and-woocommerce-integration/payment-gateway-stripe-and-woocommerce-integration.php', array($this, 'wt_oauth_upgrade_notice'), 10, 3);
-
-        add_action('in_plugin_update_message-payment-gateway-stripe-and-woocommerce-integration/payment-gateway-stripe-and-woocommerce-integration.php', array($this, 'wt_stripe_upgrade_notice'), 10, 2);
-
+        
     }
 
     /**

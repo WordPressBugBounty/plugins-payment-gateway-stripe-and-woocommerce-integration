@@ -48,7 +48,6 @@ class Eh_Stripe_Payment_Request_Class {
 
         add_action('wp_enqueue_scripts', array($this, 'payment_request_scripts'));
 
-        add_action( 'wc_ajax_eh_spg_gen_payment_request_button_cart', array( $this, 'payment_request_button_cart_items' ) );
         add_action( 'wc_ajax_eh_spg_payment_request_get_shippings', array($this, 'eh_get_shipping_methods' ) );
         add_action( 'wc_ajax_eh_spg_payment_request_update_shippings', array( $this, 'eh_update_shipping_method' ) );
         add_action( 'wc_ajax_eh_spg_gen_payment_request_create_order', array( $this, 'eh_create_order' ) );
@@ -217,7 +216,7 @@ class Eh_Stripe_Payment_Request_Class {
 
         if($this->is_payment_request_button_enabled() || $this->is_apple_pay_enabled() ){
 
-            if(! $this->eh_check_for_allowed_product()){
+            if(! $this->eh_check_for_allowed_product() || apply_filters('wt_stripe_payment_request_button_disabled', false)){
                 return;
             }
 
@@ -250,16 +249,35 @@ class Eh_Stripe_Payment_Request_Class {
      * Gets cart details
      * 
      */
-    public function payment_request_button_cart_items(){
+    public static function payment_request_button_cart_items(){
 
         if(!EH_Helper_Class::verify_nonce(EH_STRIPE_PLUGIN_NAME, '_eh_payment_request_button_cart_nonce'))
         {
             wp_die(__('Access Denied', 'payment-gateway-stripe-and-woocommerce-integration'));
         }
         
-        $total = EH_Stripe_Payment::get_stripe_amount( WC()->cart->total); 
+        
+        $total = self::get_stripe_amount( WC()->cart->total); 
         $total = apply_filters("wt_payment_request_total", $total);        
-        wp_send_json( array( 'line_items' => $this->get_params_cc_payment_request() ,'total' => (int) $total ) );
+        wp_send_json( array( 'line_items' => self::get_params_cc_payment_request() ,'total' => (int) $total ) );
+    }
+
+    
+    public  static function get_stripe_amount($total, $currency = '') {
+        if (!$currency) {
+            $currency = get_woocommerce_currency();
+        }
+        if (in_array(strtoupper($currency), self::zerocurrency())) {
+            // Zero decimal currencies
+            $total = absint($total);
+        } else {
+            $total = round($total, 2) * 100; // In cents
+        }
+        return $total;
+    }
+
+    public static function zerocurrency()  {
+        return array("BIF", "CLP", "DJF", "GNF", "JPY", "KMF", "KRW", "MGA", "PYG", "RWF", "VUV", "XAF", "XOF", "XPF", "VND");
     }
 
     /**
@@ -278,7 +296,7 @@ class Eh_Stripe_Payment_Request_Class {
             $_product = wc_get_product( $post->ID );
             $item = array(
                 'label'  =>  (WC()->version < '3.0') ? $_product->name : $_product->get_name(),
-                'amount' =>  (int) EH_Stripe_Payment::get_stripe_amount(wc_format_decimal( ((WC()->version < '3.0') ? $_product->price : $_product->get_price()), $decimals )),
+                'amount' =>  (int) self::get_stripe_amount(wc_format_decimal( ((WC()->version < '3.0') ? $_product->price : $_product->get_price()), $decimals )),
             );
             $items[] = $item;
 
@@ -296,7 +314,7 @@ class Eh_Stripe_Payment_Request_Class {
                 );
             }
 
-            $total = EH_Stripe_Payment::get_stripe_amount(wc_format_decimal( ((WC()->version < '3.0') ? $_product->price : $_product->get_price()), $decimals ));
+            $total = self::get_stripe_amount(wc_format_decimal( ((WC()->version < '3.0') ? $_product->price : $_product->get_price()), $decimals ));
             $site = wp_specialchars_decode( get_bloginfo( 'name' ), ENT_QUOTES );
             
             $data['displayItems'] = $items;
@@ -317,7 +335,7 @@ class Eh_Stripe_Payment_Request_Class {
      * Gets the line items.
      * 
      */
-    public function get_params_cc_payment_request() {
+    public static function get_params_cc_payment_request() {
         $decimals = 2;
         $items    = array();
         $subtotal = 0;
@@ -330,15 +348,15 @@ class Eh_Stripe_Payment_Request_Class {
 
             $item = array(
                     'name'  => ((WC()->version < '3.0') ? $_product->name : $_product->get_name()). $quantity_label,
-                    'amount' =>  (int) EH_Stripe_Payment::get_stripe_amount($amount),
+                    'amount' =>  (int) self::get_stripe_amount($amount),
             );
 
             $items[] = $item;
         }
 
-        $discounts   = EH_Stripe_Payment::get_stripe_amount(  WC()->cart->get_cart_discount_total());
-        $tax         = EH_Stripe_Payment::get_stripe_amount( WC()->cart->tax_total + WC()->cart->shipping_tax_total);
-        $shipping    = EH_Stripe_Payment::get_stripe_amount( WC()->cart->shipping_total);
+        $discounts   = self::get_stripe_amount(  WC()->cart->get_cart_discount_total());
+        $tax         = self::get_stripe_amount( WC()->cart->tax_total + WC()->cart->shipping_tax_total);
+        $shipping    = self::get_stripe_amount( WC()->cart->shipping_total);
         $items_total = wc_format_decimal( WC()->cart->cart_contents_total, WC()->cart->dp ) + $discounts;
 
         if ( wc_tax_enabled() ) {
@@ -361,7 +379,7 @@ class Eh_Stripe_Payment_Request_Class {
                         'amount' => (int) $discounts,
                 );
         }
-        $total = EH_Stripe_Payment::get_stripe_amount( WC()->cart->total, get_woocommerce_currency());
+        $total = self::get_stripe_amount( WC()->cart->total, get_woocommerce_currency());
         if( ! $total ) return;
         $site = wp_specialchars_decode( get_bloginfo( 'name' ), ENT_QUOTES );
         $params =  array(
@@ -488,7 +506,7 @@ class Eh_Stripe_Payment_Request_Class {
                         $data['shipping_options'][] = array(
                             'id'       => $rate->id,
                             'displayName'    => $rate->label,
-                            'amount' => (int) EH_Stripe_Payment::get_stripe_amount( $rate->cost ),
+                            'amount' => (int) self::get_stripe_amount( $rate->cost ),
                                             
                         );
                     }

@@ -168,6 +168,14 @@ class Eh_Stripe_Checkout extends WC_Payment_Gateway {
                 'type'        => 'checkbox',
                 'default'     => 'no',
             ),
+		'eh_stripe_invoice' => array(
+				'title'       => __('Stripe Invoice for Checkout', 'payment-gateway-stripe-and-woocommerce-integration'),
+				'label'       => __('Enable', 'payment-gateway-stripe-and-woocommerce-integration'),
+				'type'        => 'checkbox',
+				'default'     => 'no',
+				'description' => __('If enabled, Stripe will automatically generate and send an invoice for payments made via Stripe Checkout Sessions. This is useful for stores that require invoicing for accounting or customer documentation.', 'payment-gateway-stripe-and-woocommerce-integration'),
+			),
+
             'eh_checkout_webhook_desc' => array(
                 'type' => 'title',
                 'description' => sprintf(__('%1$sTo accept payments via delayed payment methods from Stripe hosted page, you must configure the webhook endpoint and subscribe to relevant events. %2$sClick here%3$s to know more%4$s', 'payment-gateway-stripe-and-woocommerce-integration'), '<div class="wt_info_div"><p>', '<a target="_blank" href="https://www.webtoffee.com/setting-up-webhooks-and-supported-webhooks/">', '</a>', '</p></div>'),
@@ -325,6 +333,10 @@ class Eh_Stripe_Checkout extends WC_Payment_Gateway {
             'phone_number_collection' => ['enabled' => true],            
 
         );
+
+        if('yes' === $this->get_option('eh_stripe_invoice')){
+            $session_data['invoice_creation'] = ['enabled' => true];
+        }
 
         if ('yes' === $this->collect_billing) {
             $session_data['billing_address_collection'] = 'required';

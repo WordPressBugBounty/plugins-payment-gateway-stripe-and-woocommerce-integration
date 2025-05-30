@@ -290,17 +290,7 @@ class EH_iDEAL extends WC_Payment_Gateway {
                     <label for="eh-stripe-ideal-accountholder-name"><?php esc_html_e( 'Name', 'payment-gateway-stripe-and-woocommerce-integration' ); ?> <span class="required"></span></label>
                     <input id="eh-stripe-ideal-accountholder-name"  name="eh-stripe-ideal-accountholder-name">
                 </div>  
-               <div class="form-row  form-row-wide">
-                    <!--
-                    Using a label with a for attribute that matches the ID of the
-                    Element container enables the Element to automatically gain focus
-                    when the customer clicks on the label.
-                    -->
-                    <label for="eh-stripe-ideal-element"><?php esc_html_e( 'iDEAL Bank', 'payment-gateway-stripe-and-woocommerce-integration' ); ?> <span class="required">*</span></label>
-                    <div id="eh-stripe-ideal-element"  class="eh-stripe-elements-field">
-                        <!-- A Stripe Element will be inserted here. -->
-                    </div>
-                </div> 
+                
               
                 <div class="clear"></div>
 
