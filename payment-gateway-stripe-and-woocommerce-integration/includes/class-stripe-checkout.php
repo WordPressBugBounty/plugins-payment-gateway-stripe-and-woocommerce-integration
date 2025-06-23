@@ -316,6 +316,8 @@ class Eh_Stripe_Checkout extends WC_Payment_Gateway {
         
         $cancel_url = add_query_arg($query_args_cancel, WC()->api_request_url('Eh_Stripe_Checkout'));
 
+        $enable_phone_number_collection = apply_filters('wtst_enable_phone_number_collection', true);
+
 
         $session_data = array(
 
@@ -330,7 +332,7 @@ class Eh_Stripe_Checkout extends WC_Payment_Gateway {
             'cancel_url' => $cancel_url,
             'metadata' => ['order_id' => $order_id],
             'expires_at' => time() + (3600 * 1),
-            'phone_number_collection' => ['enabled' => true],            
+            'phone_number_collection' => ['enabled' =>  $enable_phone_number_collection],            
 
         );
 

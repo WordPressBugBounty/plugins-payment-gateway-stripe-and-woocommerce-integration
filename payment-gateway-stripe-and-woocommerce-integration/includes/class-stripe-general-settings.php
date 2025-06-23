@@ -155,6 +155,13 @@ class EH_Stripe_General_Settings extends EH_Stripe_Payment {
                    /* 'class'=> 'eh-css-class',*/
                     'description' => sprintf(__('Records Stripe payment transactions into WooCommerce status log. <a href="' . admin_url("admin.php?page=wc-status&tab=logs") . '" target="_blank"> View log </a>', 'payment-gateway-stripe-and-woocommerce-integration')),
                 ),
+                'eh_stripe_debug' => array(
+                    'title' => __('Debug mode', 'payment-gateway-stripe-and-woocommerce-integration'),
+                    'label' => __('Enable', 'payment-gateway-stripe-and-woocommerce-integration'),
+                    'type' => 'checkbox',
+                    'default' => 'no',
+                    'desc_tip' => __('Enable to for debug mode.', 'payment-gateway-stripe-and-woocommerce-integration')
+                ),
                 'eh_stripe_logging' => array(
                     'title' => __('Log', 'payment-gateway-stripe-and-woocommerce-integration'),
                     'label' => __('Enable', 'payment-gateway-stripe-and-woocommerce-integration'),
@@ -262,6 +269,13 @@ class EH_Stripe_General_Settings extends EH_Stripe_Payment {
                     'type' => 'title',
                    /* 'class'=> 'eh-css-class',*/
                     'description' => sprintf(__('Records Stripe payment transactions into WooCommerce status log. <a href="' . admin_url("admin.php?page=wc-status&tab=logs") . '" target="_blank"> View log </a>', 'payment-gateway-stripe-and-woocommerce-integration')),
+                ),
+                'eh_stripe_debug' => array(
+                    'title' => __('Debug mode', 'payment-gateway-stripe-and-woocommerce-integration'),
+                    'label' => __('Enable', 'payment-gateway-stripe-and-woocommerce-integration'),
+                    'type' => 'checkbox',
+                    'default' => 'no',
+                    'desc_tip' => __('Enable for debug mode.', 'payment-gateway-stripe-and-woocommerce-integration')
                 ),
                 'eh_stripe_logging' => array(
                     'title' => __('Log', 'payment-gateway-stripe-and-woocommerce-integration'),

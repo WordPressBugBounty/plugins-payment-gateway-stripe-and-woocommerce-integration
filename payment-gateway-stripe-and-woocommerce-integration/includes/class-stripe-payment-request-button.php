@@ -477,16 +477,14 @@ class Eh_Stripe_Payment_Request_Class {
             wp_die(__('Access Denied', 'payment-gateway-stripe-and-woocommerce-integration'));
         }
         
-        try {
-
-            $address = array(
-                'country'   => sanitize_text_field($_POST['country']),
-                'state'     => sanitize_text_field($_POST['state']),
-                'postcode'  => sanitize_text_field($_POST['postcode']),
-                'city'      => sanitize_text_field($_POST['city']),
-                'address'   => sanitize_text_field($_POST['address']),
-                'address_2' => sanitize_text_field($_POST['address_2']),
-            );
+        try {     
+			$base_location = wc_get_base_location(); // returns array with 'country' and 'state'
+			$address = array(
+							'country'  => $base_location['country'],
+							'state'    => $base_location['state'],
+							'postcode' => get_option('woocommerce_store_postcode'),
+							'city'     => get_option('woocommerce_store_city'),
+							);
 
             $this->calculate_shipping( $address );
 
@@ -506,8 +504,7 @@ class Eh_Stripe_Payment_Request_Class {
                         $data['shipping_options'][] = array(
                             'id'       => $rate->id,
                             'displayName'    => $rate->label,
-                            'amount' => (int) self::get_stripe_amount( $rate->cost ),
-                                            
+                            'amount' => (int) self::get_stripe_amount( floatval($rate->cost) ),                                           
                         );
                     }
                 }
@@ -527,12 +524,17 @@ class Eh_Stripe_Payment_Request_Class {
             }
 
             $data['result'] = 'success';
-            
+
+          
+            //add option is general setting page
+            $data['debug'] =  $this->eh_stripe_option['eh_stripe_debug'] === 'yes' ? true : false;
+
             wp_send_json( $data );
            
         } catch ( Exception $e ) {
             $data += $this->get_params_cc_payment_request();
-            $data['result'] = 'invalid_shipping_address';
+	 		$data['result'] = 'invalid_shipping_address';
+			$data['debug'] =  $this->eh_stripe_option['eh_stripe_debug'] === 'yes' ? true : false;
 
             wp_send_json( $data );
         }

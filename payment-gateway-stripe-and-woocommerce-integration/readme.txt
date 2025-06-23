@@ -5,7 +5,7 @@ Tags: stripe checkout, credit card, google pay, apple pay, stripe payments
 Requires at least: 5.6
 Tested up to: 6.8.1
 Requires PHP: 5.6
-Stable tag: 5.0.1
+Stable tag: 5.0.2
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
@@ -183,10 +183,6 @@ EPS allows users to complete transactions online using their bank credentials, a
 ### P24 ###
 Przelewy24 is an online payment method aggregator common in Poland that lets customers complete transactions online via bank transfers and other methods.
 
-= About WebToffee =
-
-<a rel="nofollow" href="https://www.webtoffee.com/">WebToffee</a> is a reliable, efficient, and focused WooCommerce extension developer firm. Our team comprises profoundly experienced developers with a vast knowledge pool.
-
 
 == Installation ==
 
@@ -263,6 +259,10 @@ The Stripe payment gateway for WooCommerce acts as a secure bridge between your 
 24. Stripe General Settings
 
 == Changelog ==
+
+= 5.0.2 2025-06-23 =
+*[Fix] - Resolved an issue where the Apple Pay button was not clickable on certain sites due to improper shipping cost type handling.
+*[compatibility] - Woocommerce 9.9.4
 
 = 5.0.1 2025-05-30 =
 * [Enhancement] - Invoice creation at stripe on stripe checkout payment option.
@@ -781,10 +781,6 @@ The Stripe payment gateway for WooCommerce acts as a secure bridge between your 
  
 == Upgrade Notice ==
 
-= 5.0.1 =
-* [Enhancement] - Invoice creation at stripe on stripe checkout payment option.
-* [Enhancement] - new iDEAL 2.0 integration.
-* [Fix] - Compatibility issue with wooocmerce quick pay plugin.
-* [Fix] - Improvement on stripe OAuth refresh logic.
-* [Compatibility] - WordPress 6.8.1
-* [Compatibility] - WooCommerce 9.8.5
+= 5.0.2 =
+*[Fix] - Resolved an issue where the Apple Pay button was not clickable on certain sites due to improper shipping cost type handling.
+*[compatibility] - Woocommerce 9.9.4

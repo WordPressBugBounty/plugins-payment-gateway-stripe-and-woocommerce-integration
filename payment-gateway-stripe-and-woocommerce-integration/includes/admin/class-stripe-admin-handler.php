@@ -41,8 +41,8 @@ class Eh_Stripe_Admin_Handler  {
      * */
     public function wt_oauth_upgrade_notice($plugin_file, $plugin_data, $context) { 
 
-        if(true !== Eh_Stripe_Admin_Handler::wtst_oauth_compatible() && !Eh_Stripe_Admin_Handler::wtst_new_installation()){
-            echo sprintf(__('%1$sCritical update!%2$sWe are enhancing security and require you to switch from API keys to a more %3$ssecure mode of authentication%4$s for connecting with Stripe account. OAuth provides better control and limits access to only the necessary data, protecting your business from unauthorized access.', 'eh-stripe-gateway'), '<tr class="plugin-update-tr installer-plugin-update-tr wt-cli-plugin-inline-notice-tr active"><td colspan="4" class="plugin-update colspanchange"><div class="update-message notice notice-error inline wt-oauth-notice-section"><h2>', '</h2>', '<a href="https://support.stripe.com/questions/plugin-user-migration-guide">', '</a>', '</div></td></tr>');        }
+        //You can add plugin upgrade notice here
+       
     }
 
     /**
@@ -1231,19 +1231,43 @@ class Eh_Stripe_Admin_Handler  {
     {
         //Stripe oAuth customer site URL
         $site_url = add_query_arg( array( 'wc-api'=> 'wt_stripe_oauth_update', 'mode' => $mode, 'name' => EH_STRIPE_PLUGIN_NAME), trailingslashit( get_home_url() ));
-        $site_url_encoded = base64_encode($site_url);
         //sandbox
         $client_id_test = 'ca_Pl5sdRX9ZIbMhFni2PDjsnkMEERxD3Ye';
 
         //live
-        $client_id_live = 'ca_Pl5sCXjmB1vQPLI6ewCrUibnq1DojGbA';        
+        $client_id_live = 'ca_Pl5sCXjmB1vQPLI6ewCrUibnq1DojGbA';   
+        
+        $user_id = get_current_user_id();
+
+        if ( $user_id ) {
+            // Generate a random secure key (32 characters)
+            $random_key = wp_generate_password(32, true, true);
+
+            // Save the key in user meta
+            update_user_meta($user_id, 'wtst_random_key', $random_key);
+
+            // Prepare the data array
+            $nonce = array(
+                'user_id' => $user_id,
+                'key'     => $random_key,
+            );
+
+          
+        }
+        
+
+        $state = base64_encode(json_encode(array(
+            'site' => $site_url,
+            'nonce' => $nonce,
+        )));
+
 
         if('test' === $mode){
-            return add_query_arg( array('client_id' => $client_id_test, "redirect_uri" => EH_STRIPE_OAUTH_WT_URL ."oauth", "state" => $site_url_encoded, 'scope' => 'read_write' ), "https://marketplace.stripe.com/oauth/v2/authorize" );
+            return add_query_arg( array('client_id' => $client_id_test, "redirect_uri" => EH_STRIPE_OAUTH_WT_URL ."oauth", "state" => $state, 'scope' => 'read_write' ), "https://marketplace.stripe.com/oauth/v2/authorize" );
 
         }
         else{
-            return add_query_arg( array('client_id' => $client_id_live, "redirect_uri" => EH_STRIPE_OAUTH_WT_URL ."oauth", "state" => $site_url_encoded, 'scope' => 'read_write' ), "https://marketplace.stripe.com/oauth/v2/authorize" );
+            return add_query_arg( array('client_id' => $client_id_live, "redirect_uri" => EH_STRIPE_OAUTH_WT_URL ."oauth", "state" => $state, 'scope' => 'read_write' ), "https://marketplace.stripe.com/oauth/v2/authorize" );
 
         }
     } 

@@ -819,11 +819,13 @@ class EH_Sepa_Stripe_Gateway extends WC_Payment_Gateway {
                     
                     }
 
+                    $sleep_time_interval = abs( apply_filters( 'wtst_webhook_sleep_time', 20 ) );
+                    
                     EH_Stripe_Log::log_update('live', $decoded, get_bloginfo('blogname') . ' - WebHook event');
-                   switch (strtolower($decoded['type'])) {
+                    switch (strtolower($decoded['type'])) {
                        case 'charge.succeeded':
                        case 'charge.failed':
-                            sleep(20);
+                            sleep($sleep_time_interval);
                             $order_need_processing = apply_filters('wt_stripe_order_need_processing_on_charge',true, $decoded);
                            if (isset($decoded['data']['object']['metadata']['order_id']) && !empty($decoded['data']['object']['metadata']['order_id']) && $order_need_processing ) {
                                 $order_id = $decoded['data']['object']['metadata']['order_id'];
@@ -979,7 +981,7 @@ class EH_Sepa_Stripe_Gateway extends WC_Payment_Gateway {
                        */
                        case 'payment_intent.succeeded':
                        case 'payment_intent.payment_failed':
-                            sleep(40);
+                            sleep( $sleep_time_interval * 2 );
                             $order_need_processing = apply_filters('wt_stripe_order_need_processing_on_payment_intent',true, $decoded);
 
                             if (isset($decoded['data']['object']['id']) && !empty($decoded['data']['object']['id']) && $order_need_processing) {
@@ -1196,7 +1198,7 @@ class EH_Sepa_Stripe_Gateway extends WC_Payment_Gateway {
                         break;
                                                                     
                    case 'charge.refunded':
-                        sleep(20);
+                    sleep( $sleep_time_interval );
 
                         //check stripe vendor folder is exist
                         if (!class_exists('Stripe\Stripe')) { 

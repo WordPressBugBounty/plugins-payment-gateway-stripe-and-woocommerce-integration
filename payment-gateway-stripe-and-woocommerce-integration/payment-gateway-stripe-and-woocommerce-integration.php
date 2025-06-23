@@ -5,9 +5,9 @@
  * Description: Accept payments from your WooCommerce store via Credit/Debit Cards, Stripe Checkout, Apple Pay, Google Pay, Alipay, SEPA Pay, Klarna, Afterpay, WeChat Pay, iDEAL, Bancontact, EPS, P24, Bacs Debit, BECS Debit, FPX, Boleto, OXXO, GrabPay, Multibanco and Affirm using Stripe.
  * Author: WebToffee
  * Author URI: https://www.webtoffee.com/product/woocommerce-stripe-payment-gateway/
- * Version: 5.0.1
+ * Version: 5.0.2
  * WC requires at least: 3.0
- * WC tested up to: 9.8.5
+ * WC tested up to: 9.9.4
  * License: GPLv3
  * License URI: https://www.gnu.org/licenses/gpl-3.0.html
  * Text Domain: payment-gateway-stripe-and-woocommerce-integration
@@ -25,7 +25,7 @@ if (!defined('EH_STRIPE_MAIN_PATH')) {
     define('EH_STRIPE_MAIN_PATH', plugin_dir_path(__FILE__));
 }
 if (!defined('EH_STRIPE_VERSION')) {
-    define('EH_STRIPE_VERSION', '5.0.1');
+    define('EH_STRIPE_VERSION', '5.0.2');
 }
 if (!defined('EH_STRIPE_MAIN_FILE')) {
     define('EH_STRIPE_MAIN_FILE', __FILE__);

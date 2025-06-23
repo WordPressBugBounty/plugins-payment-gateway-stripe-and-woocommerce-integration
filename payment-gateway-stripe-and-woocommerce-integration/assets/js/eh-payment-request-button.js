@@ -187,15 +187,27 @@ jQuery(function ($) {
 
             $.when(result).then(
               function (response) { 
-                // Success callback
-                 const options = {
-                  emailRequired: true,
-                  phoneNumberRequired: true,
-                  shippingAddressRequired: true,
-                  shippingRates: response.shipping_options,
 
-                };
-                event.resolve(options);
+			          if ( response.debug === true && ( !Array.isArray(response.shipping_options) || response.shipping_options.length === 0 ) ){   
+                  if($('#warningMessage').length === 0){
+                    const warningMessage = $('<div id="warningMessage" style="display: block;color: #d93025; background-color: #fce8e6;   border: 1px solid #f5c6cb; padding: 12px 16px; margin: 12px 0; border-radius: 4px; font-weight: 600; font-size: 14px; "> ⚠️ No shipping methods are available for your address or the store’s base address. Please ensure shipping options are properly configured and that at least one shipping method is added for the store’s default address.</div> ');
+                  // Insert the warning message above the payment request button
+                    $('#eh-stripe-payment-request-button').before(warningMessage);
+                  }
+                  event.reject();
+                }else{
+                  warningMessage.hide();
+
+                  // Success callback
+                  const options = {
+                    emailRequired: true,
+                    phoneNumberRequired: true,
+                    shippingAddressRequired: true,
+                    shippingRates: response.shipping_options,
+
+                  };
+                  event.resolve(options);
+                }
               },
               function (jqXHR, textStatus, errorThrown) {
                 // Error callback
@@ -221,6 +233,7 @@ jQuery(function ($) {
         expressCheckoutElement.on('confirm', async (evt) => { 
 
           try {
+
             const response = await eh_payment_request_gen.ProcessPaymentMethod(evt);
 
             
