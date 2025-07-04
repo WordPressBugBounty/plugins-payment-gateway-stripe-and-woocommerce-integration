@@ -196,7 +196,10 @@ jQuery(function ($) {
                   }
                   event.reject();
                 }else{
-                  warningMessage.hide();
+                  
+                  if($('#warningMessage').length !== 0){
+                    $('#warningMessage').hide();
+                  }
 
                   // Success callback
                   const options = {

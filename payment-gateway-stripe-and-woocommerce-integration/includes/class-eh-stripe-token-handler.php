@@ -150,7 +150,7 @@ class EH_Stripe_Token_Handler {
                     EH_Stripe_Log::log_update('oauth', $access_token_req_data,'Refresh token API request');
 
                     // Convert the data to JSON format.
-                    $access_token_json_data = json_encode( $access_token_req_data );
+                    $access_token_json_data = wp_json_encode( $access_token_req_data );
 
                     // Arguments for the POST request.
                     $access_token_args = array(

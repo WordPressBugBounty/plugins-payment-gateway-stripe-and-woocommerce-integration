@@ -486,6 +486,24 @@ class Eh_Stripe_Payment_Request_Class {
 							'city'     => get_option('woocommerce_store_city'),
 							);
 
+            /**
+             * Apply filters to the shipping address.
+             *
+             * This filter allows for modifications to the shipping address before checking the shipping options.
+             * 
+             * @param array $address The shipping address array containing:
+             *                       - 'country'   (string) The country code.
+             *                       - 'state'     (string) The state code.
+             *                       - 'postcode'  (string) The postal code.
+             *                       - 'city'      (string) The city.
+             *                 
+             * @return array The modified shipping address.
+             * 
+             * @since 5.0.3
+             * 
+            */
+            $address = apply_filters('wtst_address_for_calculate_shipping_for_express_button', $address);
+
             $this->calculate_shipping( $address );
 
             // Set the shipping options.

@@ -5,7 +5,7 @@ Tags: stripe checkout, credit card, google pay, apple pay, stripe payments
 Requires at least: 5.6
 Tested up to: 6.8.1
 Requires PHP: 5.6
-Stable tag: 5.0.2
+Stable tag: 5.0.3
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
@@ -259,6 +259,10 @@ The Stripe payment gateway for WooCommerce acts as a secure bridge between your 
 24. Stripe General Settings
 
 == Changelog ==
+
+= 5.0.3 2025-07-04 =
+*[Fix] - Enhanced Express Button Functionality.
+*[compatibility] - Woocommerce 9.9.5
 
 = 5.0.2 2025-06-23 =
 *[Fix] - Resolved an issue where the Apple Pay button was not clickable on certain sites due to improper shipping cost type handling.
@@ -781,6 +785,6 @@ The Stripe payment gateway for WooCommerce acts as a secure bridge between your 
  
 == Upgrade Notice ==
 
-= 5.0.2 =
-*[Fix] - Resolved an issue where the Apple Pay button was not clickable on certain sites due to improper shipping cost type handling.
-*[compatibility] - Woocommerce 9.9.4
+= 5.0.3 =
+*[Fix] - Enhanced Express Button Functionality.
+*[compatibility] - Woocommerce 9.9.5
