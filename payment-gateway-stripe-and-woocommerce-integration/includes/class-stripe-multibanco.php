@@ -181,14 +181,14 @@ class EH_Multibanco extends WC_Payment_Gateway {
         if (is_checkout_pay_page()) {
             $order_id = get_query_var('order-pay');
             $order = wc_get_order($order_id);
-            $email = (WC()->version < '2.7.0') ? $order->billing_email : $order->get_billing_email();
+            $email = (version_compare(WC()->version, '2.7.0', '<')) ? $order->billing_email : $order->get_billing_email();
             echo '<div
                 id="eh-multibanco-pay-data"
                 data-panel-label="' . esc_attr($pay_button_text) . '"
                 data-email="' . esc_attr(($email !== '') ? $email : get_bloginfo('name', 'display')) . '"
-                data-amount="' . esc_attr(EH_Stripe_Payment::get_stripe_amount(((WC()->version < '2.7.0') ? $order->order_total : $order->get_total()))) . '"
+                data-amount="' . esc_attr(EH_Stripe_Payment::get_stripe_amount(((version_compare(WC()->version, '2.7.0', '<')) ? $order->order_total : $order->get_total()))) . '"
                 data-name="' . esc_attr(sprintf(get_bloginfo('name', 'display'))) . '"
-                data-currency="' . esc_attr(((WC()->version < '2.7.0') ? $order->order_currency : $order->get_currency())) . '">';
+                data-currency="' . esc_attr(((version_compare(WC()->version, '2.7.0', '<')) ? $order->order_currency : $order->get_currency())) . '">';
 
            echo $this->elements_form();
             echo '</div>';
@@ -299,7 +299,7 @@ class EH_Multibanco extends WC_Payment_Gateway {
 
                 //check the status of source
                 if ($source_status == 'chargeable') {
-                   $customer = $this->create_stripe_customer($source_id, $order_id, ((WC()->version < '2.7.0') ? $order->billing_email : $order->get_billing_email()));
+                   $customer = $this->create_stripe_customer($source_id, $order_id, ((version_compare(WC()->version, '2.7.0', '<')) ? $order->billing_email : $order->get_billing_email()));
 
                     if ($obj_stripe->is_subscription($order_id)) {
                         if (!$customer) {
@@ -378,19 +378,19 @@ class EH_Multibanco extends WC_Payment_Gateway {
         $post_data['currency']           =  strtolower( $currency);
         $post_data['amount']             =  EH_Stripe_Payment::get_stripe_amount( $order->get_total(), $currency );
         $post_data['description']        =  sprintf( __( '%1$s - Order %2$s', 'payment-gateway-stripe-and-woocommerce-integration' ), wp_specialchars_decode( get_bloginfo( 'name' ), ENT_QUOTES ), $order->get_order_number() );
-        $billing_email                   =  (WC()->version < '2.7.0') ? $order->billing_email      : $order->get_billing_email();
-        $billing_first_name              =  (WC()->version < '2.7.0') ? $order->billing_first_name : $order->get_billing_first_name();
-        $billing_last_name               =  (WC()->version < '2.7.0') ? $order->billing_last_name  : $order->get_billing_last_name();
+        $billing_email                   =  (version_compare(WC()->version, '2.7.0', '<')) ? $order->billing_email      : $order->get_billing_email();
+        $billing_first_name              =  (version_compare(WC()->version, '2.7.0', '<')) ? $order->billing_first_name : $order->get_billing_first_name();
+        $billing_last_name               =  (version_compare(WC()->version, '2.7.0', '<')) ? $order->billing_last_name  : $order->get_billing_last_name();
         
         $post_data['shipping']['name']   =  $billing_first_name . ' ' . $billing_last_name;
-        $post_data['shipping']['phone']  =  (WC()->version < '2.7.0') ? $order->billing_phone : $order->get_billing_phone();
+        $post_data['shipping']['phone']  =  (version_compare(WC()->version, '2.7.0', '<')) ? $order->billing_phone : $order->get_billing_phone();
 
-        $post_data['shipping']['address']['line1']       = (WC()->version < '2.7.0') ? $order->shipping_address_1 : $order->get_shipping_address_1();
-        $post_data['shipping']['address']['line2']       = (WC()->version < '2.7.0') ? $order->shipping_address_2 : $order->get_shipping_address_2();
-        $post_data['shipping']['address']['state']       = (WC()->version < '2.7.0') ? $order->shipping_state     : $order->get_shipping_state();
-        $post_data['shipping']['address']['city']        = (WC()->version < '2.7.0') ? $order->shipping_city      : $order->get_shipping_city();
-        $post_data['shipping']['address']['postal_code'] = (WC()->version < '2.7.0') ? $order->shipping_postcode  : $order->get_shipping_postcode();
-        $post_data['shipping']['address']['country']     = (WC()->version < '2.7.0') ? $order->shipping_country   : $order->get_shipping_country();
+        $post_data['shipping']['address']['line1']       = (version_compare(WC()->version, '2.7.0', '<')) ? $order->shipping_address_1 : $order->get_shipping_address_1();
+        $post_data['shipping']['address']['line2']       = (version_compare(WC()->version, '2.7.0', '<')) ? $order->shipping_address_2 : $order->get_shipping_address_2();
+        $post_data['shipping']['address']['state']       = (version_compare(WC()->version, '2.7.0', '<')) ? $order->shipping_state     : $order->get_shipping_state();
+        $post_data['shipping']['address']['city']        = (version_compare(WC()->version, '2.7.0', '<')) ? $order->shipping_city      : $order->get_shipping_city();
+        $post_data['shipping']['address']['postal_code'] = (version_compare(WC()->version, '2.7.0', '<')) ? $order->shipping_postcode  : $order->get_shipping_postcode();
+        $post_data['shipping']['address']['country']     = (version_compare(WC()->version, '2.7.0', '<')) ? $order->shipping_country   : $order->get_shipping_country();
         
         $post_data['metadata']  = array(
             __( 'customer_name', 'payment-gateway-stripe-and-woocommerce-integration' ) => sanitize_text_field( $billing_first_name ) . ' ' . sanitize_text_field( $billing_last_name ),
@@ -413,7 +413,7 @@ class EH_Multibanco extends WC_Payment_Gateway {
     public function eh_process_payment_response( $response, $order, $auto_redirect = true ) {
         
         //$order_id = $order->get_order_number();
-        $order_id = (WC()->version < '2.7.0') ? $order->id : $order->get_id();
+        $order_id = (version_compare(WC()->version, '2.7.0', '<')) ? $order->id : $order->get_id();
 
         // Stores charge data.
         $obj1 = new EH_Stripe_Payment();
@@ -521,7 +521,7 @@ class EH_Multibanco extends WC_Payment_Gateway {
                 $total_amount = $data['amount'];
                         
                 $order = new WC_Order($order_id);
-                $div = $amount * ($total_amount / ((WC()->version < '2.7.0') ? $order->order_total : $order->get_total()));
+                $div = $amount * ($total_amount / ((version_compare(WC()->version, '2.7.0', '<')) ? $order->order_total : $order->get_total()));
                 $refund_params = array(
                     'amount' => EH_Stripe_Payment::get_stripe_amount($div, $currency),
                     'reason' => 'requested_by_customer',
@@ -529,7 +529,7 @@ class EH_Multibanco extends WC_Payment_Gateway {
                     'metadata' => array(
                         'order_id' => $order->get_id(),
                         'Total Tax' => $order->get_total_tax(),
-                        'Total Shipping' => (WC()->version < '2.7.0') ? $order->get_total_shipping() : $order->get_shipping_total(),
+                        'Total Shipping' => (version_compare(WC()->version, '2.7.0', '<')) ? $order->get_total_shipping() : $order->get_shipping_total(),
                         'Customer IP' => $client['IP'],
                         'Agent' => $client['Agent'],
                         'Referer' => $client['Referer'],
@@ -544,7 +544,7 @@ class EH_Multibanco extends WC_Payment_Gateway {
                                         
                         $refund_time = date('Y-m-d H:i:s', time() + get_option('gmt_offset') * 3600);
                         $obj = new EH_Stripe_Payment();
-                        $data = $obj->make_refund_params($refund_response, $amount, ((WC()->version < '2.7.0') ? $order->order_currency : $order->get_currency()), $order_id);
+                        $data = $obj->make_refund_params($refund_response, $amount, ((version_compare(WC()->version, '2.7.0', '<')) ? $order->order_currency : $order->get_currency()), $order_id);
                         
                         EH_Helper_Class::wt_stripe_order_db_operations($order_id, $order, 'add', '_eh_stripe_payment_refund', $data, false); 
 

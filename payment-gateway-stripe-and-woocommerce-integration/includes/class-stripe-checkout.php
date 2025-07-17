@@ -258,7 +258,7 @@ class Eh_Stripe_Checkout extends WC_Payment_Gateway {
         
         $total = EH_Stripe_Payment::get_stripe_amount( $order->get_total(), $currency);
         
-        $email = (WC()->version < '2.7.0') ? $order->billing_email : $order->get_billing_email();
+        $email = (version_compare(WC()->version, '2.7.0', '<')) ? $order->billing_email : $order->get_billing_email();
         
         $images    = array();
         foreach ( WC()->cart->get_cart() as $cart_item_key => $cart_item ) {
@@ -345,9 +345,9 @@ class Eh_Stripe_Checkout extends WC_Payment_Gateway {
         }
 
         if ('yes' === $this->collect_shipping) {
-            $country = ((WC()->version < '2.7.0') ? $order->shipping_country : $order->get_shipping_country());
+            $country = ((version_compare(WC()->version, '2.7.0', '<')) ? $order->shipping_country : $order->get_shipping_country());
             if(empty($country)){
-                $country = ((WC()->version < '2.7.0') ? $order->billing_country : $order->get_billing_country());
+                $country = ((version_compare(WC()->version, '2.7.0', '<')) ? $order->billing_country : $order->get_billing_country());
             }
             if (!empty($country)) {
                 $session_data['shipping_address_collection']['allowed_countries']   = [$country];
@@ -610,7 +610,7 @@ class Eh_Stripe_Checkout extends WC_Payment_Gateway {
                 wp_json_encode(
                     array(
                         'session_id' => $session_id,
-                        'order_id'      => (WC()->version < '2.7.0') ? $order->id : $order->get_id(),
+                        'order_id'      => (version_compare(WC()->version, '2.7.0', '<')) ? $order->id : $order->get_id(),
                         'time'          => rand(
                             0,
                             999999
@@ -627,7 +627,7 @@ class Eh_Stripe_Checkout extends WC_Payment_Gateway {
             $order_no = $order->get_order_number();
             $params = array(
                 'description' => "Customer for Order #" . $order_no,
-                "email" => ((WC()->version < '2.7.0') ? $order->billing_email : $order->get_billing_email()),
+                "email" => ((version_compare(WC()->version, '2.7.0', '<')) ? $order->billing_email : $order->get_billing_email()),
                 "address" => array(
                     'city' => method_exists($order, 'get_billing_city') ? $order->get_billing_city() : $order->billing_city,
                     'country' => method_exists($order, 'get_billing_country') ? $order->get_billing_country() : $order->billing_country,
@@ -757,14 +757,14 @@ class Eh_Stripe_Checkout extends WC_Payment_Gateway {
 				$total_amount = $data['amount'];
 						
 				$wc_order = new WC_Order($order_id);
-				$div = $amount * ($total_amount / ((WC()->version < '2.7.0') ? $wc_order->order_total : $wc_order->get_total()));
+				$div = $amount * ($total_amount / ((version_compare(WC()->version, '2.7.0', '<')) ? $wc_order->order_total : $wc_order->get_total()));
 				$refund_params = array(
 					'amount' => EH_Stripe_Payment::get_stripe_amount($div, $currency),
 					'reason' => 'requested_by_customer',
 					'metadata' => array(
 						'order_id' => $wc_order->get_id(),
 						'Total Tax' => $wc_order->get_total_tax(),
-						'Total Shipping' => (WC()->version < '2.7.0') ? $wc_order->get_total_shipping() : $wc_order->get_shipping_total(),
+						'Total Shipping' => (version_compare(WC()->version, '2.7.0', '<')) ? $wc_order->get_total_shipping() : $wc_order->get_shipping_total(),
 						'Customer IP' => $client['IP'],
 						'Agent' => $client['Agent'],
 						'Referer' => $client['Referer'],
@@ -779,7 +779,7 @@ class Eh_Stripe_Checkout extends WC_Payment_Gateway {
 										
 						$refund_time = date('Y-m-d H:i:s', time() + get_option('gmt_offset') * 3600);
 						
-						$data = $obj->make_refund_params($refund_response, $amount, ((WC()->version < '2.7.0') ? $wc_order->order_currency : $wc_order->get_currency()), $order_id);
+						$data = $obj->make_refund_params($refund_response, $amount, ((version_compare(WC()->version, '2.7.0', '<')) ? $wc_order->order_currency : $wc_order->get_currency()), $order_id);
 						
                         EH_Helper_Class::wt_stripe_order_db_operations($order_id, $wc_order, 'add', '_eh_stripe_payment_refund', $data, false); 
 

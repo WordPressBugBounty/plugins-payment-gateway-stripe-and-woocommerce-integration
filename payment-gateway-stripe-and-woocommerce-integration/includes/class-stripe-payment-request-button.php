@@ -172,8 +172,7 @@ class Eh_Stripe_Payment_Request_Class {
             global $post;
 
             $product = wc_get_product( $post->ID );
-
-            $product_type = (WC()->version < '3.0') ? $product->product_type : $product->get_type();
+            $product_type = (version_compare(WC()->version, '3.0', '<')) ? $product->product_type : $product->get_type();
             
             if ( ! in_array( $product_type, $this->eh_supported_product_types() ) ) {
                 return false;
@@ -184,7 +183,7 @@ class Eh_Stripe_Payment_Request_Class {
             foreach ( WC()->cart->get_cart() as $cart_item_key => $cart_item ) {
                 $_product = apply_filters( 'woocommerce_cart_item_product', $cart_item['data'], $cart_item, $cart_item_key );
 
-                $product_type = (WC()->version < '3.0') ? $_product->product_type : $_product->get_type();
+                $product_type = (version_compare(WC()->version, '3.0', '<')) ? $_product->product_type : $_product->get_type();
                 if ( ! in_array( $product_type, $this->eh_supported_product_types() ) ) {
                     return false;
                 }
@@ -295,8 +294,8 @@ class Eh_Stripe_Payment_Request_Class {
             
             $_product = wc_get_product( $post->ID );
             $item = array(
-                'label'  =>  (WC()->version < '3.0') ? $_product->name : $_product->get_name(),
-                'amount' =>  (int) self::get_stripe_amount(wc_format_decimal( ((WC()->version < '3.0') ? $_product->price : $_product->get_price()), $decimals )),
+                'label'  =>  (version_compare(WC()->version, '3.0', '<')) ? $_product->name : $_product->get_name(),
+                'amount' =>  (int) self::get_stripe_amount(wc_format_decimal( ((version_compare(WC()->version, '3.0', '<')) ? $_product->price : $_product->get_price()), $decimals )),
             );
             $items[] = $item;
 
@@ -314,7 +313,7 @@ class Eh_Stripe_Payment_Request_Class {
                 );
             }
 
-            $total = self::get_stripe_amount(wc_format_decimal( ((WC()->version < '3.0') ? $_product->price : $_product->get_price()), $decimals ));
+            $total = self::get_stripe_amount(wc_format_decimal( ((version_compare(WC()->version, '3.0', '<')) ? $_product->price : $_product->get_price()), $decimals ));
             $site = wp_specialchars_decode( get_bloginfo( 'name' ), ENT_QUOTES );
             
             $data['displayItems'] = $items;
@@ -347,7 +346,7 @@ class Eh_Stripe_Payment_Request_Class {
             $_product =  wc_get_product( $cart_item['data']->get_id()); 
 
             $item = array(
-                    'name'  => ((WC()->version < '3.0') ? $_product->name : $_product->get_name()). $quantity_label,
+                    'name'  => ((version_compare(WC()->version, '3.0', '<')) ? $_product->name : $_product->get_name()). $quantity_label,
                     'amount' =>  (int) self::get_stripe_amount($amount),
             );
 
@@ -436,7 +435,7 @@ class Eh_Stripe_Payment_Request_Class {
          */
         do_action("wt_stripe_button_before_add_to_cart", $product_id);
         $product      = wc_get_product( $product_id );
-        $product_type = (WC()->version < '3.0') ? $product->product_type : $product->get_type();
+        $product_type = (version_compare(WC()->version, '3.0', '<')) ? $product->product_type : $product->get_type();
 
         // First empty the cart to prevent wrong calculation.
         WC()->cart->empty_cart();

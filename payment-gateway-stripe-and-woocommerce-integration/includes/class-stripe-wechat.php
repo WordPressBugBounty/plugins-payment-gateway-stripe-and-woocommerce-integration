@@ -212,7 +212,7 @@ class EH_Wechat extends WC_Payment_Gateway {
                     $stripe_params['billing_country']    = method_exists($order, 'get_billing_country')    ? $order->get_billing_country()    : $order->billing_country;
                     $stripe_params['billing_email']    = method_exists($order, 'get_billing_email')    ? $order->get_billing_email()    : $order->billing_email;
                     $stripe_params['billing_phone']    = method_exists($order, 'get_billing_phone')    ? $order->get_billing_phone()    : $order->billing_phone;
-                    $stripe_params['currency']    =  ((WC()->version < '2.7.0') ? $order->order_currency : $order->get_currency());
+                    $stripe_params['currency']    =  ((version_compare(WC()->version, '2.7.0', '<')) ? $order->order_currency : $order->get_currency());
                 }                       
             }
             $stripe_params['version'] = EH_Stripe_Token_Handler::wt_get_api_version();  
@@ -316,9 +316,9 @@ class EH_Wechat extends WC_Payment_Gateway {
                 
             }
             $currency =  $order->get_currency();
-            $amount = EH_Stripe_Payment::get_stripe_amount(((WC()->version < '2.7.0') ? $order->order_total : $order->get_total())) ;
+            $amount = EH_Stripe_Payment::get_stripe_amount(((version_compare(WC()->version, '2.7.0', '<')) ? $order->order_total : $order->get_total())) ;
 
-             $customer = $this->create_stripe_customer($order, ((WC()->version < '2.7.0') ? $order->billing_email : $order->get_billing_email()));
+             $customer = $this->create_stripe_customer($order, ((version_compare(WC()->version, '2.7.0', '<')) ? $order->billing_email : $order->get_billing_email()));
                 
             if (!empty($customer) && isset($customer->id)) {
                 $user_id = $order->get_user_id();
@@ -455,8 +455,8 @@ class EH_Wechat extends WC_Payment_Gateway {
                 'Customer IP' => $client['IP'],
                 'Agent' => $client['Agent'],
                 'Referer' => $client['Referer'],
-                'WP customer #' => (WC()->version < '2.7.0') ? $wc_order->user_id : $wc_order->get_user_id(),
-                'Billing Email' => (WC()->version < '2.7.0') ? $wc_order->billing_email : $wc_order->get_billing_email()
+                'WP customer #' => (version_compare(WC()->version, '2.7.0', '<')) ? $wc_order->user_id : $wc_order->get_user_id(),
+                'Billing Email' => (version_compare(WC()->version, '2.7.0', '<')) ? $wc_order->billing_email : $wc_order->get_billing_email()
             ),
             'description' => wp_specialchars_decode( get_bloginfo( 'name' ), ENT_QUOTES ) . ' Order #' . $wc_order->get_order_number(),
         );
@@ -481,15 +481,15 @@ class EH_Wechat extends WC_Payment_Gateway {
 
         $charge['shipping'] = array(
             'address' => array(
-                'line1' => (WC()->version < '2.7.0') ? $wc_order->shipping_address_1 : $wc_order->get_shipping_address_1(),
-                'line2' => (WC()->version < '2.7.0') ? $wc_order->shipping_address_2 : $wc_order->get_shipping_address_2(),
-                'city' => (WC()->version < '2.7.0') ? $wc_order->shipping_city : $wc_order->get_shipping_city(),
-                'state' => (WC()->version < '2.7.0') ? $wc_order->shipping_state : $wc_order->get_shipping_state(),
-                'country' => (WC()->version < '2.7.0') ? $wc_order->shipping_country : $wc_order->get_shipping_country(),
-                'postal_code' => (WC()->version < '2.7.0') ? $wc_order->shipping_postcode : $wc_order->get_shipping_postcode()
+                'line1' => (version_compare(WC()->version, '2.7.0', '<')) ? $wc_order->shipping_address_1 : $wc_order->get_shipping_address_1(),
+                'line2' => (version_compare(WC()->version, '2.7.0', '<')) ? $wc_order->shipping_address_2 : $wc_order->get_shipping_address_2(),
+                'city' => (version_compare(WC()->version, '2.7.0', '<')) ? $wc_order->shipping_city : $wc_order->get_shipping_city(),
+                'state' => (version_compare(WC()->version, '2.7.0', '<')) ? $wc_order->shipping_state : $wc_order->get_shipping_state(),
+                'country' => (version_compare(WC()->version, '2.7.0', '<')) ? $wc_order->shipping_country : $wc_order->get_shipping_country(),
+                'postal_code' => (version_compare(WC()->version, '2.7.0', '<')) ? $wc_order->shipping_postcode : $wc_order->get_shipping_postcode()
             ),
-            'name' => ((WC()->version < '2.7.0') ? $wc_order->shipping_first_name : $wc_order->get_shipping_first_name()) . ' ' . ((WC()->version < '2.7.0') ? $wc_order->shipping_last_name : $wc_order->get_shipping_last_name()),
-            'phone' => (WC()->version < '2.7.0') ? $wc_order->billing_phone : $wc_order->get_billing_phone(),
+            'name' => ((version_compare(WC()->version, '2.7.0', '<')) ? $wc_order->shipping_first_name : $wc_order->get_shipping_first_name()) . ' ' . ((version_compare(WC()->version, '2.7.0', '<')) ? $wc_order->shipping_last_name : $wc_order->get_shipping_last_name()),
+            'phone' => (version_compare(WC()->version, '2.7.0', '<')) ? $wc_order->billing_phone : $wc_order->get_billing_phone(),
         );
         
        return apply_filters('eh_wechat_payment_intent_args', $charge);
@@ -509,19 +509,19 @@ class EH_Wechat extends WC_Payment_Gateway {
         $post_data['currency']           =  strtolower( $currency);
         $post_data['amount']             =  EH_Stripe_Payment::get_stripe_amount( $order->get_total(), $currency );
         $post_data['description']        =  sprintf( __( '%1$s - Order %2$s', 'payment-gateway-stripe-and-woocommerce-integration' ), wp_specialchars_decode( get_bloginfo( 'name' ), ENT_QUOTES ), $order->get_order_number() );
-        $billing_email                   =  (WC()->version < '2.7.0') ? $order->billing_email      : $order->get_billing_email();
-        $billing_first_name              =  (WC()->version < '2.7.0') ? $order->billing_first_name : $order->get_billing_first_name();
-        $billing_last_name               =  (WC()->version < '2.7.0') ? $order->billing_last_name  : $order->get_billing_last_name();
+        $billing_email                   =  (version_compare(WC()->version, '2.7.0', '<')) ? $order->billing_email      : $order->get_billing_email();
+        $billing_first_name              =  (version_compare(WC()->version, '2.7.0', '<')) ? $order->billing_first_name : $order->get_billing_first_name();
+        $billing_last_name               =  (version_compare(WC()->version, '2.7.0', '<')) ? $order->billing_last_name  : $order->get_billing_last_name();
         
         $post_data['shipping']['name']   =  $billing_first_name . ' ' . $billing_last_name;
-        $post_data['shipping']['phone']  =  (WC()->version < '2.7.0') ? $order->billing_phone : $order->get_billing_phone();
+        $post_data['shipping']['phone']  =  (version_compare(WC()->version, '2.7.0', '<')) ? $order->billing_phone : $order->get_billing_phone();
 
-        $post_data['shipping']['address']['line1']       = (WC()->version < '2.7.0') ? $order->shipping_address_1 : $order->get_shipping_address_1();
-        $post_data['shipping']['address']['line2']       = (WC()->version < '2.7.0') ? $order->shipping_address_2 : $order->get_shipping_address_2();
-        $post_data['shipping']['address']['state']       = (WC()->version < '2.7.0') ? $order->shipping_state     : $order->get_shipping_state();
-        $post_data['shipping']['address']['city']        = (WC()->version < '2.7.0') ? $order->shipping_city      : $order->get_shipping_city();
-        $post_data['shipping']['address']['postal_code'] = (WC()->version < '2.7.0') ? $order->shipping_postcode  : $order->get_shipping_postcode();
-        $post_data['shipping']['address']['country']     = (WC()->version < '2.7.0') ? $order->shipping_country   : $order->get_shipping_country();
+        $post_data['shipping']['address']['line1']       = (version_compare(WC()->version, '2.7.0', '<')) ? $order->shipping_address_1 : $order->get_shipping_address_1();
+        $post_data['shipping']['address']['line2']       = (version_compare(WC()->version, '2.7.0', '<')) ? $order->shipping_address_2 : $order->get_shipping_address_2();
+        $post_data['shipping']['address']['state']       = (version_compare(WC()->version, '2.7.0', '<')) ? $order->shipping_state     : $order->get_shipping_state();
+        $post_data['shipping']['address']['city']        = (version_compare(WC()->version, '2.7.0', '<')) ? $order->shipping_city      : $order->get_shipping_city();
+        $post_data['shipping']['address']['postal_code'] = (version_compare(WC()->version, '2.7.0', '<')) ? $order->shipping_postcode  : $order->get_shipping_postcode();
+        $post_data['shipping']['address']['country']     = (version_compare(WC()->version, '2.7.0', '<')) ? $order->shipping_country   : $order->get_shipping_country();
         
         $post_data['metadata']  = array(
             __( 'customer_name', 'payment-gateway-stripe-and-woocommerce-integration' ) => sanitize_text_field( $billing_first_name ) . ' ' . sanitize_text_field( $billing_last_name ),
@@ -566,7 +566,7 @@ class EH_Wechat extends WC_Payment_Gateway {
                 $total_amount = $data['amount'];
                         
                 $order = new WC_Order($order_id);
-                $div = $amount * ($total_amount / ((WC()->version < '2.7.0') ? $order->order_total : $order->get_total()));
+                $div = $amount * ($total_amount / ((version_compare(WC()->version, '2.7.0', '<')) ? $order->order_total : $order->get_total()));
                 $refund_params = array(
                     'amount' => EH_Stripe_Payment::get_stripe_amount($div, $currency),
                     'reason' => 'requested_by_customer',
@@ -574,7 +574,7 @@ class EH_Wechat extends WC_Payment_Gateway {
                     'metadata' => array(
                         'order_id' => $order->get_id(),
                         'Total Tax' => $order->get_total_tax(),
-                        'Total Shipping' => (WC()->version < '2.7.0') ? $order->get_total_shipping() : $order->get_shipping_total(),
+                        'Total Shipping' => (version_compare(WC()->version, '2.7.0', '<')) ? $order->get_total_shipping() : $order->get_shipping_total(),
                         'Customer IP' => $client['IP'],
                         'Agent' => $client['Agent'],
                         'Referer' => $client['Referer'],
@@ -589,7 +589,7 @@ class EH_Wechat extends WC_Payment_Gateway {
                                         
                         $refund_time = date('Y-m-d H:i:s', time() + get_option('gmt_offset') * 3600);
                         $obj = new EH_Stripe_Payment();
-                        $data = $obj->make_refund_params($refund_response, $amount, ((WC()->version < '2.7.0') ? $order->order_currency : $order->get_currency()), $order_id);
+                        $data = $obj->make_refund_params($refund_response, $amount, ((version_compare(WC()->version, '2.7.0', '<')) ? $order->order_currency : $order->get_currency()), $order_id);
                         EH_Helper_Class::wt_stripe_order_db_operations($order_id, $order, 'add', '_eh_stripe_payment_refund', $data, false);
                         $order->add_order_note(__('Reason : ', 'payment-gateway-stripe-and-woocommerce-integration') . $reason . '.<br>' . __('Amount : ', 'payment-gateway-stripe-and-woocommerce-integration') . get_woocommerce_currency_symbol() . $amount . '.<br>' . __('Status : refunded ', 'payment-gateway-stripe-and-woocommerce-integration') . ' [ ' . $refund_time . ' ] ' . (is_null($data['transaction_id']) ? '' : '<br>' . __('Transaction ID : ', 'payment-gateway-stripe-and-woocommerce-integration') . $data['transaction_id']));
                         EH_Stripe_Log::log_update('live', $data, get_bloginfo('blogname') . ' - Refund - Order #' . $order->get_order_number());

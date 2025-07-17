@@ -3,9 +3,9 @@ Contributors: webtoffee
 Donate link: https://www.webtoffee.com/plugins/
 Tags: stripe checkout, credit card, google pay, apple pay, stripe payments
 Requires at least: 5.6
-Tested up to: 6.8.1
+Tested up to: 6.8.2
 Requires PHP: 5.6
-Stable tag: 5.0.3
+Stable tag: 5.0.4
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
@@ -259,6 +259,10 @@ The Stripe payment gateway for WooCommerce acts as a secure bridge between your 
 24. Stripe General Settings
 
 == Changelog ==
+
+= 5.0.4 2025-07-17 =
+* [Compatibility] - WordPress 6.8.2
+* [Compatibility] - WooCommerce 10.0.2
 
 = 5.0.3 2025-07-04 =
 *[Fix] - Enhanced Express Button Functionality.
@@ -785,6 +789,6 @@ The Stripe payment gateway for WooCommerce acts as a secure bridge between your 
  
 == Upgrade Notice ==
 
-= 5.0.3 =
-*[Fix] - Enhanced Express Button Functionality.
-*[compatibility] - Woocommerce 9.9.5
+= 5.0.4 =
+* [Compatibility] - WordPress 6.8.2
+* [Compatibility] - WooCommerce 10.0.2

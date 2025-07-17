@@ -245,14 +245,14 @@ class EH_Grabpay extends WC_Payment_Gateway {
         if (is_checkout_pay_page()) {
             $order_id = get_query_var('order-pay');
             $order = wc_get_order($order_id);
-            $email = (WC()->version < '2.7.0') ? $order->billing_email : $order->get_billing_email();
+            $email = (version_compare(WC()->version, '2.7.0', '<')) ? $order->billing_email : $order->get_billing_email();
             echo '<div
                 id="eh-grabpay-pay-data"
                 data-panel-label="' . esc_attr($pay_button_text) . '"
                 data-email="' . esc_attr(($email !== '') ? $email : get_bloginfo('name', 'display')) . '"
-                data-amount="' . esc_attr(EH_Stripe_Payment::get_stripe_amount(((WC()->version < '2.7.0') ? $order->order_total : $order->get_total()))) . '"
+                data-amount="' . esc_attr(EH_Stripe_Payment::get_stripe_amount(((version_compare(WC()->version, '2.7.0', '<')) ? $order->order_total : $order->get_total()))) . '"
                 data-name="' . esc_attr(sprintf(get_bloginfo('name', 'display'))) . '"
-                data-currency="' . esc_attr(((WC()->version < '2.7.0') ? $order->order_currency : $order->get_currency())) . '">';
+                data-currency="' . esc_attr(((version_compare(WC()->version, '2.7.0', '<')) ? $order->order_currency : $order->get_currency())) . '">';
 
            echo $this->elements_form();
             echo '</div>';
@@ -300,9 +300,9 @@ class EH_Grabpay extends WC_Payment_Gateway {
                 
             }
             $currency =  $order->get_currency();
-            $amount = EH_Stripe_Payment::get_stripe_amount(((WC()->version < '2.7.0') ? $order->order_total : $order->get_total())) ;
+            $amount = EH_Stripe_Payment::get_stripe_amount(((version_compare(WC()->version, '2.7.0', '<')) ? $order->order_total : $order->get_total())) ;
 
-             $customer = $this->create_stripe_customer($order_id, ((WC()->version < '2.7.0') ? $order->billing_email : $order->get_billing_email()));
+             $customer = $this->create_stripe_customer($order_id, ((version_compare(WC()->version, '2.7.0', '<')) ? $order->billing_email : $order->get_billing_email()));
                 
             if (!empty($customer) && isset($customer->id)) {
                 $user_id = $order->get_user_id();
@@ -422,8 +422,8 @@ class EH_Grabpay extends WC_Payment_Gateway {
                 'Customer IP' => $client['IP'],
                 'Agent' => $client['Agent'],
                 'Referer' => $client['Referer'],
-                'WP customer #' => (WC()->version < '2.7.0') ? $wc_order->user_id : $wc_order->get_user_id(),
-                'Billing Email' => (WC()->version < '2.7.0') ? $wc_order->billing_email : $wc_order->get_billing_email()
+                'WP customer #' => (version_compare(WC()->version, '2.7.0', '<')) ? $wc_order->user_id : $wc_order->get_user_id(),
+                'Billing Email' => (version_compare(WC()->version, '2.7.0', '<')) ? $wc_order->billing_email : $wc_order->get_billing_email()
             ),
             'description' => wp_specialchars_decode( get_bloginfo( 'name' ), ENT_QUOTES ) . ' Order #' . $wc_order->get_order_number(),
         );
@@ -447,15 +447,15 @@ class EH_Grabpay extends WC_Payment_Gateway {
 
             $charge['shipping'] = array(
                 'address' => array(
-                    'line1' => (WC()->version < '2.7.0') ? $wc_order->shipping_address_1 : $wc_order->get_shipping_address_1(),
-                    'line2' => (WC()->version < '2.7.0') ? $wc_order->shipping_address_2 : $wc_order->get_shipping_address_2(),
-                    'city' => (WC()->version < '2.7.0') ? $wc_order->shipping_city : $wc_order->get_shipping_city(),
-                    'state' => (WC()->version < '2.7.0') ? $wc_order->shipping_state : $wc_order->get_shipping_state(),
-                    'country' => (WC()->version < '2.7.0') ? $wc_order->shipping_country : $wc_order->get_shipping_country(),
-                    'postal_code' => (WC()->version < '2.7.0') ? $wc_order->shipping_postcode : $wc_order->get_shipping_postcode()
+                    'line1' => (version_compare(WC()->version, '2.7.0', '<')) ? $wc_order->shipping_address_1 : $wc_order->get_shipping_address_1(),
+                    'line2' => (version_compare(WC()->version, '2.7.0', '<')) ? $wc_order->shipping_address_2 : $wc_order->get_shipping_address_2(),
+                    'city' => (version_compare(WC()->version, '2.7.0', '<')) ? $wc_order->shipping_city : $wc_order->get_shipping_city(),
+                    'state' => (version_compare(WC()->version, '2.7.0', '<')) ? $wc_order->shipping_state : $wc_order->get_shipping_state(),
+                    'country' => (version_compare(WC()->version, '2.7.0', '<')) ? $wc_order->shipping_country : $wc_order->get_shipping_country(),
+                    'postal_code' => (version_compare(WC()->version, '2.7.0', '<')) ? $wc_order->shipping_postcode : $wc_order->get_shipping_postcode()
                 ),
-                'name' => ((WC()->version < '2.7.0') ? $wc_order->shipping_first_name : $wc_order->get_shipping_first_name()) . ' ' . ((WC()->version < '2.7.0') ? $wc_order->shipping_last_name : $wc_order->get_shipping_last_name()),
-                'phone' => (WC()->version < '2.7.0') ? $wc_order->billing_phone : $wc_order->get_billing_phone(),
+                'name' => ((version_compare(WC()->version, '2.7.0', '<')) ? $wc_order->shipping_first_name : $wc_order->get_shipping_first_name()) . ' ' . ((version_compare(WC()->version, '2.7.0', '<')) ? $wc_order->shipping_last_name : $wc_order->get_shipping_last_name()),
+                'phone' => (version_compare(WC()->version, '2.7.0', '<')) ? $wc_order->billing_phone : $wc_order->get_billing_phone(),
             );
         
        return apply_filters('eh_grabpay_payment_intent_args', $charge);
@@ -490,7 +490,7 @@ class EH_Grabpay extends WC_Payment_Gateway {
                 $total_amount = $data['amount'];
                         
                 $order = new WC_Order($order_id);
-                $div = $amount * ($total_amount / ((WC()->version < '2.7.0') ? $order->order_total : $order->get_total()));
+                $div = $amount * ($total_amount / ((version_compare(WC()->version, '2.7.0', '<')) ? $order->order_total : $order->get_total()));
                 $refund_params = array(
                     'amount' => EH_Stripe_Payment::get_stripe_amount($div, $currency),
                     'reason' => 'requested_by_customer',
@@ -498,7 +498,7 @@ class EH_Grabpay extends WC_Payment_Gateway {
                     'metadata' => array(
                         'order_id' => $order->get_id(),
                         'Total Tax' => $order->get_total_tax(),
-                        'Total Shipping' => (WC()->version < '2.7.0') ? $order->get_total_shipping() : $order->get_shipping_total(),
+                        'Total Shipping' => (version_compare(WC()->version, '2.7.0', '<')) ? $order->get_total_shipping() : $order->get_shipping_total(),
                         'Customer IP' => $client['IP'],
                         'Agent' => $client['Agent'],
                         'Referer' => $client['Referer'],
@@ -513,7 +513,7 @@ class EH_Grabpay extends WC_Payment_Gateway {
                                         
                         $refund_time = date('Y-m-d H:i:s', time() + get_option('gmt_offset') * 3600);
                         $obj = new EH_Stripe_Payment();
-                        $data = $obj->make_refund_params($refund_response, $amount, ((WC()->version < '2.7.0') ? $order->order_currency : $order->get_currency()), $order_id);
+                        $data = $obj->make_refund_params($refund_response, $amount, ((version_compare(WC()->version, '2.7.0', '<')) ? $order->order_currency : $order->get_currency()), $order_id);
                         
                         EH_Helper_Class::wt_stripe_order_db_operations($order_id, $order, 'add', '_eh_stripe_payment_refund', $data, false);
 

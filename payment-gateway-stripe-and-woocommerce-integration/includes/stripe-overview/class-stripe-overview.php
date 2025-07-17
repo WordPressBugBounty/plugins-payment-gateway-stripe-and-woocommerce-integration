@@ -40,7 +40,7 @@ class EH_Stripe_Overview
                 'metadata' => array(
                     'order_id' => $wc_order->get_order_number(),
                     'Total Tax' => $wc_order->get_total_tax(),
-                    'Total Shipping' => (WC()->version < '2.7.0') ? $wc_order->get_total_shipping() : $wc_order->get_shipping_total(),
+                    'Total Shipping' => (version_compare(WC()->version, '2.7.0', '<')) ? $wc_order->get_total_shipping() : $wc_order->get_shipping_total(),
                     'Customer IP' => $client['IP'],
                     'Agent' => $client['Agent'],
                     'Referer' => $client['Referer'],
@@ -54,7 +54,7 @@ class EH_Stripe_Overview
                 if ($refund_response) {
 
                     $refund_time = date('Y-m-d H:i:s', time() + get_option('gmt_offset') * 3600);
-                    $data = $obj->make_refund_params($refund_response, $remaining_amount, ((WC()->version < '2.7.0') ? $wc_order->order_currency : $wc_order->get_currency()), $order_id);
+                    $data = $obj->make_refund_params($refund_response, $remaining_amount, ((version_compare(WC()->version, '2.7.0', '<')) ? $wc_order->order_currency : $wc_order->get_currency()), $order_id);
                     EH_Helper_Class::wt_stripe_order_db_operations($order_id, null, 'add', '_eh_stripe_payment_refund', $data);
                     $wc_order->add_order_note(__('Reason : ', 'payment-gateway-stripe-and-woocommerce-integration') . esc_html($reason) . '.<br>' . __('Amount : ', 'payment-gateway-stripe-and-woocommerce-integration') . get_woocommerce_currency_symbol() . esc_html($amount) . '.<br>' . __('Status : ', 'payment-gateway-stripe-and-woocommerce-integration') . (($data['status'] === 'succeeded') ? 'Success' : $data['status'] ) . ' [ ' . $refund_time . ' ] ' . (is_null($data['transaction_id']) ? '' : '<br>' . __('Transaction ID : ', 'payment-gateway-stripe-and-woocommerce-integration') . $data['transaction_id']));
                     EH_Stripe_Log::log_update('live', $data, get_bloginfo('blogname') . ' - Refund - Order #' . $wc_order->get_order_number());
@@ -69,7 +69,7 @@ class EH_Stripe_Overview
                             'line_items' => array(),
                         ));
                         do_action('woocommerce_refund_processed', $refund, true);
-                        $refund_id = (WC()->version < '2.7.0') ? $refund->id : $refund->get_id();
+                        $refund_id = (version_compare(WC()->version, '2.7.0', '<')) ? $refund->id : $refund->get_id();
                         if ($wc_order->get_remaining_refund_amount() > 0 || ( $wc_order->has_free_item() && $wc_order->get_remaining_refund_items() > 0 )) {
                             /**
                              * woocommerce_order_partially_refunded.
@@ -199,10 +199,10 @@ class EH_Stripe_Overview
             $wc_order = new WC_Order($order_id);
             if ($mode === 'full') {
                 $refund_amount = $wc_order->get_remaining_refund_amount();
-                $div = $wc_order->get_remaining_refund_amount() * ($total_amount / ((WC()->version < '2.7.0') ? $wc_order->order_total : $wc_order->get_total()));
+                $div = $wc_order->get_remaining_refund_amount() * ($total_amount / ((version_compare(WC()->version, '2.7.0', '<')) ? $wc_order->order_total : $wc_order->get_total()));
             } else {
                 $refund_amount = $amount;
-                $div = $amount * ($total_amount / ((WC()->version < '2.7.0') ? $wc_order->order_total : $wc_order->get_total()));
+                $div = $amount * ($total_amount / ((version_compare(WC()->version, '2.7.0', '<')) ? $wc_order->order_total : $wc_order->get_total()));
             }
             $refund_params = array(
                 'amount' => $obj->get_stripe_amount($div, $currency),
@@ -210,7 +210,7 @@ class EH_Stripe_Overview
                 'metadata' => array(
                     'order_id' => $wc_order->get_order_number(),
                     'Total Tax' => $wc_order->get_total_tax(),
-                    'Total Shipping' => (WC()->version < '2.7.0') ? $wc_order->get_total_shipping() : $wc_order->get_shipping_total(),
+                    'Total Shipping' => (version_compare(WC()->version, '2.7.0', '<')) ? $wc_order->get_total_shipping() : $wc_order->get_shipping_total(),
                     'Customer IP' => $client['IP'],
                     'Agent' => $client['Agent'],
                     'Referer' => $client['Referer'],
@@ -224,7 +224,7 @@ class EH_Stripe_Overview
                 if ($refund_response) {
 
                     $refund_time = date('Y-m-d H:i:s', time() + get_option('gmt_offset') * 3600);
-                    $data = $obj->make_refund_params($refund_response, $refund_amount, ((WC()->version < '2.7.0') ? $wc_order->order_currency : $wc_order->get_currency()), $order_id);
+                    $data = $obj->make_refund_params($refund_response, $refund_amount, ((version_compare(WC()->version, '2.7.0', '<')) ? $wc_order->order_currency : $wc_order->get_currency()), $order_id);
                     EH_Helper_Class::wt_stripe_order_db_operations($order_id, $wc_order, 'add', '_eh_stripe_payment_refund', $data);
                     $wc_order->add_order_note(__('Reason : ', 'payment-gateway-stripe-and-woocommerce-integration') . esc_html($reason) . '.<br>' . __('Amount : ', 'payment-gateway-stripe-and-woocommerce-integration') . get_woocommerce_currency_symbol() . esc_html($amount) . '.<br>' . __('Status : ', 'payment-gateway-stripe-and-woocommerce-integration') . (($data['status'] === 'succeeded') ? 'Success' : $data['status'] ) . ' [ ' . $refund_time . ' ] ' . (is_null($data['transaction_id']) ? '' : '<br>' . __('Transaction ID : ', 'payment-gateway-stripe-and-woocommerce-integration') . $data['transaction_id']));
                     EH_Stripe_Log::log_update('live', $data, get_bloginfo('blogname') . ' - Refund - Order #' . $wc_order->get_order_number());
@@ -240,7 +240,7 @@ class EH_Stripe_Overview
                             'line_items' => array(),
                         ));
                         do_action('woocommerce_refund_processed', $refund, true);
-                        $refund_id = (WC()->version < '2.7.0') ? $refund->id : $refund->get_id();
+                        $refund_id = (version_compare(WC()->version, '2.7.0', '<')) ? $refund->id : $refund->get_id();
                         if ($wc_order->get_remaining_refund_amount() > 0 || ( $wc_order->has_free_item() && $wc_order->get_remaining_refund_items() > 0 )) {
                             /**
                              * woocommerce_order_partially_refunded.

@@ -35,13 +35,13 @@ class Eh_Stripe_Order_Datatables extends WP_List_Table {
             } else {
                 $order_temp[$i]['user_name'] = get_user_meta($order->get_user_id(), 'first_name', true) . ' ' . get_user_meta($order->get_user_id(), 'last_name', true);
             }
-            $order_temp[$i]['user_email'] = (WC()->version < '2.7.0') ? $order->billing_email : $order->get_billing_email();
+            $order_temp[$i]['user_email'] = (version_compare(WC()->version, '2.7.0', '<')) ? $order->billing_email : $order->get_billing_email();
             $order_temp[$i]['ship'] = $order->get_address('shipping');
             $order_temp[$i]['order_total'] = $order->get_total();
             $order_temp[$i]['order_mode'] = (isset($data['mode']) ? $data['mode'] : '');
             $order_temp[$i]['refund_rem'] = $order->get_remaining_refund_amount();
             $order_temp[$i]['price'] = $order->get_formatted_order_total();
-            $order_temp[$i]['date'] = date('Y-m-d ', (WC()->version < '2.7.0') ? strtotime($order->order_date) : strtotime($order->get_date_created()));
+            $order_temp[$i]['date'] = date('Y-m-d ', (version_compare(WC()->version, '2.7.0', '<')) ? strtotime($order->order_date) : strtotime($order->get_date_created()));
         }
         $this->order_data = $order_temp;
     }
@@ -284,7 +284,7 @@ class Eh_Stripe_Datatables extends WP_List_Table {
                 } else {
                     $stripe_temp[$j]['user_name'] = get_user_meta($order->get_user_id(), 'first_name', true) . ' ' . get_user_meta($order->get_user_id(), 'last_name', true);
                 }
-                $stripe_temp[$j]['user_email'] = (WC()->version < '2.7.0') ? $order->billing_email : $order->get_billing_email();
+                $stripe_temp[$j]['user_email'] = (version_compare(WC()->version, '2.7.0', '<')) ? $order->billing_email : $order->get_billing_email();
                 $stripe_temp[$j]['type'] = (isset($data[$k]['captured']) ? $data[$k]['captured'] : '');
                 $stripe_temp[$j]['source'] = (isset($data[$k]['source_type']) ? $data[$k]['source_type'] : '');
                 $stripe_temp[$j]['transaction_id'] = (isset($data[$k]['transaction_id']) ? $data[$k]['transaction_id'] : '');
@@ -316,7 +316,7 @@ class Eh_Stripe_Datatables extends WP_List_Table {
                 } else {
                     $stripe_temp[$j]['user_name'] = get_user_meta($order->get_user_id(), 'first_name', true) . ' ' . get_user_meta($order->get_user_id(), 'last_name', true);
                 }
-                $stripe_temp[$j]['user_email'] = (WC()->version < '2.7.0') ? $order->billing_email : $order->get_billing_email();
+                $stripe_temp[$j]['user_email'] = (version_compare(WC()->version, '2.7.0', '<')) ? $order->billing_email : $order->get_billing_email();
                 $stripe_temp[$j]['transaction_id'] = (isset($data[$k]['transaction_id']) ? $data[$k]['transaction_id'] : '');
                 $stripe_temp[$j]['status'] = (isset($data[$k]['status']) ? $data[$k]['status'] : '');
                 $stripe_temp[$j]['amount'] = (isset($data[$k]['amount']) ? $data[$k]['amount'] : '');
@@ -345,7 +345,7 @@ class Eh_Stripe_Datatables extends WP_List_Table {
                 } else {
                     $stripe_temp[$j]['user_name'] = get_user_meta($order->get_user_id(), 'first_name', true) . ' ' . get_user_meta($order->get_user_id(), 'last_name', true);
                 }
-                $stripe_temp[$j]['user_email'] = (WC()->version < '2.7.0') ? $order->billing_email : $order->get_billing_email();
+                $stripe_temp[$j]['user_email'] = (version_compare(WC()->version, '2.7.0', '<')) ? $order->billing_email : $order->get_billing_email();
                 $stripe_temp[$j]['transaction_id'] = " ";
                 $stripe_temp[$j]['status'] = 'succeeded';
                 $stripe_temp[$j]['amount'] = (isset($data[$k]['balance_amount']) ? $data[$k]['balance_amount'] : '');
