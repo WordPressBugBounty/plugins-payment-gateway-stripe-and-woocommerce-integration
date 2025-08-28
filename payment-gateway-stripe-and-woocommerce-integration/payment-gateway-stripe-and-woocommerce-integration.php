@@ -1,11 +1,12 @@
 <?php
 /*
- * Plugin Name: Stripe Payment Plugin for WooCommerce
+ * Plugin Name: Payment Gateway for Stripe and for WooCommerce
+ * Requires Plugins: woocommerce
  * Plugin URI: https://wordpress.org/plugins/payment-gateway-stripe-and-woocommerce-integration/
  * Description: Accept payments from your WooCommerce store via Credit/Debit Cards, Stripe Checkout, Apple Pay, Google Pay, Alipay, SEPA Pay, Klarna, Afterpay, WeChat Pay, iDEAL, Bancontact, EPS, P24, Bacs Debit, BECS Debit, FPX, Boleto, OXXO, GrabPay, Multibanco and Affirm using Stripe.
  * Author: WebToffee
  * Author URI: https://www.webtoffee.com/product/woocommerce-stripe-payment-gateway/
- * Version: 5.0.4
+ * Version: 5.0.6
  * WC requires at least: 3.0
  * WC tested up to: 10.0.2
  * License: GPLv3
@@ -25,7 +26,7 @@ if (!defined('EH_STRIPE_MAIN_PATH')) {
     define('EH_STRIPE_MAIN_PATH', plugin_dir_path(__FILE__));
 }
 if (!defined('EH_STRIPE_VERSION')) {
-    define('EH_STRIPE_VERSION', '5.0.4');
+    define('EH_STRIPE_VERSION', '5.0.6');
 }
 if (!defined('EH_STRIPE_MAIN_FILE')) {
     define('EH_STRIPE_MAIN_FILE', __FILE__);
@@ -52,7 +53,7 @@ if(is_plugin_active('eh-stripe-payment-gateway/stripe-payment-gateway.php')){
     if( defined('EH_STRIPE_INSTALLED_VERSION') && EH_STRIPE_INSTALLED_VERSION == 'PREMIUM' ) {
 				
         deactivate_plugins( plugin_basename(__FILE__) );
-        wp_die(__("Oops! PREMIUM Version of this Plugin Installed. Please deactivate the PREMIUM Version before activating BASIC.", 'payment-gateway-stripe-and-woocommerce-integration'), "", array('back_link' => 1));
+        wp_die(esc_html__("Oops! PREMIUM Version of this Plugin Installed. Please deactivate the PREMIUM Version before activating BASIC.", 'payment-gateway-stripe-and-woocommerce-integration'), "", array('back_link' => 1));
         
     }
 
@@ -125,7 +126,7 @@ if(is_plugin_active('eh-stripe-payment-gateway/stripe-payment-gateway.php')){
    
     function eh_stripe_init() {
         function  eh_stripe_lang_loader(){
-            load_plugin_textdomain('payment-gateway-stripe-and-woocommerce-integration', false, dirname(plugin_basename(__FILE__)) . '/lang');
+
             eh_load_payment_methods();
         }       
         add_action('init', 'eh_stripe_lang_loader');
@@ -156,7 +157,8 @@ if(is_plugin_active('eh-stripe-payment-gateway/stripe-payment-gateway.php')){
             $methods[] = 'EH_Boleto';
             $methods[] = 'EH_Oxxo';
             $methods[] = 'EH_Grabpay';
-            $methods[] = 'EH_Multibanco';
+            //Temporarily disabled
+            //$methods[] = 'EH_Multibanco';
             $methods[] = 'EH_Affirm';
             eh_load_payment_methods();
             return $methods;
@@ -255,6 +257,7 @@ if(is_plugin_active('eh-stripe-payment-gateway/stripe-payment-gateway.php')){
         if(true === EH_Stripe_Payment::wt_stripe_is_HPOS_compatibile()){
             $args = array(
                 'return' => 'ids',
+                'limit' => -1,
                 'status' => array('wc-processing', 'wc-on-hold', 'wc-completed', 'wc-refunded'),
                 'payment_method' => array('eh_multibanco_stripe', 'eh_grabpay_stripe', 'eh_oxxo_stripe', 'eh_boleto_stripe', 'eh_fpx_stripe', 'eh_becs_stripe', 'eh_bacs', 'eh_giropay_stripe', 'eh_p24_stripe', 'eh_eps_stripe', 'eh_bancontact_stripe', 'eh_ideal_stripe', 'eh_sofort_stripe', 'eh_wechat_stripe', 'eh_afterpay_stripe', 'eh_klarna_stripe', 'eh_sepa_stripe', 'eh_stripe_pay', 'eh_alipay_stripe', 'eh_stripe_checkout', 'eh_affirm_stripe'),
             );
@@ -274,6 +277,7 @@ if(is_plugin_active('eh-stripe-payment-gateway/stripe-payment-gateway.php')){
                 'fields' => 'ids',
                 'numberposts' => -1,
                 'post_status' => array('wc-processing', 'wc-on-hold', 'wc-completed', 'wc-refunded'),
+                //phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
                 'meta_query' => array(
                     array(
                         'key'       => '_payment_method',
@@ -288,7 +292,7 @@ if(is_plugin_active('eh-stripe-payment-gateway/stripe-payment-gateway.php')){
                 $order_all_id[$count] = $id[$i];
                 $count++;
             }
-        }
+        } 
         return $order_all_id;
     }
 
@@ -344,7 +348,7 @@ if(is_plugin_active('eh-stripe-payment-gateway/stripe-payment-gateway.php')){
             $data = $eh_stripe_this->make_charge_params($charge_response, $order_id);
 
             if ('Captured' == $data['captured'] && 'Paid' == $data['paid']) {
-
+                //phpcs:ignore WordPress.DateTime.RestrictedFunctions.date_date
                 $capture_time = date('Y-m-d H:i:s', time() + get_option('gmt_offset') * 3600);
                 $wc_order->update_status('processing');
                 if(true === $hpos_compatible){ 
@@ -390,7 +394,7 @@ function eh_stripe_payment_gateway_for_woocommerce_update_message( $data, $respo
             #payment-gateway-stripe-and-woocommerce-integration-update ul{ list-style:disc; margin-left:30px;}
             .wt-update-message{ padding-left:30px;}
             </style>
-            <div class="update-message wt-update-message">'. wpautop($msg).'</div>';
+            <div class="update-message wt-update-message">'. wp_kses_post(wpautop($msg)).'</div>';
         }
 
 }

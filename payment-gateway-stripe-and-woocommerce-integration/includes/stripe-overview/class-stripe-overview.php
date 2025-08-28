@@ -19,12 +19,13 @@ class EH_Stripe_Overview
 
         if(!EH_Helper_Class::check_write_access(EH_STRIPE_PLUGIN_NAME, 'ajax-eh-spg-nonce'))
         {
-            die(_e('You are not allowed to view this page.', 'payment-gateway-stripe-and-woocommerce-integration'));
+            die(esc_html__('You are not allowed to view this page.', 'payment-gateway-stripe-and-woocommerce-integration'));
         }
-        $order_id = intval($_POST['order_id']);
+        //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing
+        $order_id = isset($_POST['order_id']) ? intval(sanitize_text_field(wp_unslash($_POST['order_id']))) : 0;
         $obj = new EH_Stripe_Payment();
         $client = $obj->get_clients_details();
-        $reason = __('Manual Refund Status:', 'payment-gateway-stripe-and-woocommerce-integration');
+        $reason = esc_html__('Manual Refund Status:', 'payment-gateway-stripe-and-woocommerce-integration');
         $data = EH_Helper_Class::wt_stripe_order_db_operations($order_id, null, 'get', '_eh_stripe_payment_charge');
         $status = $data['captured'];
         $charge_id = $data['id'];
@@ -44,7 +45,7 @@ class EH_Stripe_Overview
                     'Customer IP' => $client['IP'],
                     'Agent' => $client['Agent'],
                     'Referer' => $client['Referer'],
-                    'Reason for Refund' => __('Stripe Overview refund', 'payment-gateway-stripe-and-woocommerce-integration')
+                    'Reason for Refund' => esc_html__('Stripe Overview refund', 'payment-gateway-stripe-and-woocommerce-integration')
                 )
             );
 
@@ -53,12 +54,13 @@ class EH_Stripe_Overview
                 $refund_response = $charge_response->refunds->create($refund_params);
                 if ($refund_response) {
 
+                    //phpcs:ignore WordPress.DateTime.RestrictedFunctions.date_date
                     $refund_time = date('Y-m-d H:i:s', time() + get_option('gmt_offset') * 3600);
                     $data = $obj->make_refund_params($refund_response, $remaining_amount, ((version_compare(WC()->version, '2.7.0', '<')) ? $wc_order->order_currency : $wc_order->get_currency()), $order_id);
                     EH_Helper_Class::wt_stripe_order_db_operations($order_id, null, 'add', '_eh_stripe_payment_refund', $data);
-                    $wc_order->add_order_note(__('Reason : ', 'payment-gateway-stripe-and-woocommerce-integration') . esc_html($reason) . '.<br>' . __('Amount : ', 'payment-gateway-stripe-and-woocommerce-integration') . get_woocommerce_currency_symbol() . esc_html($amount) . '.<br>' . __('Status : ', 'payment-gateway-stripe-and-woocommerce-integration') . (($data['status'] === 'succeeded') ? 'Success' : $data['status'] ) . ' [ ' . $refund_time . ' ] ' . (is_null($data['transaction_id']) ? '' : '<br>' . __('Transaction ID : ', 'payment-gateway-stripe-and-woocommerce-integration') . $data['transaction_id']));
+                    $wc_order->add_order_note(esc_html__('Reason : ', 'payment-gateway-stripe-and-woocommerce-integration') . esc_html($reason) . '.<br>' . esc_html__('Amount : ', 'payment-gateway-stripe-and-woocommerce-integration') . get_woocommerce_currency_symbol() . esc_html($amount) . '.<br>' . esc_html__('Status : ', 'payment-gateway-stripe-and-woocommerce-integration') . (($data['status'] === 'succeeded') ? 'Success' : esc_html($data['status']) ) . ' [ ' . esc_html($refund_time) . ' ] ' . (is_null($data['transaction_id']) ? '' : '<br>' . esc_html__('Transaction ID : ', 'payment-gateway-stripe-and-woocommerce-integration') . esc_html($data['transaction_id'])));
                     EH_Stripe_Log::log_update('live', $data, get_bloginfo('blogname') . ' - Refund - Order #' . $wc_order->get_order_number());
-                    $message = $remaining_amount . ' refund ' . $data['status'] . ' at ' . $refund_time . (is_null($data['transaction_id']) ? '' : '. Transaction Id - ' . $data['transaction_id']);
+                    $message = esc_html($remaining_amount) . ' refund ' . esc_html($data['status']) . ' at ' . esc_html($refund_time) . (is_null($data['transaction_id']) ? '' : '. Transaction Id - ' . esc_html($data['transaction_id']));
 
                     if('succeeded' === $data['status']){  
 
@@ -99,17 +101,17 @@ class EH_Stripe_Overview
                     wp_send_json($message);
                 } else {
                     EH_Stripe_Log::log_update('dead', $refund_response, get_bloginfo('blogname') . ' - Refund Error - Order #' . $wc_order->get_order_number());
-                    $wc_order->add_order_note(__('Reason : ', 'payment-gateway-stripe-and-woocommerce-integration') . $reason . '.<br>' . __('Amount : ', 'payment-gateway-stripe-and-woocommerce-integration') . get_woocommerce_currency_symbol() . $amount . '.<br>' . __(' Status : Failed ', 'payment-gateway-stripe-and-woocommerce-integration'));
-                    die($refund_response->message);
+                    $wc_order->add_order_note(esc_html__('Reason : ', 'payment-gateway-stripe-and-woocommerce-integration') . esc_html($reason) . '.<br>' . esc_html__('Amount : ', 'payment-gateway-stripe-and-woocommerce-integration') . get_woocommerce_currency_symbol() . esc_html($amount) . '.<br>' . esc_html__(' Status : Failed ', 'payment-gateway-stripe-and-woocommerce-integration'));
+                    die(esc_html($refund_response->message));
                 }
             } catch (Exception $error) {
                 $oops = $error->getJsonBody();
                 EH_Stripe_Log::log_update('dead', $oops['error'], get_bloginfo('blogname') . ' - Refund Error - Order #' . $wc_order->get_order_number());
-                $wc_order->add_order_note(__('Reason : ', 'payment-gateway-stripe-and-woocommerce-integration') . $reason . '.<br>' . __('Amount : ', 'payment-gateway-stripe-and-woocommerce-integration') . get_woocommerce_currency_symbol() . $amount . '.<br>' . __('Status : ', 'payment-gateway-stripe-and-woocommerce-integration') . $oops['error']['message']);
-                die($oops['error']['message']);
+                $wc_order->add_order_note(esc_html__('Reason : ', 'payment-gateway-stripe-and-woocommerce-integration') . esc_html($reason) . '.<br>' . esc_html__('Amount : ', 'payment-gateway-stripe-and-woocommerce-integration') . get_woocommerce_currency_symbol() . esc_html($amount) . '.<br>' . esc_html__('Status : ', 'payment-gateway-stripe-and-woocommerce-integration') . esc_html($oops['error']['message']));
+                die(esc_html($oops['error']['message']));
             }
         } else {
-            die('Uncaptured Amount cannot be refunded');
+            die(esc_html__('Uncaptured Amount cannot be refunded', 'payment-gateway-stripe-and-woocommerce-integration'));
         }
     }
 
@@ -120,9 +122,10 @@ class EH_Stripe_Overview
 
         if(!EH_Helper_Class::check_write_access(EH_STRIPE_PLUGIN_NAME, 'ajax-eh-spg-nonce'))
         {
-            die(_e('You are not allowed to view this page.', 'payment-gateway-stripe-and-woocommerce-integration'));
+            die(esc_html__('You are not allowed to view this page.', 'payment-gateway-stripe-and-woocommerce-integration'));
         }
-        $order_id = intval($_POST['order_id']);
+        //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing
+        $order_id = isset($_POST['order_id']) ? intval(sanitize_text_field(wp_unslash($_POST['order_id']))) : 0;
         $order_data = EH_Helper_Class::wt_stripe_order_db_operations($order_id, null, 'get', '_eh_stripe_payment_charge');
         $payment_method = (isset($order_data['source_type']) ? $order_data['source_type'] : '');
         $intent_id  = EH_Helper_Class::wt_stripe_order_db_operations($order_id, null, 'get', '_eh_stripe_payment_intent');
@@ -154,12 +157,13 @@ class EH_Stripe_Overview
             $data = $eh_stripe_this->make_charge_params($charge_response, $order_id);
 
             if ('Captured' == $data['captured'] && 'Paid' == $data['paid']) {
+                //phpcs:ignore WordPress.DateTime.RestrictedFunctions.date_date
                 $capture_time = date('Y-m-d H:i:s', time() + get_option('gmt_offset') * 3600);
                 $wc_order->update_status('processing');
                 EH_Helper_Class::wt_stripe_order_db_operations($order_id, $wc_order, 'update', '_eh_stripe_payment_charge', $data);
                 EH_Stripe_Log::log_update('live', $data, get_bloginfo('blogname') . ' - Capture - Order #' . $wc_order->get_order_number());
-                $wc_order->add_order_note(__('Capture Status : ', 'payment-gateway-stripe-and-woocommerce-integration') . ucfirst($data['status']) . ' [ ' . $capture_time . ' ] . ' . __('Source : ', 'payment-gateway-stripe-and-woocommerce-integration') . $data['source_type'] . '. ' . __('Charge Status : ', 'payment-gateway-stripe-and-woocommerce-integration') . $data['captured'] . (is_null($data['transaction_id']) ? '' : '. ' . __('Transaction ID : ', 'payment-gateway-stripe-and-woocommerce-integration') . $data['transaction_id']));
-                die('Capture ' . $data['status'] . ' at ' . $capture_time . ', via ' . $data['source_type']);
+                $wc_order->add_order_note(esc_html__('Capture Status : ', 'payment-gateway-stripe-and-woocommerce-integration') . ucfirst(esc_html($data['status'])) . ' [ ' . esc_html($capture_time) . ' ] . ' . esc_html__('Source : ', 'payment-gateway-stripe-and-woocommerce-integration') . esc_html($data['source_type']) . '. ' . esc_html__('Charge Status : ', 'payment-gateway-stripe-and-woocommerce-integration') . esc_html($data['captured']) . (is_null($data['transaction_id']) ? '' : '. ' . esc_html__('Transaction ID : ', 'payment-gateway-stripe-and-woocommerce-integration') . esc_html($data['transaction_id'])));
+                die(esc_html__('Capture ', 'payment-gateway-stripe-and-woocommerce-integration') . esc_html($data['status']) . esc_html__(' at ', 'payment-gateway-stripe-and-woocommerce-integration') . esc_html($capture_time) . esc_html__(', via ', 'payment-gateway-stripe-and-woocommerce-integration') . esc_html($data['source_type']));
             }
         } catch (Exception $error) {
             $user = wp_get_current_user();
@@ -169,9 +173,9 @@ class EH_Stripe_Overview
                 'phone' => get_user_meta($user->ID, 'billing_phone', true),
             );
             $oops = $error->getJsonBody();
-            $wc_order->add_order_note($capture_response->status . ' ' . $error->getMessage());
+            $wc_order->add_order_note(esc_html($capture_response->status) . ' ' . esc_html($error->getMessage()));
             EH_Stripe_Log::log_update('dead', array_merge($user_detail, $oops), get_bloginfo('blogname') . ' - Charge - Order #' . $wc_order->get_order_number());
-            die($error->getMessage());
+            die(esc_html($error->getMessage()));
         }
     }
     
@@ -182,16 +186,19 @@ class EH_Stripe_Overview
 
         if(!EH_Helper_Class::check_write_access(EH_STRIPE_PLUGIN_NAME, 'ajax-eh-spg-nonce'))
         {
-            die(_e('You are not allowed to view this page.', 'payment-gateway-stripe-and-woocommerce-integration'));
+            die(esc_html__('You are not allowed to view this page.', 'payment-gateway-stripe-and-woocommerce-integration'));
         }
-        $amount = wc_format_decimal($_POST['refund_amount']); // SFRWDF-224 Cannot refund amount that comes after decimal point
-        $mode = sanitize_text_field($_POST['refund_mode']);
-        $order_id = intval($_POST['order_id']);
+        //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing
+        $amount = isset($_POST['refund_amount']) ? wc_format_decimal(sanitize_text_field(wp_unslash($_POST['refund_amount']))) : 0; // SFRWDF-224 Cannot refund amount that comes after decimal point
+        //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing
+        $mode = isset($_POST['refund_mode']) ? sanitize_text_field(wp_unslash($_POST['refund_mode'])) : '';
+        //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing
+        $order_id = isset($_POST['order_id']) ? intval(sanitize_text_field(wp_unslash($_POST['order_id']))) : 0;
         $obj = new EH_Stripe_Payment();
         $client = $obj->get_clients_details();
         $data = EH_Helper_Class::wt_stripe_order_db_operations($order_id, null, 'get', '_eh_stripe_payment_charge');
         $status = $data['captured'];
-        $reason = __('Manual Refund Status:', 'payment-gateway-stripe-and-woocommerce-integration');
+        $reason = esc_html__('Manual Refund Status:', 'payment-gateway-stripe-and-woocommerce-integration');
         if ('Captured' === $status) {
             $charge_id = $data['id'];
             $currency = $data['currency'];
@@ -214,7 +221,7 @@ class EH_Stripe_Overview
                     'Customer IP' => $client['IP'],
                     'Agent' => $client['Agent'],
                     'Referer' => $client['Referer'],
-                    'Reason for Refund' => __('Refund through Stripe Overview Page', 'payment-gateway-stripe-and-woocommerce-integration')
+                    'Reason for Refund' => esc_html__('Refund through Stripe Overview Page', 'payment-gateway-stripe-and-woocommerce-integration')
                 )
             );
            
@@ -223,12 +230,13 @@ class EH_Stripe_Overview
                 $refund_response = $charge_response->refunds->create($refund_params);
                 if ($refund_response) {
 
+                    //phpcs:ignore WordPress.DateTime.RestrictedFunctions.date_date
                     $refund_time = date('Y-m-d H:i:s', time() + get_option('gmt_offset') * 3600);
                     $data = $obj->make_refund_params($refund_response, $refund_amount, ((version_compare(WC()->version, '2.7.0', '<')) ? $wc_order->order_currency : $wc_order->get_currency()), $order_id);
                     EH_Helper_Class::wt_stripe_order_db_operations($order_id, $wc_order, 'add', '_eh_stripe_payment_refund', $data);
-                    $wc_order->add_order_note(__('Reason : ', 'payment-gateway-stripe-and-woocommerce-integration') . esc_html($reason) . '.<br>' . __('Amount : ', 'payment-gateway-stripe-and-woocommerce-integration') . get_woocommerce_currency_symbol() . esc_html($amount) . '.<br>' . __('Status : ', 'payment-gateway-stripe-and-woocommerce-integration') . (($data['status'] === 'succeeded') ? 'Success' : $data['status'] ) . ' [ ' . $refund_time . ' ] ' . (is_null($data['transaction_id']) ? '' : '<br>' . __('Transaction ID : ', 'payment-gateway-stripe-and-woocommerce-integration') . $data['transaction_id']));
+                    $wc_order->add_order_note(esc_html__('Reason : ', 'payment-gateway-stripe-and-woocommerce-integration') . esc_html($reason) . '.<br>' . esc_html__('Amount : ', 'payment-gateway-stripe-and-woocommerce-integration') . get_woocommerce_currency_symbol() . esc_html($div) . '.<br>' . esc_html__('Status : ', 'payment-gateway-stripe-and-woocommerce-integration') . (($data['status'] === 'succeeded') ? 'Success' : esc_html($data['status']) ) . ' [ ' . esc_html($refund_time) . ' ] ' . (is_null($data['transaction_id']) ? '' : '<br>' . esc_html__('Transaction ID : ', 'payment-gateway-stripe-and-woocommerce-integration') . esc_html($data['transaction_id'])));
                     EH_Stripe_Log::log_update('live', $data, get_bloginfo('blogname') . ' - Refund - Order #' . $wc_order->get_order_number());
-                    $message = $refund_amount . ' refund ' . $data['status'] . ' at ' . $refund_time . (is_null($data['transaction_id']) ? '' : '. Transaction Id - ' . $data['transaction_id']);
+                    $message = esc_html($refund_amount) . ' refund ' . esc_html($data['status']) . ' at ' . esc_html($refund_time) . (is_null($data['transaction_id']) ? '' : '. Transaction Id - ' . esc_html($data['transaction_id']));
 
                     if('succeeded' === $data['status']){
 
@@ -252,7 +260,10 @@ class EH_Stripe_Overview
                         } else {
                             do_action('woocommerce_order_fully_refunded', $order_id, $refund_id);
 
-                            $wc_order->update_status(apply_filters('woocommerce_order_fully_refunded_status', 'refunded', $order_id, $refund_id));
+                            if(apply_filters('wtst_force_refund_status', false)){
+                                $wc_order->update_status(apply_filters('woocommerce_order_fully_refunded_status', 'refunded', $order_id, $refund_id));
+
+                            }
                             $response_data['status'] = 'fully_refunded';
                         }
 
@@ -269,17 +280,17 @@ class EH_Stripe_Overview
                     wp_send_json($message);
                 } else {
                     EH_Stripe_Log::log_update('dead', $refund_response, get_bloginfo('blogname') . ' - Refund Error - Order #' . $wc_order->get_order_number());
-                    $wc_order->add_order_note(__('Reason : ', 'payment-gateway-stripe-and-woocommerce-integration') . $reason . '.<br>' . __('Amount : ', 'payment-gateway-stripe-and-woocommerce-integration') . get_woocommerce_currency_symbol() . $amount . '.<br>' . __(' Status : Failed ', 'payment-gateway-stripe-and-woocommerce-integration'));
-                    die($refund_response->message);
+                    $wc_order->add_order_note(esc_html__('Reason : ', 'payment-gateway-stripe-and-woocommerce-integration') . esc_html($reason) . '.<br>' . esc_html__('Amount : ', 'payment-gateway-stripe-and-woocommerce-integration') . get_woocommerce_currency_symbol() . esc_html($amount) . '.<br>' . esc_html__(' Status : Failed ', 'payment-gateway-stripe-and-woocommerce-integration'));
+                    die(esc_html($refund_response->message));
                 }
             } catch (Exception $error) {
                 $oops = $error->getJsonBody();
                 EH_Stripe_Log::log_update('dead', $oops['error'], get_bloginfo('blogname') . ' - Refund Error - Order #' . $wc_order->get_order_number());
-                $wc_order->add_order_note(__('Reason : ', 'payment-gateway-stripe-and-woocommerce-integration') . $reason . '.<br>' . __('Amount : ', 'payment-gateway-stripe-and-woocommerce-integration') . get_woocommerce_currency_symbol() . $amount . '.<br>' . __('Status : ', 'payment-gateway-stripe-and-woocommerce-integration') . $oops['error']['message']);
-                die($oops['error']['message']);
+                $wc_order->add_order_note(esc_html__('Reason : ', 'payment-gateway-stripe-and-woocommerce-integration') . esc_html($reason) . '.<br>' . esc_html__('Amount : ', 'payment-gateway-stripe-and-woocommerce-integration') . get_woocommerce_currency_symbol() . esc_html($amount) . '.<br>' . esc_html__('Status : ', 'payment-gateway-stripe-and-woocommerce-integration') . esc_html($oops['error']['message']));
+                die(esc_html($oops['error']['message']));
             }
         } else {
-            die('Uncaptured Amount cannot be refunded');
+            die(esc_html__('Uncaptured Amount cannot be refunded', 'payment-gateway-stripe-and-woocommerce-integration'));
         }
     }
 
@@ -317,7 +328,7 @@ class EH_Stripe_Overview
           // Add count if user has access
           if ( apply_filters( 'woocommerce_include_processing_order_count_in_menu', true ) && ( $order_count = $this->eh_spg_uncaptured_count() ) ) {
             foreach ( $submenu['wt_stripe_menu'] as $key => $menu_item ) {
-              if ( 0 === strpos( $menu_item[0], _x( 'Stripe Overview', 'Admin menu name', 'wt_stripe_menu' ) ) ) {
+              if ( 0 === strpos( $menu_item[0], _x( 'Stripe Overview', 'Admin menu name', 'payment-gateway-stripe-and-woocommerce-integration' ) ) ) {
                 $submenu['wt_stripe_menu'][ $key ][0] .= ' <span class="awaiting-mod update-plugins count-' . $order_count . '"><span class="processing-count">' . number_format_i18n( $order_count ) . '</span></span>';
                 break;
               }
@@ -339,11 +350,13 @@ class EH_Stripe_Overview
         $ids = implode(',', $id);
 
         if(true === EH_Stripe_Payment::wt_stripe_is_HPOS_compatibile()){
-            $result = $wpdb->get_results( "SELECT order_id, meta_value FROM " . $wpdb->prefix ."wc_orders_meta  WHERE meta_key = '_eh_stripe_payment_charge' AND order_id IN (" . $ids  . ")" );
+            //phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+            $result = $wpdb->get_results( $wpdb->prepare( "SELECT order_id, meta_value FROM " . $wpdb->prefix ."wc_orders_meta  WHERE meta_key = '_eh_stripe_payment_charge' AND order_id IN (%s)", $ids ) );
 
         }
-        else{        
-            $result = $wpdb->get_results( "SELECT distinct post_id, meta_value FROM " . $wpdb->postmeta ." WHERE meta_key = '_eh_stripe_payment_charge' AND post_id IN (" . $ids  . ")" );
+        else{   
+            //phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching     
+            $result = $wpdb->get_results( $wpdb->prepare( "SELECT distinct post_id, meta_value FROM " . $wpdb->postmeta ." WHERE meta_key = '_eh_stripe_payment_charge' AND post_id IN (%s)", $ids ) );
         }
 
         for($i=0;$i<count($result);$i++)
@@ -360,9 +373,11 @@ class EH_Stripe_Overview
     //Register styles and scripts for stripe overview page.
     public function eh_stripe_register_plugin_styles_scripts()
     {   
-        $page = (isset($_GET['page'])) ? esc_attr($_GET['page']) : false;
-        if ('eh-stripe-overview' != $page)
+        //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing   
+        $page = (isset($_GET['page'])) ? sanitize_text_field(wp_unslash($_GET['page'])) : false;
+        if ('eh-stripe-overview' != $page){
             return;
+        }
         
         global $woocommerce;
         $woocommerce_version = function_exists('WC') ? WC()->version : $woocommerce->version;
@@ -375,8 +390,8 @@ class EH_Stripe_Overview
         wp_register_style('eh-style-style', EH_STRIPE_MAIN_URL_PATH.'assets/css/style.css',array(),EH_STRIPE_VERSION);
         wp_enqueue_style('eh-style-style');
         
-        //xchart includes
-        wp_register_script('eh-xhart-lib-script', '//cdnjs.cloudflare.com/ajax/libs/d3/2.10.0/d3.v2.js',array(),EH_STRIPE_VERSION,true);
+        //xchart includes - Use local D3.js instead of CDN
+        wp_register_script('eh-xhart-lib-script', EH_STRIPE_MAIN_URL_PATH . 'assets/js/d3.v2.js', array(), EH_STRIPE_VERSION, true);
         wp_enqueue_script('eh-xhart-lib-script');
         wp_register_script('eh-xcharts.min', EH_STRIPE_MAIN_URL_PATH .'assets/js/xcharts.min.js',array(),EH_STRIPE_VERSION,true);
         wp_enqueue_script('eh-xcharts.min');
@@ -385,7 +400,7 @@ class EH_Stripe_Overview
         wp_enqueue_script('eh-sugar.min');
 
         // our chart init file
-        wp_register_script('eh-custom-chart', EH_STRIPE_MAIN_URL_PATH .'assets/js/script.js',array(),EH_STRIPE_VERSION,true);
+        wp_register_script('eh-custom-chart', EH_STRIPE_MAIN_URL_PATH .'assets/js/script.js',array('moment'),EH_STRIPE_VERSION,true);
         wp_enqueue_script('eh-custom-chart');
         wp_register_script('eh-custom', EH_STRIPE_MAIN_URL_PATH .'assets/js/eh-stripe-custom.js',array(),EH_STRIPE_VERSION,true);
         wp_enqueue_script('eh-custom');
@@ -398,10 +413,10 @@ class EH_Stripe_Overview
         wp_register_style('eh-daterangepicker_style', EH_STRIPE_MAIN_URL_PATH.'/assets/css/daterangepicker.css',array(),EH_STRIPE_VERSION);
         wp_enqueue_style('eh-daterangepicker_style');
 
-        wp_register_script('eh-moment-jquery', EH_STRIPE_MAIN_URL_PATH.'assets/js/moment.min.js',array('jquery'),EH_STRIPE_VERSION,true);
-        wp_enqueue_script('eh-moment-jquery');
+        // Use WordPress built-in moment.js instead of bundled version
+        wp_enqueue_script('moment');
 
-        wp_register_script('eh-picker-jquery', EH_STRIPE_MAIN_URL_PATH.'assets/js/daterangepicker.min.js',array('jquery'),EH_STRIPE_VERSION,true);
+        wp_register_script('eh-picker-jquery', EH_STRIPE_MAIN_URL_PATH.'assets/js/daterangepicker.min.js',array('jquery', 'moment'),EH_STRIPE_VERSION,true);
         wp_enqueue_script('eh-picker-jquery');
 
     }

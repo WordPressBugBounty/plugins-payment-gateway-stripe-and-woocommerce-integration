@@ -1,4 +1,7 @@
 <?php
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
 
 class eh_Stripe_Intent_Manager {
     protected $gateway;
@@ -36,14 +39,12 @@ class eh_Stripe_Intent_Manager {
         try {
 
 			$gateway->verify_payment_intent_after_checkout( $order );
-
-			if ( ! isset( $_GET['is_ajax'] ) ) {
+		    //phpcs:ignore WordPress.Security.NonceVerification.Recommended 
+			if ( ! isset( $_GET['is_ajax'] ) || ! sanitize_text_field( wp_unslash( $_GET['is_ajax'] ) ) ) {
                 
 
-               
-				$redirect_url = isset( $_GET['redirect_to'] )
-					? esc_url_raw( wp_unslash( $_GET['redirect_to'] ) )
-                    : $gateway->get_return_url( $order );
+               //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.MissingUnslash
+				$redirect_url = isset( $_GET['redirect_to'] ) && ! empty( $_GET['redirect_to'] ) ? esc_url_raw( wp_unslash( $_GET['redirect_to'] ) ) : $gateway->get_return_url( $order );
 				wp_safe_redirect( $redirect_url );
             }
             
@@ -61,7 +62,8 @@ class eh_Stripe_Intent_Manager {
 
      protected function handle_error( $e, $redirect_url ) {
 		// `is_ajax` is only used for PI error reporting, a response is not expected.
-		if ( isset( $_GET['is_ajax'] ) ) {
+		//phpcs:ignore WordPress.Security.NonceVerification.Recommended 
+		if ( isset( $_GET['is_ajax'] ) && sanitize_text_field( wp_unslash( $_GET['is_ajax'] ) ) ) {
 			exit;
 		}
 
@@ -73,20 +75,22 @@ class eh_Stripe_Intent_Manager {
 
     protected function get_order_from_request() {
 		if(! EH_Helper_Class::verify_nonce(EH_STRIPE_PLUGIN_NAME, 'eh_stripe_confirm_payment_intent')) {
-			throw new Exception( __( 'Something went wrong. Please try again.', 'payment-gateway-stripe-and-woocommerce-integration' ) );
+			throw new Exception( esc_html__( 'Something went wrong. Please try again.', 'payment-gateway-stripe-and-woocommerce-integration' ) );
 		}
 
 		// Load the order ID.
 		$order_id = null;
-		if ( isset( $_GET['order'] ) && absint( $_GET['order'] ) ) {
-			$order_id = absint( $_GET['order'] );
+		//phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		if ( isset( $_GET['order'] ) && ! empty( $_GET['order'] ) && absint( $_GET['order'] ) ) {
+			//phpcs:ignore WordPress.Security.NonceVerification.Recommended
+			$order_id = absint( sanitize_text_field( wp_unslash( $_GET['order'] ) ) );
 		}
 
 		// Retrieve the order.
 		$order = wc_get_order( $order_id );
 
 		if ( ! $order ) {
-			throw new Exception( __( 'Payment verification error: Missing order ID for payment confirmation', 'payment-gateway-stripe-and-woocommerce-integration' ) );
+			throw new Exception( esc_html__( 'Payment verification error: Missing order ID for payment confirmation', 'payment-gateway-stripe-and-woocommerce-integration' ) );
 		}
 
 		return $order;

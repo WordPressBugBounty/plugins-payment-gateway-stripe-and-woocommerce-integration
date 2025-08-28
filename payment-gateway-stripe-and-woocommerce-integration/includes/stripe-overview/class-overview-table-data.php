@@ -41,6 +41,7 @@ class Eh_Stripe_Order_Datatables extends WP_List_Table {
             $order_temp[$i]['order_mode'] = (isset($data['mode']) ? $data['mode'] : '');
             $order_temp[$i]['refund_rem'] = $order->get_remaining_refund_amount();
             $order_temp[$i]['price'] = $order->get_formatted_order_total();
+            //phpcs:ignore WordPress.DateTime.RestrictedFunctions.date_date
             $order_temp[$i]['date'] = date('Y-m-d ', (version_compare(WC()->version, '2.7.0', '<')) ? strtotime($order->order_date) : strtotime($order->get_date_created()));
         }
         $this->order_data = $order_temp;
@@ -86,7 +87,7 @@ class Eh_Stripe_Order_Datatables extends WP_List_Table {
     //Column to display refund button for full and partial refunds
     function column_p_actions($item) {
         $actions = '';
-        if (in_array($item['order_status'], array('pending', 'on-hold', 'processing', 'completed', 'cancelled'))) {
+        if (in_array($item['order_status'], array('pending', 'on-hold', 'processing', 'completed', 'cancelled'), true)) {
             $id = $item['order_id'];
             $data = EH_Helper_Class::wt_stripe_order_db_operations($id, null, 'get', '_eh_stripe_payment_charge');
             if ($data !== '') {
@@ -200,6 +201,7 @@ class Eh_Stripe_Order_Datatables extends WP_List_Table {
         extract($this->_pagination_args, EXTR_SKIP);
 
         ob_start();
+        //phpcs:ignore WordPress.Security.NonceVerification.Recommended 
         if (!empty($_REQUEST['no_placeholder'])) {
             $this->display_rows();
         } else {
@@ -227,7 +229,8 @@ class Eh_Stripe_Order_Datatables extends WP_List_Table {
         $response['column_headers'] = $headers;
 
         if (isset($total_items)) {
-            $response['total_items_i18n'] = sprintf(_n('1 item', '%s items', $total_items), number_format_i18n($total_items));
+            /* translators: %s: Number of items */
+            $response['total_items_i18n'] = sprintf(_n('%s item', '%s items', $total_items, 'payment-gateway-stripe-and-woocommerce-integration'), number_format_i18n($total_items));
         }
 
         if (isset($total_pages)) {
@@ -235,7 +238,7 @@ class Eh_Stripe_Order_Datatables extends WP_List_Table {
             $response['total_pages_i18n'] = number_format_i18n($total_pages);
         }
 
-        die(json_encode($response));
+        die(wp_json_encode($response));
     }
 
 }
@@ -525,6 +528,7 @@ class Eh_Stripe_Datatables extends WP_List_Table {
         extract($this->_pagination_args, EXTR_SKIP);
 
         ob_start();
+        //phpcs:ignore WordPress.Security.NonceVerification.Recommended 
         if (!empty($_REQUEST['no_placeholder'])) {
             $this->display_rows();
         } else {
@@ -552,7 +556,8 @@ class Eh_Stripe_Datatables extends WP_List_Table {
         $response['column_headers'] = $headers;
 
         if (isset($total_items)) {
-            $response['total_items_i18n'] = sprintf(_n('1 item', '%s items', $total_items), number_format_i18n($total_items));
+            /* translators: %s: Number of items */
+            $response['total_items_i18n'] = sprintf(_n('%s item', '%s items', $total_items, 'payment-gateway-stripe-and-woocommerce-integration'), number_format_i18n($total_items));
         }
 
         if (isset($total_pages)) {
@@ -560,7 +565,7 @@ class Eh_Stripe_Datatables extends WP_List_Table {
             $response['total_pages_i18n'] = number_format_i18n($total_pages);
         }
 
-        die(json_encode($response));
+        die(wp_json_encode($response));
     }
 
 }
@@ -569,7 +574,7 @@ function eh_spg_order_ajax_data_callback() {
 
     if(!EH_Helper_Class::check_write_access(EH_STRIPE_PLUGIN_NAME, 'ajax-eh-spg-nonce'))
     {
-       die(_e('You are not allowed to view this page.', 'payment-gateway-stripe-and-woocommerce-integration'));
+       die(esc_html__('You are not allowed to view this page.', 'payment-gateway-stripe-and-woocommerce-integration'));
     }
     $obj = new Eh_Stripe_Order_Datatables();
     $obj->input();
@@ -582,7 +587,7 @@ function eh_spg_stripe_ajax_data_callback() {
 
     if(!EH_Helper_Class::check_write_access(EH_STRIPE_PLUGIN_NAME, 'ajax-eh-spg-nonce'))
     {
-       die(_e('You are not allowed to view this page.', 'payment-gateway-stripe-and-woocommerce-integration'));
+       die(esc_html__('You are not allowed to view this page.', 'payment-gateway-stripe-and-woocommerce-integration'));
     }
     $obj = new Eh_Stripe_Datatables();
     $obj->input();
@@ -595,10 +600,13 @@ add_action('wp_ajax_eh_spg_stripe_ajax_table_data', 'eh_spg_stripe_ajax_data_cal
  * This function adds the jQuery script to the plugin's page footer
  */
 function eh_spg_admin_header() {
-    $page = (isset($_GET['page'])) ? esc_attr($_GET['page']) : false;
-    if ('eh-stripe-overview' != $page)
+    //phpcs:ignore WordPress.Security.NonceVerification.Recommended     
+    $page = (isset($_GET['page'])) ? sanitize_text_field(wp_unslash($_GET['page'])) : false;
+    if ('eh-stripe-overview' != $page){
         return;
-    $tab = (!empty($_GET['tab'])) ? esc_attr($_GET['tab']) : 'orders';
+    }
+    //phpcs:ignore WordPress.Security.NonceVerification.Recommended 
+    $tab = (!empty($_GET['tab'])) ? sanitize_text_field(wp_unslash($_GET['tab'])) : 'orders';
     if ($tab === 'orders') {
         echo '<style type="text/css">';
         echo '.wp-list-table { text-align:center ;}';
@@ -712,7 +720,8 @@ function eh_spg_ajax_table_script() {
             })(jQuery);
         </script>
         <?php
-        $tab = (!empty($_GET['tab'])) ? esc_attr($_GET['tab']) : 'orders'; 
+        //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing
+        $tab = (!empty($_GET['tab']) ? sanitize_text_field(wp_unslash($_GET['tab'])) : 'orders'); 
         if ($tab === 'orders') { 
 
         ?>

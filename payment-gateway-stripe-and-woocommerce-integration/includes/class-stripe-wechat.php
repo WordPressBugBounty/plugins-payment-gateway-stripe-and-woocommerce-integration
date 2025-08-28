@@ -20,7 +20,8 @@ class EH_Wechat extends WC_Payment_Gateway {
         $this->id                 = 'eh_wechat_stripe';
         $this->method_title       = __( 'WeChat', 'payment-gateway-stripe-and-woocommerce-integration' );
 
-        $this->method_description =  __( 'Accepts payments via WeChat Pay, a digital wallet popular with customers from China.' . '<a  class="thickbox" href="'.EH_STRIPE_MAIN_URL_PATH . 'assets/img/wechat-preview.png?TB_iframe=true&width=100&height=100">[Preview] </a>', 'payment-gateway-stripe-and-woocommerce-integration' );
+        /* translators: %1$s: Opening anchor tag with preview link, %2$s: Closing anchor tag */
+        $this->method_description = sprintf( __( 'Accepts payments via WeChat Pay, a digital wallet popular with customers from China. %1$s[Preview]%2$s', 'payment-gateway-stripe-and-woocommerce-integration' ), '<a class="thickbox" href="'.EH_STRIPE_MAIN_URL_PATH . 'assets/img/wechat-preview.png?TB_iframe=true&width=100&height=100">', '</a>' );
         $this->supports = array(
             'products',
             'refunds',
@@ -35,11 +36,11 @@ class EH_Wechat extends WC_Payment_Gateway {
         $stripe_settings               = get_option( 'woocommerce_eh_stripe_pay_settings' );
         $this->capture_now = ((isset($stripe_settings['eh_stripe_capture']) && !empty($stripe_settings['eh_stripe_capture'])) ? $stripe_settings['eh_stripe_capture'] : '');
         
-        $this->title                   = __($this->get_option( 'eh_stripe_wechat_title' ), 'payment-gateway-stripe-and-woocommerce-integration' );
-        $this->description             = __($this->get_option( 'eh_stripe_wechat_description' ), 'payment-gateway-stripe-and-woocommerce-integration' );
+        $this->title                   = $this->get_option( 'eh_stripe_wechat_title' );
+        $this->description             = $this->get_option( 'eh_stripe_wechat_description' );
         $this->enabled                 = $this->get_option( 'enabled' );
         $this->eh_order_button         = $this->get_option( 'eh_stripe_wechat_order_button');
-        $this->order_button_text       = __($this->eh_order_button, 'payment-gateway-stripe-and-woocommerce-integration');
+        $this->order_button_text       = $this->eh_order_button;
 
         add_action( 'woocommerce_update_options_payment_gateways_' . $this->id, array( $this, 'process_admin_options' ) );
 
@@ -57,7 +58,7 @@ class EH_Wechat extends WC_Payment_Gateway {
 
     function eh_woocommerce_available_payment_gateways($available_gateways) {
         if (isset($_REQUEST['intent_id']) && !empty($_REQUEST['intent_id']) && isset($_REQUEST['_wpnonce'])) { 
-            if(wp_verify_nonce( $_REQUEST['_wpnonce'], 'eh_stripe_show_qr' ) ) { 
+            if(wp_verify_nonce(sanitize_text_field(wp_unslash($_REQUEST['_wpnonce'])), 'eh_stripe_show_qr' ) ) { 
                 $available_gateways = array();
             }
          }
@@ -76,7 +77,8 @@ class EH_Wechat extends WC_Payment_Gateway {
 
             'eh_wechat_desc' => array(
                 'type' => 'title',
-                'description' => sprintf(__('%sSupported currencies: %sCNY, AUD, CAD, EUR, GBP, HKD, JPY, SGD, USD, DKK, NOK, SEK, CHF%s %sStripe accounts in the following countries can accept the payment: %sAustralia, Austria, Belgium, Canada, Denmark, Finland, France, Germany, Hong Kong, Ireland, Italy, Japan, Luxembourg, Netherlands, Norway, Portugal, Singapore, Spain, Sweden, Switzerland, United Kingdom, United States%s %s Read documentation %s', 'payment-gateway-stripe-and-woocommerce-integration'), '<div class="wt_info_div"><ul><li>', '<b>','</b>', '</li><li>', '<b>', '</b></li></ul></div>', '<p><a target="_blank" href="https://www.webtoffee.com/woocommerce-stripe-payment-gateway-plugin-user-guide/#wechat">', '</a></p>'),
+                /* translators: %1$s: Opening HTML div and list tags, %2$s: Bold tag opening, %3$s: Bold tag closing, %4$s: Bold tag opening, %5$s: Bold tag closing, %6$s: Closing HTML list and div tags, %7$s: Documentation link opening, %8$s: Documentation link closing */
+                'description' => sprintf(__('%1$sSupported currencies: %2$sCNY, AUD, CAD, EUR, GBP, HKD, JPY, SGD, USD, DKK, NOK, SEK, CHF%3$s %4$sStripe accounts in the following countries can accept the payment: %5$sAustralia, Austria, Belgium, Canada, Denmark, Finland, France, Germany, Hong Kong, Ireland, Italy, Japan, Luxembourg, Netherlands, Norway, Portugal, Singapore, Spain, Sweden, Switzerland, United Kingdom, United States%6$s %7$s Read documentation %8$s', 'payment-gateway-stripe-and-woocommerce-integration'), '<div class="wt_info_div"><ul><li>', '<b>','</b>', '</li><li>', '<b>', '</b></li></ul></div>', '<p><a target="_blank" href="https://www.webtoffee.com/woocommerce-stripe-payment-gateway-plugin-user-guide/#wechat">', '</a></p>', ''),
             ),
             'eh_stripe_wechat_form_title'   => array(
                 'type'        => 'title',
@@ -170,6 +172,7 @@ class EH_Wechat extends WC_Payment_Gateway {
 
         $stripe_settings   = get_option( 'woocommerce_eh_stripe_pay_settings' );
         if ( (is_checkout()  && !is_order_received_page())) {
+            //phpcs:ignore WordPress.WP.EnqueuedResourceParameters.MissingVersion, WordPress.WP.EnqueuedResourceParameters.NotInFooter            
             wp_register_script('stripe_v3_js', 'https://js.stripe.com/v3/');
 
          wp_enqueue_script('eh_wechat_js', plugins_url('assets/js/eh-wechat.js', EH_STRIPE_MAIN_FILE), array('stripe_v3_js','jquery'),EH_STRIPE_VERSION, true);
@@ -192,14 +195,14 @@ class EH_Wechat extends WC_Payment_Gateway {
                 'key' => $public_key,
                 'currency' => get_woocommerce_currency(),
             );
-
+            //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing
             $stripe_params['is_checkout'] = ( is_checkout() && empty( $_GET['pay_for_order'] ) ) ? 'yes' : 'no';
 
             // If we're on the pay page we need to pass stripe.js the address of the order.
-            if ( isset( $_GET['pay_for_order'] ) && 'true' === $_GET['pay_for_order'] ) {
+            //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing
+            if ( isset( $_GET['pay_for_order'] ) && 'true' === sanitize_text_field(wp_unslash($_GET['pay_for_order'])) ) {
 
                 $order     = wc_get_order( absint( get_query_var( 'order-pay' ) ) );
-                $order_id  = method_exists($order, 'get_id') ? $order->get_id() : $order->id;
 
                 if ( is_a( $order, 'WC_Order' ) ) {
                     $stripe_params['billing_first_name'] = method_exists($order, 'get_billing_first_name') ? $order->get_billing_first_name() : $order->billing_first_name;
@@ -225,7 +228,7 @@ class EH_Wechat extends WC_Payment_Gateway {
         echo '<div class="status-box">';
         
         if ($description) {
-            echo apply_filters('eh_stripe_desc', wpautop(wp_kses_post("<span>" . $description . "</span>")));
+            echo wp_kses_post(apply_filters('eh_stripe_desc', wpautop(wp_kses_post("<span>" . $description . "</span>"))));
         }
 
         echo "</div>";
@@ -237,10 +240,12 @@ class EH_Wechat extends WC_Payment_Gateway {
 
     public function eh_qr_hook()
     {
-  
+        //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing
         if (isset($_REQUEST['intent_id']) && !empty($_REQUEST['intent_id']) && isset($_REQUEST['_wpnonce'])) { 
-            if(wp_verify_nonce( $_REQUEST['_wpnonce'], 'eh_stripe_show_qr' ) ) { 
-               $intent = \Stripe\PaymentIntent::retrieve( $_REQUEST['intent_id'] ); 
+            //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing
+            if(wp_verify_nonce( sanitize_text_field(wp_unslash($_REQUEST['_wpnonce'])), 'eh_stripe_show_qr' ) ) { 
+                //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing   
+               $intent = \Stripe\PaymentIntent::retrieve( sanitize_text_field(wp_unslash($_REQUEST['intent_id']))  ); 
                if (isset($intent->next_action->wechat_pay_display_qr_code->image_url_png)) {
                     $width = '45%'; 
                     $width = apply_filters('eh_stripe_qr_width', $width);
@@ -256,8 +261,10 @@ class EH_Wechat extends WC_Payment_Gateway {
 
                }
             }
+            //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing
             if (isset($_REQUEST['order_id']) && !empty($_REQUEST['order_id'])) {
-                $order = wc_get_order( $_REQUEST['order_id'] );
+                //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing
+                $order = wc_get_order( sanitize_text_field(wp_unslash($_REQUEST['order_id'])) );
                 $redirect_url = $this->get_return_url($order);
             }
 
@@ -293,7 +300,7 @@ class EH_Wechat extends WC_Payment_Gateway {
                             confirmBox();
                         }
                        
-                    }, ' . $redirect_time . ');
+                    }, ' . esc_js($redirect_time) . ');
                 }
                
             });
@@ -309,8 +316,8 @@ class EH_Wechat extends WC_Payment_Gateway {
         $order = wc_get_order( $order_id );
         
         try{ 
-
-            $payment_method = isset($_POST['eh_wechat_token']) ? sanitize_text_field($_POST['eh_wechat_token']) : '';
+            //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing   
+            $payment_method = isset($_POST['eh_wechat_token']) ? sanitize_text_field(wp_unslash($_POST['eh_wechat_token'])) : '';
             if (empty($payment_method)) {
                 throw new Exception(__('Unable to process this payment, please try again.', 'payment-gateway-stripe-and-woocommerce-integration' ));
                 
@@ -322,7 +329,7 @@ class EH_Wechat extends WC_Payment_Gateway {
                 
             if (!empty($customer) && isset($customer->id)) {
                 $user_id = $order->get_user_id();
-                update_user_meta($user_id, "_wechat_customer_id", sanitize_text_field($customer->id));
+                update_user_meta($user_id, "_wechat_customer_id", sanitize_text_field(wp_unslash($customer->id)));
 
                 $intent = $this->get_payment_intent_from_order( $order );
                
@@ -385,6 +392,7 @@ class EH_Wechat extends WC_Payment_Gateway {
 
         }
         catch(Exception $e){
+            /* translators: %s: Error message */
             $order->update_status( 'failed', sprintf( __( 'WeChat payment failed: %s', 'payment-gateway-stripe-and-woocommerce-integration' ),$e->getMessage() ) );
             
            wc_add_notice( $e->getMessage(), 'error' );
@@ -508,6 +516,7 @@ class EH_Wechat extends WC_Payment_Gateway {
         $currency                        =  $order->get_currency();
         $post_data['currency']           =  strtolower( $currency);
         $post_data['amount']             =  EH_Stripe_Payment::get_stripe_amount( $order->get_total(), $currency );
+        /* translators: %1$s: Site name, %2$s: Order number */
         $post_data['description']        =  sprintf( __( '%1$s - Order %2$s', 'payment-gateway-stripe-and-woocommerce-integration' ), wp_specialchars_decode( get_bloginfo( 'name' ), ENT_QUOTES ), $order->get_order_number() );
         $billing_email                   =  (version_compare(WC()->version, '2.7.0', '<')) ? $order->billing_email      : $order->get_billing_email();
         $billing_first_name              =  (version_compare(WC()->version, '2.7.0', '<')) ? $order->billing_first_name : $order->get_billing_first_name();
@@ -542,9 +551,9 @@ class EH_Wechat extends WC_Payment_Gateway {
      */
     public function get_clients_details() {
         return array(
-            'IP' => $_SERVER['REMOTE_ADDR'],
-            'Agent' => $_SERVER['HTTP_USER_AGENT'],
-            'Referer' => $_SERVER['HTTP_REFERER']
+            'IP' => isset($_SERVER['REMOTE_ADDR']) ? sanitize_text_field(wp_unslash($_SERVER['REMOTE_ADDR'])) : '',
+            'Agent' => isset($_SERVER['HTTP_USER_AGENT']) ? sanitize_text_field(wp_unslash($_SERVER['HTTP_USER_AGENT'])) : '',
+            'Referer' => isset($_SERVER['HTTP_REFERER']) ? esc_url_raw(wp_unslash($_SERVER['HTTP_REFERER'])) : ''
         );
     }
 
@@ -586,7 +595,7 @@ class EH_Wechat extends WC_Payment_Gateway {
                     //$charge_response = \Stripe\Charge::retrieve($charge_id);
                     $refund_response = \Stripe\Refund::create($refund_params);
                     if ($refund_response) {
-                                        
+                        //phpcs:ignore WordPress.DateTime.RestrictedFunctions.date_date
                         $refund_time = date('Y-m-d H:i:s', time() + get_option('gmt_offset') * 3600);
                         $obj = new EH_Stripe_Payment();
                         $data = $obj->make_refund_params($refund_response, $amount, ((version_compare(WC()->version, '2.7.0', '<')) ? $order->order_currency : $order->get_currency()), $order_id);
@@ -634,13 +643,17 @@ class EH_Wechat extends WC_Payment_Gateway {
     }
 
     public function eh_wechat_callback_handler() {
+        //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing   
         if (isset($_REQUEST['order_id']) && !empty($_REQUEST['order_id'])) {
-            $order_id = $_REQUEST['order_id'];
+            //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing
+            $order_id = sanitize_text_field(wp_unslash($_REQUEST['order_id']));
             $order = wc_get_order( $order_id );
 
         }
+        //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing   
         if (isset($_REQUEST['payment_intent']) && !empty($_REQUEST['payment_intent'])) {
-            $intent_id = $_REQUEST['payment_intent'];
+            //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing
+            $intent_id = sanitize_text_field(wp_unslash($_REQUEST['payment_intent']));
             $intent_result = \Stripe\PaymentIntent::retrieve( $intent_id );
             if (!empty($intent_result)) {
                 $this->eh_process_payment_response($intent_result, $order);
@@ -697,12 +710,13 @@ class EH_Wechat extends WC_Payment_Gateway {
             }
         }
         
+        //phpcs:ignore WordPress.DateTime.RestrictedFunctions.date_date
         $order_time = date('Y-m-d H:i:s', time() + get_option('gmt_offset') * 3600); 
 
-        if($response->status == 'succeeded' || $response->status == 'requires_capture'){
-            if ($charge_response->paid == true) {
+        if('succeeded' === $response->status || 'requires_capture' === $response->status){
+            if (true === $charge_response->paid) {
 
-                if($charge_response->captured == true && $order->needs_payment()){
+                if(true === $charge_response->captured && $order->needs_payment()){
                     $order->payment_complete( $charge_response->id );
                     $order->add_order_note( __('Payment Status : ', 'payment-gateway-stripe-and-woocommerce-integration') . ucfirst($charge_response->status) .' [ ' . $order_time . ' ] . ' . __('Source : ', 'payment-gateway-stripe-and-woocommerce-integration') . $charge_response->payment_method_details->type . '. ' . __('Charge Status :', 'payment-gateway-stripe-and-woocommerce-integration') . $captured . (is_null($charge_response->balance_transaction) ? '' :'. Transaction ID : ' . $charge_response->balance_transaction) );
 

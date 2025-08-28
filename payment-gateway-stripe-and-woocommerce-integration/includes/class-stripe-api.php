@@ -21,8 +21,8 @@ class EH_Stripe_Payment extends WC_Payment_Gateway {
         $this->init_form_fields();
         $this->init_settings();
         $this->enabled = $this->get_option('enabled');
-        $this->title = __($this->get_option('title'), 'payment-gateway-stripe-and-woocommerce-integration');
-        $this->description = __($this->get_option('description'), 'payment-gateway-stripe-and-woocommerce-integration');
+        $this->title = $this->get_option('title');
+        $this->description = $this->get_option('description');
         $this->eh_stripe_order_button = $this->get_option('eh_stripe_order_button');
         $this->eh_stripe_mode = $this->get_option('eh_stripe_mode');
 
@@ -33,7 +33,7 @@ class EH_Stripe_Payment extends WC_Payment_Gateway {
         $this->eh_stripe_apple_pay = 'yes' === $this->get_option('eh_stripe_apple_pay', 'yes');
         $this->eh_stripe_apple_color = $this->get_option('eh_stripe_apple_color');
         $this->eh_stripe_form_description = $this->get_option('eh_stripe_form_description');
-        $this->order_button_text = __($this->eh_stripe_order_button, 'payment-gateway-stripe-and-woocommerce-integration');
+        $this->order_button_text = $this->eh_stripe_order_button;
         $this->eh_stripe_inline_form = 'yes' === $this->get_option('eh_stripe_inline_form', 'yes');
         $this->eh_stripe_enable_inline_form  = true;
         $this->eh_stripe_save_cards = $this->get_option('eh_stripe_save_cards');
@@ -66,10 +66,12 @@ class EH_Stripe_Payment extends WC_Payment_Gateway {
         }
 
 
-        $this->method_description = sprintf(__("Accepts Stripe payments via credit or debit card.", 'payment-gateway-stripe-and-woocommerce-integration')." <p><a target='_blank' href='https://www.webtoffee.com/woocommerce-stripe-payment-gateway-plugin-user-guide/#credit_debit'>  ".__('Read documentation', 'payment-gateway-stripe-and-woocommerce-integration')." </a> </p> ");
+        /* translators: %s: Documentation link text */
+        $this->method_description = sprintf(__("Accepts Stripe payments via credit or debit card. <p><a target='_blank' href='https://www.webtoffee.com/woocommerce-stripe-payment-gateway-plugin-user-guide/#credit_debit'>%s</a></p>", 'payment-gateway-stripe-and-woocommerce-integration'), esc_html__("Read documentation", 'payment-gateway-stripe-and-woocommerce-integration'));
 
         if ('test' === $this->eh_stripe_mode) {
-            $this->description = $this->description . sprintf('<br>' . '<strong>' . __('Stripe TEST MODE Enabled: ', 'payment-gateway-stripe-and-woocommerce-integration') . '</strong>' . __(' Use these ', 'payment-gateway-stripe-and-woocommerce-integration') . '<a href="https://stripe.com/docs/testing" target="_blank">' . __(' Test Card Details ', 'payment-gateway-stripe-and-woocommerce-integration') . '</a>' . __(' for Testing.', 'payment-gateway-stripe-and-woocommerce-integration'));
+            /* translators: %1$s: Test mode text, %2$s: Link text for test card details, %3$s: Test card details URL */
+            $this->description = $this->description . sprintf('<br><strong>%1$s</strong>%2$s<a href="https://stripe.com/docs/testing" target="_blank">%3$s</a>%4$s', __('Stripe TEST MODE Enabled: ', 'payment-gateway-stripe-and-woocommerce-integration'), __(' Use these ', 'payment-gateway-stripe-and-woocommerce-integration'), __(' Test Card Details ', 'payment-gateway-stripe-and-woocommerce-integration'), __(' for Testing.', 'payment-gateway-stripe-and-woocommerce-integration'));
             $this->description = trim($this->description);
         }
 
@@ -99,9 +101,12 @@ class EH_Stripe_Payment extends WC_Payment_Gateway {
      */
     public function wp_enqueue_media_seprate_loader(){
 
-        $page = (isset($_GET['page'])) ? esc_attr($_GET['page']) : false;
-        $tab = (isset($_GET['tab'])) ? esc_attr($_GET['tab']) : false;
-        $section = (isset($_GET['section'])) ? esc_attr($_GET['section']) : false;
+        //phpcs:ignore WordPress.Security.NonceVerification.Recommended 
+        $page = (isset($_GET['page'])) ? sanitize_text_field(wp_unslash($_GET['page'])) : false;
+        //phpcs:ignore WordPress.Security.NonceVerification.Recommended 
+        $tab = (isset($_GET['tab'])) ? sanitize_text_field(wp_unslash($_GET['tab'])) : false;
+        //phpcs:ignore WordPress.Security.NonceVerification.Recommended 
+        $section = (isset($_GET['section'])) ? sanitize_text_field(wp_unslash($_GET['section'])) : false;
         if ('wc-settings' != $page && 'checkout' != $tab && 'eh_stripe_pay' != $section)
             return;
 
@@ -147,23 +152,23 @@ class EH_Stripe_Payment extends WC_Payment_Gateway {
         $style = version_compare(WC()->version, '2.6', '>=') ? 'style="margin-left: 0.3em"' : '';
         $icon = '';
 
-        if ((in_array('visa', $this->eh_stripe_checkout_cards)) || (in_array('Visa', $this->eh_stripe_checkout_cards))) {
+        if ((in_array('visa', $this->eh_stripe_checkout_cards, true)) || (in_array('Visa', $this->eh_stripe_checkout_cards, true))) {
             $icon .= '<img src="' . WC_HTTPS::force_https_url(WC()->plugin_url() . '/assets/images/icons/credit-cards/visa' . $ext) . '" alt="Visa" width="32" title="VISA" ' . $style . ' />';
         }
-        if ((in_array('mastercard', $this->eh_stripe_checkout_cards)) || (in_array('MasterCard', $this->eh_stripe_checkout_cards))){
+        if ((in_array('mastercard', $this->eh_stripe_checkout_cards, true)) || (in_array('MasterCard', $this->eh_stripe_checkout_cards, true))){
             $icon .= '<img src="' . WC_HTTPS::force_https_url(WC()->plugin_url() . '/assets/images/icons/credit-cards/mastercard' . $ext) . '" alt="Mastercard" width="32" title="Master Card" ' . $style . ' />';
         }
-        if ((in_array('amex', $this->eh_stripe_checkout_cards)) || (in_array('American Express', $this->eh_stripe_checkout_cards))){
+        if ((in_array('amex', $this->eh_stripe_checkout_cards, true)) || (in_array('American Express', $this->eh_stripe_checkout_cards, true))){
             $icon .= '<img src="' . WC_HTTPS::force_https_url(WC()->plugin_url() . '/assets/images/icons/credit-cards/amex' . $ext) . '" alt="Amex" width="32" title="American Express" ' . $style . ' />';
         }
         if ('USD' === get_woocommerce_currency()) {
-            if ((in_array('discover', $this->eh_stripe_checkout_cards)) || (in_array('Discover', $this->eh_stripe_checkout_cards))){
+            if ((in_array('discover', $this->eh_stripe_checkout_cards, true)) || (in_array('Discover', $this->eh_stripe_checkout_cards, true))){
                 $icon .= '<img src="' . WC_HTTPS::force_https_url(WC()->plugin_url() . '/assets/images/icons/credit-cards/discover' . $ext) . '" alt="Discover" width="32" title="Discover" ' . $style . ' />';
             }
-            if ((in_array('jcb', $this->eh_stripe_checkout_cards)) || (in_array('JCB', $this->eh_stripe_checkout_cards))){
+            if ((in_array('jcb', $this->eh_stripe_checkout_cards, true)) || (in_array('JCB', $this->eh_stripe_checkout_cards, true))){
                 $icon .= '<img src="' . WC_HTTPS::force_https_url(WC()->plugin_url() . '/assets/images/icons/credit-cards/jcb' . $ext) . '" alt="JCB" width="32" title="JCB" ' . $style . ' />';
             }
-            if ((in_array('diners', $this->eh_stripe_checkout_cards)) || (in_array('Diners Club', $this->eh_stripe_checkout_cards))){
+            if ((in_array('diners', $this->eh_stripe_checkout_cards, true)) || (in_array('Diners Club', $this->eh_stripe_checkout_cards, true))){
                 $icon .= '<img src="' . WC_HTTPS::force_https_url(WC()->plugin_url() . '/assets/images/icons/credit-cards/diners' . $ext) . '" alt="Diners" width="32" title="Diners Club" ' . $style . ' />';
             }
         }
@@ -220,9 +225,12 @@ class EH_Stripe_Payment extends WC_Payment_Gateway {
     public function init_form_fields() {
         $this->form_fields = include( 'eh-stripe-settings-page.php' );
        
-        $page = (isset($_GET['page'])) ? esc_attr($_GET['page']) : false;
-        $tab = (isset($_GET['tab'])) ? esc_attr($_GET['tab']) : false;
-        $section = (isset($_GET['section'])) ? esc_attr($_GET['section']) : false;
+        //phpcs:ignore WordPress.Security.NonceVerification.Recommended 
+        $page = (isset($_GET['page'])) ? sanitize_text_field(wp_unslash($_GET['page'])) : false;
+        //phpcs:ignore WordPress.Security.NonceVerification.Recommended 
+        $tab = (isset($_GET['tab'])) ? sanitize_text_field(wp_unslash($_GET['tab'])) : false;
+        //phpcs:ignore WordPress.Security.NonceVerification.Recommended 
+        $section = (isset($_GET['section'])) ? esc_attr(sanitize_text_field(wp_unslash($_GET['section']))) : false;
         if ('wc-settings' != $page && 'checkout' != $tab && 'eh_stripe_pay' != $section)
             return;
 
@@ -271,6 +279,7 @@ class EH_Stripe_Payment extends WC_Payment_Gateway {
         }
 
         if ( (is_checkout() || is_product() || is_cart() || is_add_payment_method_page() || apply_filters('wt_stripe_load_script', false))  && !is_order_received_page()) {
+            //phpcs:ignore WordPress.WP.EnqueuedResourceParameters.MissingVersion, WordPress.WP.EnqueuedResourceParameters.NotInFooter            
             wp_register_script('stripe_v3_js', 'https://js.stripe.com/v3/');
 
             $this->tokenization_script();
@@ -322,15 +331,16 @@ class EH_Stripe_Payment extends WC_Payment_Gateway {
 
             $stripe_params['elements_options']                        = apply_filters( 'eh_stripe_elements_options', array() );
             $stripe_params['stripe_enable_inline_form']               = $this->eh_stripe_enable_inline_form; 
+            //phpcs:ignore WordPress.Security.NonceVerification.Recommended 
             $stripe_params['is_checkout']                             = ( (is_checkout() || apply_filters('wt_stripe_load_script', false)) && empty( $_GET['pay_for_order'] ) ) ? 'yes' : 'no';
             $stripe_params['enabled_inline_form']                     = $this->eh_stripe_inline_form ? 'yes' : 'no';
             $stripe_params['inline_postalcode']                       = apply_filters('hide_inline_postal_code', true);
 
             // If we're on the pay page we need to pass stripe.js the address of the order.
-            if ( isset( $_GET['pay_for_order'] ) && 'true' === $_GET['pay_for_order'] ) {
+            //phpcs:ignore WordPress.Security.NonceVerification.Recommended 
+            if ( isset( $_GET['pay_for_order'] ) && 'true' === sanitize_text_field(wp_unslash($_GET['pay_for_order'])) ) {
 
                 $order     = wc_get_order( absint( get_query_var( 'order-pay' ) ) );
-                $order_id  = method_exists($order, 'get_id') ? $order->get_id() : $order->id;
 
                 if ( is_a( $order, 'WC_Order' ) ) {
                     $stripe_params['billing_first_name'] = method_exists($order, 'get_billing_first_name') ? $order->get_billing_first_name() : $order->billing_first_name;
@@ -367,7 +377,7 @@ class EH_Stripe_Payment extends WC_Payment_Gateway {
         echo '<div class="status-box">';
 
         if ($description) {
-            echo apply_filters('eh_stripe_desc', wpautop(wp_kses_post("<span>" . $description . "</span>")));
+            echo wp_kses_post(apply_filters('eh_stripe_desc', wpautop(wp_kses_post("<span>" . $description . "</span>"))));
         }
         echo "</div>";
         $pay_button_text = __('Pay', 'payment-gateway-stripe-and-woocommerce-integration');
@@ -386,7 +396,7 @@ class EH_Stripe_Payment extends WC_Payment_Gateway {
                 data-name="' . esc_attr(sprintf(get_bloginfo('name', 'display'))) . '"
                 data-currency="' . esc_attr(((version_compare(WC()->version, '2.7.0', '<')) ? $order->order_currency : $order->get_currency())) . '">';
 
-            echo $this->elements_form();
+            echo wp_kses_post($this->elements_form());
             echo '</div>';
 
         } else {
@@ -407,7 +417,7 @@ class EH_Stripe_Payment extends WC_Payment_Gateway {
                 $this->tokenization_script();
                 $this->saved_payment_methods();
             }
-           echo $this->elements_form();
+                       echo wp_kses_post($this->elements_form());
             if (  ($is_support_saved_cards ) && ! is_add_payment_method_page()) { // wpcs: csrf ok.
 
                  $this->save_payment_method_checkbox();
@@ -420,6 +430,7 @@ class EH_Stripe_Payment extends WC_Payment_Gateway {
      *Renders stripe elements on payment form.
      */
     public function elements_form() {
+        ob_start();
         ?>
         <fieldset id="eh-<?php echo esc_attr( $this->id ); ?>-cc-form" class="eh-credit-card-form eh-payment-form wc-payment-form" style="background:transparent;">
             <?php do_action( 'eh_woocommerce_credit_card_form_start', $this->id ); ?>
@@ -465,6 +476,7 @@ class EH_Stripe_Payment extends WC_Payment_Gateway {
             <div class="clear"></div>
         </fieldset>
         <?php
+        return ob_get_clean();
     }
 
     /**
@@ -481,7 +493,7 @@ class EH_Stripe_Payment extends WC_Payment_Gateway {
         if (!$currency) {
             $currency = get_woocommerce_currency();
         }
-        if (in_array(strtoupper($currency), self::zerocurrency())) {
+        if (in_array(strtoupper($currency), self::zerocurrency(), true)) {
             // Zero decimal currencies
             $total = absint($total);
         } else {
@@ -497,7 +509,7 @@ class EH_Stripe_Payment extends WC_Payment_Gateway {
         if (!$currency) {
             $currency = get_woocommerce_currency();
         }
-        if (in_array(strtoupper($currency), self::zerocurrency())) {
+        if (in_array(strtoupper($currency), self::zerocurrency(), true)) {
             // Zero decimal currencies
             $total = absint($total);
         } else {
@@ -511,9 +523,9 @@ class EH_Stripe_Payment extends WC_Payment_Gateway {
      */
     public function get_clients_details() {
         return array(
-            'IP' => $_SERVER['REMOTE_ADDR'],
-            'Agent' => $_SERVER['HTTP_USER_AGENT'],
-            'Referer' => $_SERVER['HTTP_REFERER']
+            'IP' => isset($_SERVER['REMOTE_ADDR']) ? sanitize_text_field(wp_unslash($_SERVER['REMOTE_ADDR'])) : '' ,
+            'Agent' => isset($_SERVER['HTTP_USER_AGENT']) ? sanitize_text_field(wp_unslash($_SERVER['HTTP_USER_AGENT'])) : '',
+            'Referer' => isset($_SERVER['HTTP_REFERER']) ? esc_url_raw(wp_unslash($_SERVER['HTTP_REFERER'])) : ''
         );
     }
     
@@ -555,6 +567,7 @@ class EH_Stripe_Payment extends WC_Payment_Gateway {
             $charge['statement_descriptor_suffix'] = $statement_descriptor;
         }
 
+        //phpcs:ignore WordPress.Security.NonceVerification.Recommended 
         if ((isset($_REQUEST['wc-' . $this->id . '-new-payment-method']) && $_REQUEST['wc-' . $this->id . '-new-payment-method'] == true)) {
             $charge['setup_future_usage'] = 'off_session';
         }
@@ -573,7 +586,8 @@ class EH_Stripe_Payment extends WC_Payment_Gateway {
             $charge['description']=$charge['metadata']['Products'] .' '.wp_specialchars_decode( get_bloginfo( 'name' ), ENT_QUOTES ) . ' Order #' . $wc_order->get_order_number();
         }
 
-        $charge['confirm'] = (isset($_REQUEST['payment_type']) &&  'express_element' === sanitize_text_field($_REQUEST['payment_type']))  ? false : true ;
+        //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing 
+        $charge['confirm'] = (isset($_REQUEST['payment_type']) &&  'express_element' === sanitize_text_field(wp_unslash($_REQUEST['payment_type'])))  ? false : true ;
 
         if ('other' != $card_brand) { 
             $charge['capture_method'] = $this->eh_stripe_capture ? 'automatic' : 'manual'; 
@@ -595,7 +609,8 @@ class EH_Stripe_Payment extends WC_Payment_Gateway {
                 'phone' => (version_compare(WC()->version, '2.7.0', '<')) ? $wc_order->billing_phone : $wc_order->get_billing_phone(),
             );
 
-            if(isset($_REQUEST['payment_type']) && 'express_element' === sanitize_text_field($_REQUEST['payment_type'])){
+            //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing 
+            if(isset($_REQUEST['payment_type']) && 'express_element' === sanitize_text_field(wp_unslash($_REQUEST['payment_type']))){
                 unset($charge['shipping']);
                 $charge['automatic_payment_methods']['enabled'] = true;
             }
@@ -608,7 +623,8 @@ class EH_Stripe_Payment extends WC_Payment_Gateway {
      */
     public function make_charge_params($charge_value, $order_id) {
         $wc_order = wc_get_order($order_id);
-        $charge_data = json_decode(json_encode($charge_value));
+        $charge_data = json_decode(wp_json_encode($charge_value));
+        //phpcs:ignore WordPress.DateTime.RestrictedFunctions.date_date
         $origin_time = date('Y-m-d H:i:s', time() + get_option('gmt_offset') * 3600);
         $charge_parsed = array(
             "id" => $charge_data->id,
@@ -621,6 +637,7 @@ class EH_Stripe_Payment extends WC_Payment_Gateway {
             "transaction_id" => $charge_data->balance_transaction,
             "mode" => (false == $charge_data->livemode) ? 'Test' : 'Live',
             "metadata" => $charge_data->metadata,
+            //phpcs:ignore WordPress.DateTime.RestrictedFunctions.date_date
             "created" => date('Y-m-d H:i:s', $charge_data->created),
             "paid" => $charge_data->paid ? 'Paid' : 'Not Paid',
             "receiptemail" => (null == $charge_data->receipt_email) ? 'Receipt not send' : $charge_data->receipt_email,
@@ -629,6 +646,7 @@ class EH_Stripe_Payment extends WC_Payment_Gateway {
             "status" => $charge_data->status,
             "origin_time" => $origin_time
         );
+        //phpcs:ignore WordPress.DateTime.RestrictedFunctions.date_date
         $trans_time = date('Y-m-d H:i:s', time() + ((get_option('gmt_offset') * 3600) + 10));
         $tranaction_data = array(
             "id" => $charge_data->id,
@@ -653,7 +671,8 @@ class EH_Stripe_Payment extends WC_Payment_Gateway {
      *Creates refund parameters from refund response .
      */
     public function make_refund_params($refund_value, $amount, $currency, $order_id) {
-        $refund_data = json_decode(json_encode($refund_value));
+        $refund_data = json_decode(wp_json_encode($refund_value));
+        //phpcs:ignore WordPress.DateTime.RestrictedFunctions.date_date
         $origin_time = date('Y-m-d H:i:s', time() + get_option('gmt_offset') * 3600);
         $refund_parsed = array(
             "id" => $refund_data->id,
@@ -664,6 +683,7 @@ class EH_Stripe_Payment extends WC_Payment_Gateway {
             "order_amount" => $amount,
             "order_currency" => $currency,
             "metadata" => $refund_data->metadata,
+            //phpcs:ignore WordPress.DateTime.RestrictedFunctions.date_date
             "created" => date('Y-m-d H:i:s', $refund_data->created + get_option('gmt_offset') * 3600),
             "charge_id" => $refund_data->charge,
             "receiptnumber" => (null == $refund_data->receipt_number) ? 'No Receipt Number' : $refund_data->receipt_number,
@@ -671,6 +691,7 @@ class EH_Stripe_Payment extends WC_Payment_Gateway {
             "status" => $refund_data->status,
             "origin_time" => $origin_time
         );
+        //phpcs:ignore WordPress.DateTime.RestrictedFunctions.date_date
         $trans_time = date('Y-m-d H:i:s', time() + ((get_option('gmt_offset') * 3600) + 10));
         $transaction_data = EH_Helper_Class::wt_stripe_order_db_operations($order_id, null, 'get', '_eh_stripe_payment_balance', null, true);
         $balance = floatval($transaction_data['balance_amount']) - floatval($refund_parsed['amount']);
@@ -740,7 +761,8 @@ class EH_Stripe_Payment extends WC_Payment_Gateway {
         
             
 
-            $card_brand =  isset( $_POST['eh_stripe_card_type'] )? sanitize_text_field($_POST['eh_stripe_card_type']) : 'other';
+            //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing 
+            $card_brand =  isset( $_POST['eh_stripe_card_type'] )? sanitize_text_field(wp_unslash($_POST['eh_stripe_card_type'])) : 'other';
             $currency = get_woocommerce_currency();
             $amount =  self::get_stripe_amount(((version_compare(WC()->version, '2.7.0', '<')) ? $wc_order->order_total : $wc_order->get_total())) ;
             $client = $this->get_clients_details();
@@ -755,7 +777,7 @@ class EH_Stripe_Payment extends WC_Payment_Gateway {
             
 
             
-            if (!in_array($card_brand, $this->eh_stripe_checkout_cards)) {
+            if (!in_array($card_brand, $this->eh_stripe_checkout_cards, true)) {
 
                 $process_auth = false; 
 
@@ -781,7 +803,7 @@ class EH_Stripe_Payment extends WC_Payment_Gateway {
                     $card_brand = 'China UnionPay';
                 }
                 
-                if(in_array($card_brand, $this->eh_stripe_checkout_cards) || 'other' == $card_brand ){
+                if(in_array($card_brand, $this->eh_stripe_checkout_cards, true) || 'other' == $card_brand ){
                     $process_auth = true; 
                 }
             }
@@ -809,7 +831,8 @@ class EH_Stripe_Payment extends WC_Payment_Gateway {
                 );
               
                 $eh_brands = implode(",",$this->eh_stripe_checkout_cards);
-                wc_add_notice(__('Card brand', 'payment-gateway-stripe-and-woocommerce-integration').' (' . $card_brand . ") " . __('has been restricted for payment by the seller. Please reload and try with another card from the accepted list', 'payment-gateway-stripe-and-woocommerce-integration').' ('.__($eh_brands,'payment-gateway-stripe-and-woocommerce-integration').')', $notice_type = 'error');
+                /* translators: %1$s: Card brand, %2$s: Accepted card brands list */
+                wc_add_notice(sprintf(__('Card brand (%1$s) has been restricted for payment by the seller. Please reload and try with another card from the accepted list (%2$s)', 'payment-gateway-stripe-and-woocommerce-integration'), $card_brand, $eh_brands), $notice_type = 'error');
                 EH_Stripe_Log::log_update('dead', $enforce_detail, get_bloginfo('blogname') . ' - Charge - Order #' . $wc_order->get_order_number());
                 return array (
                     'result' => 'failure'
@@ -818,6 +841,7 @@ class EH_Stripe_Payment extends WC_Payment_Gateway {
             //check whether payment via saved card
             elseif ($this->payment_via_saved_card()) {
                
+                //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.MissingUnslash, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized 
                 $wc_token_id = isset( $_POST[ 'wc-' . $this->id . '-payment-token' ] ) ? wc_clean( wp_unslash( $_POST[ 'wc-' . $this->id  . '-payment-token' ] ) ) : '';
 
                 //get wc token obejct using id
@@ -842,11 +866,14 @@ class EH_Stripe_Payment extends WC_Payment_Gateway {
              //if payment using a new card
             else{ 
                  
+                //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing
                 if(!isset($_POST['eh_stripe_pay_token'])){
                     throw new Exception(__("Invalid card. Please select another card or input a new card number", 'payment-gateway-stripe-and-woocommerce-integration'));
                 }   
-                $token = sanitize_text_field($_POST['eh_stripe_pay_token']);
-                $payment_method = sanitize_text_field($_POST['eh_stripe_pay_token']);
+                //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing
+                $token = isset($_POST['eh_stripe_pay_token']) ? sanitize_text_field(wp_unslash($_POST['eh_stripe_pay_token'])) : '';
+                //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing   
+                $payment_method = isset($_POST['eh_stripe_pay_token']) ? sanitize_text_field(wp_unslash($_POST['eh_stripe_pay_token'])) : '';
                 $customer = false;
 
                  //if saved card check is enabled, check for existing stripe customer
@@ -886,7 +913,9 @@ class EH_Stripe_Payment extends WC_Payment_Gateway {
                     $idempotency_key = $wc_order->get_order_key().'-'.$payment_method;                    
                 }
                 else{
-                    $idempotency_key = $wc_order->get_order_key().'-'.$_REQUEST['_wpnonce'];     
+                    //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotValidated
+                    $idempotency_nonce = isset($_REQUEST['_wpnonce']) ? sanitize_text_field(wp_unslash($_REQUEST['_wpnonce'])) : '';
+                    $idempotency_key = $wc_order->get_order_key().'-'. $idempotency_nonce;     
                 }
                 if(! empty($intent)){
 
@@ -936,6 +965,7 @@ class EH_Stripe_Payment extends WC_Payment_Gateway {
                             'result'        => 'success',
                             'redirect'      => $this->get_return_url( $wc_order ),
                             'intent_secret' => $intent->client_secret,
+                            //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing
                             'createaccount' => (int) ! empty( $_POST['createaccount'] ), // WPCS: input var ok, CSRF ok.
                         );
                     }
@@ -995,11 +1025,13 @@ class EH_Stripe_Payment extends WC_Payment_Gateway {
         
         try{
 
+            //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing
             if ( !isset( $_POST['eh_stripe_pay_token'] ) && empty( $_POST['eh_stripe_pay_token'] ) || ! is_user_logged_in() ) {
                 throw new Exception(__("There was a problem adding the payment method.", 'payment-gateway-stripe-and-woocommerce-integration'));
                 
             }
-            $payment_method = $_POST['eh_stripe_pay_token'];
+            //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing
+            $payment_method = sanitize_text_field(wp_unslash($_POST['eh_stripe_pay_token']));
             $current_user_obj = wp_get_current_user();
 
             $logged_in_userid = get_current_user_id();
@@ -1076,6 +1108,8 @@ class EH_Stripe_Payment extends WC_Payment_Gateway {
         $order_id = (version_compare(WC()->version, '2.7.0', '<')) ? $wc_order->id : $wc_order->get_id();
         
         $data = $this->make_charge_params($charge_response, $order_id);
+
+        //phpcs:ignore WordPress.DateTime.RestrictedFunctions.date_date
         $order_time = date('Y-m-d H:i:s', time() + get_option('gmt_offset') * 3600);
         if ($charge_response->paid == true) {
 
@@ -1086,12 +1120,12 @@ class EH_Stripe_Payment extends WC_Payment_Gateway {
                 
                 if ( ! $process_order && $wc_order->needs_payment() ) {
                     $wc_order->payment_complete($data['id']);
-                    $wc_order->add_order_note(__('Payment Status : ', 'payment-gateway-stripe-and-woocommerce-integration') . ucfirst($data['status']) . ' [ ' . $order_time . ' ] . ' . __('Source : ', 'payment-gateway-stripe-and-woocommerce-integration') . $data['source_type'] . '. ' . __('Charge Status :', 'payment-gateway-stripe-and-woocommerce-integration') . $data['captured'] . (is_null($data['transaction_id']) ? '' : '. <br>'.__('Transaction ID : ','payment-gateway-stripe-and-woocommerce-integration') . $data['transaction_id']));
+                    $wc_order->add_order_note(esc_html__('Payment Status : ', 'payment-gateway-stripe-and-woocommerce-integration') . ucfirst($data['status']) . ' [ ' . $order_time . ' ] . ' . esc_html__('Source : ', 'payment-gateway-stripe-and-woocommerce-integration') . $data['source_type'] . '. ' . esc_html__('Charge Status :', 'payment-gateway-stripe-and-woocommerce-integration') . $data['captured'] . (is_null($data['transaction_id']) ? '' : '. <br>'.esc_html__('Transaction ID : ','payment-gateway-stripe-and-woocommerce-integration') . $data['transaction_id']));
                 }
             }
             if (!$charge_response->captured && $wc_order->get_status() !== 'on-hold') {
                 $wc_order->update_status('on-hold');
-                $wc_order->add_order_note(__('Payment Status : ', 'payment-gateway-stripe-and-woocommerce-integration') . ucfirst($data['status']) . ' [ ' . $order_time . ' ] . ' . __('Source : ', 'payment-gateway-stripe-and-woocommerce-integration') . $data['source_type'] . '. ' . __('Charge Status :', 'payment-gateway-stripe-and-woocommerce-integration') . $data['captured'] . (is_null($data['transaction_id']) ? '' : '. <br>'.__('Transaction ID : ','payment-gateway-stripe-and-woocommerce-integration') . $data['transaction_id']));
+                $wc_order->add_order_note(esc_html__('Payment Status : ', 'payment-gateway-stripe-and-woocommerce-integration') . ucfirst($data['status']) . ' [ ' . $order_time . ' ] . ' . esc_html__('Source : ', 'payment-gateway-stripe-and-woocommerce-integration') . $data['source_type'] . '. ' . esc_html__('Charge Status :', 'payment-gateway-stripe-and-woocommerce-integration') . $data['captured'] . (is_null($data['transaction_id']) ? '' : '. <br>'.esc_html__('Transaction ID : ','payment-gateway-stripe-and-woocommerce-integration') . $data['transaction_id']));
             }
             WC()->cart->empty_cart();
             EH_Helper_Class::wt_stripe_order_db_operations($order_id, $wc_order, 'add', '_eh_stripe_payment_charge', $data, false); 
@@ -1102,7 +1136,7 @@ class EH_Stripe_Payment extends WC_Payment_Gateway {
                 'redirect' => $this->get_return_url($wc_order),
             );
         } else {
-            wc_add_notice($data['status'], $notice_type = 'error');
+            wc_add_notice(esc_html($data['status']), $notice_type = 'error');
             EH_Stripe_Log::log_update('dead', $charge_response, get_bloginfo('blogname') . ' - Charge - Order #' . $wc_order->get_order_number());
         }
     }
@@ -1158,26 +1192,27 @@ class EH_Stripe_Payment extends WC_Payment_Gateway {
 
                     if ( $refund_response ) {
                         
+                        //phpcs:ignore WordPress.DateTime.RestrictedFunctions.date_date
                         $refund_time = date('Y-m-d H:i:s', time() + get_option('gmt_offset') * 3600);
                         $data = $this->make_refund_params($refund_response, $amount, ((version_compare(WC()->version, '2.7.0', '<')) ? $wc_order->order_currency : $wc_order->get_currency()), $order_id);
                         
                         EH_Helper_Class::wt_stripe_order_db_operations($order_id, $wc_order, 'add', '_eh_stripe_payment_refund', $data, false);
-                        $wc_order->add_order_note(__('Reason : ', 'payment-gateway-stripe-and-woocommerce-integration') . $reason . '.<br>' . __('Amount : ', 'payment-gateway-stripe-and-woocommerce-integration') . get_woocommerce_currency_symbol() . $amount . '.<br>' . __('Status : ', 'payment-gateway-stripe-and-woocommerce-integration') . (($data['status'] === 'succeeded') ? 'Success' : 'Failed') . ' [ ' . $refund_time . ' ] ' . (is_null($data['transaction_id']) ? '' : '<br>' . __('Transaction ID : ', 'payment-gateway-stripe-and-woocommerce-integration') . $data['transaction_id']));
+                        $wc_order->add_order_note(esc_html__('Reason : ', 'payment-gateway-stripe-and-woocommerce-integration') . $reason . '.<br>' . esc_html__('Amount : ', 'payment-gateway-stripe-and-woocommerce-integration') . get_woocommerce_currency_symbol() . $amount . '.<br>' . esc_html__('Status : ', 'payment-gateway-stripe-and-woocommerce-integration') . (($data['status'] === 'succeeded') ? 'Success' : 'Failed') . ' [ ' . $refund_time . ' ] ' . (is_null($data['transaction_id']) ? '' : '<br>' . esc_html__('Transaction ID : ', 'payment-gateway-stripe-and-woocommerce-integration') . $data['transaction_id']));
                         EH_Stripe_Log::log_update('live', $data, get_bloginfo('blogname') . ' - Refund - Order #' . $wc_order->get_order_number());
                         return true;
                     } else {
                         EH_Stripe_Log::log_update('dead', $refund_response, get_bloginfo('blogname') . ' - Refund Error - Order #' . $wc_order->get_order_number());
-                        $wc_order->add_order_note(__('Reason : ', 'payment-gateway-stripe-and-woocommerce-integration') . $reason . '.<br>' . __('Amount : ', 'payment-gateway-stripe-and-woocommerce-integration') . get_woocommerce_currency_symbol() . $amount . '.<br>' . __(' Status : Failed ', 'payment-gateway-stripe-and-woocommerce-integration'));
+                        $wc_order->add_order_note(esc_html__('Reason : ', 'payment-gateway-stripe-and-woocommerce-integration') . $reason . '.<br>' . esc_html__('Amount : ', 'payment-gateway-stripe-and-woocommerce-integration') . get_woocommerce_currency_symbol() . $amount . '.<br>' . esc_html__('Status : ', 'payment-gateway-stripe-and-woocommerce-integration') . esc_html($oops['error']['message']));
                         return new WP_Error('error', $refund_response->message);
                     }
                 } catch (Exception $error) {
                     $oops = $error->getJsonBody();
                     EH_Stripe_Log::log_update('dead', $oops['error'], get_bloginfo('blogname') . ' - Refund Error - Order #' . $wc_order->get_order_number());
-                    $wc_order->add_order_note(__('Reason : ', 'payment-gateway-stripe-and-woocommerce-integration') . $reason . '.<br>' . __('Amount : ', 'payment-gateway-stripe-and-woocommerce-integration') . get_woocommerce_currency_symbol() . $amount . '.<br>' . __('Status : ', 'payment-gateway-stripe-and-woocommerce-integration') . $oops['error']['message']);
+                    $wc_order->add_order_note(esc_html__('Reason : ', 'payment-gateway-stripe-and-woocommerce-integration') . $reason . '.<br>' . esc_html__('Amount : ', 'payment-gateway-stripe-and-woocommerce-integration') . get_woocommerce_currency_symbol() . $amount . '.<br>' . esc_html__('Status : ', 'payment-gateway-stripe-and-woocommerce-integration') . esc_html($oops['error']['message']));
                     return new WP_Error('error', $oops['error']['message']);
                 }
             } else {
-                return new WP_Error('error', __('Uncaptured Amount cannot be refunded', 'payment-gateway-stripe-and-woocommerce-integration'));
+                return new WP_Error('error', esc_html__('Uncaptured Amount cannot be refunded', 'payment-gateway-stripe-and-woocommerce-integration'));
             }
         } else {
             return false;
@@ -1368,9 +1403,8 @@ class EH_Stripe_Payment extends WC_Payment_Gateway {
         }
         
         
-        $status_message = ( $intent->last_payment_error )
-            ? sprintf( __( 'Stripe SCA authentication failed. Reason: %s', 'payment-gateway-stripe-and-woocommerce-integration' ), $intent->last_payment_error->message )
-            : __( 'Stripe SCA authentication failed.', 'payment-gateway-stripe-and-woocommerce-integration' );
+        /* translators: %s: Error message */
+        $status_message = ( $intent->last_payment_error )  ? sprintf( __( 'Stripe SCA authentication failed. Reason: %s', 'payment-gateway-stripe-and-woocommerce-integration' ), $intent->last_payment_error->message ) : __( 'Stripe SCA authentication failed.', 'payment-gateway-stripe-and-woocommerce-integration' );
         $order->update_status( 'failed', $status_message ); 
     }
 
@@ -1380,6 +1414,7 @@ class EH_Stripe_Payment extends WC_Payment_Gateway {
      */
     public function verify_payment_intent_verification_in_order_pay(  ) {
 
+        //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing   
         if ( ( ! is_wc_endpoint_url( 'order-pay' ) || ! isset( $_GET['eh-stripe-confirmation'] ) ) ) {
 
             return ;
@@ -1467,8 +1502,10 @@ class EH_Stripe_Payment extends WC_Payment_Gateway {
 
     public function payment_via_saved_card()
     { 
+        //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
         $payment_gateway = isset( $_POST['payment_method'] ) ? wc_clean( wp_unslash( $_POST['payment_method'] ) ) : $this->id;
         //if saved card token present in request, payment made via saved card
+        //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing
         if ( isset( $_POST[ 'wc-' . $payment_gateway . '-payment-token' ] ) && 'new' != $_POST[ 'wc-' . $payment_gateway . '-payment-token' ] ){
             return true;
         }
@@ -1482,6 +1519,7 @@ class EH_Stripe_Payment extends WC_Payment_Gateway {
     public function should_save_this_card()
     {
         
+        //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing
         if (isset($_REQUEST['wc-' . $this->id . '-new-payment-method']) && $_REQUEST['wc-' . $this->id . '-new-payment-method'] == true) {  
              return true;
         }
@@ -1508,7 +1546,7 @@ class EH_Stripe_Payment extends WC_Payment_Gateway {
         if( ( isset($eh_stripe_option['eh_payment_request']) && ($eh_stripe_option['eh_payment_request'] === 'yes') ) || ( isset($eh_stripe_option['eh_stripe_apple_pay']) && ($eh_stripe_option['eh_stripe_apple_pay'] === 'yes') ) ){
 
             if ($page == 'product') {
-                if (is_product() && ((isset($eh_stripe_payment_request_button_options) && in_array('product', $eh_stripe_payment_request_button_options)) || (isset($eh_stripe_apple_pay_options) && in_array('product', $eh_stripe_apple_pay_options)) )) {
+                if (is_product() && ((isset($eh_stripe_payment_request_button_options) && in_array('product', $eh_stripe_payment_request_button_options, true)) || (isset($eh_stripe_apple_pay_options) && in_array('product', $eh_stripe_apple_pay_options, true)) )) {
                     return true;
                 }
                 else{
@@ -1516,7 +1554,7 @@ class EH_Stripe_Payment extends WC_Payment_Gateway {
                 }          
             } 
             elseif ($page == 'cart') {
-                if (is_cart() && ((isset($eh_stripe_payment_request_button_options) && in_array('cart', $eh_stripe_payment_request_button_options)) || (isset($eh_stripe_apple_pay_options) && in_array('cart', $eh_stripe_apple_pay_options)))) {
+                if (is_cart() && ((isset($eh_stripe_payment_request_button_options) && in_array('cart', $eh_stripe_payment_request_button_options, true)) || (isset($eh_stripe_apple_pay_options) && in_array('cart', $eh_stripe_apple_pay_options, true)))) {
                     return true;
                 }
                 else{
@@ -1524,7 +1562,7 @@ class EH_Stripe_Payment extends WC_Payment_Gateway {
                 }  
             }
             else{
-                if (is_checkout() && ((isset($eh_stripe_payment_request_button_options) && in_array('checkout', $eh_stripe_payment_request_button_options)) || (isset($eh_stripe_apple_pay_options) && in_array('checkout', $eh_stripe_apple_pay_options)))) {
+                if (is_checkout() && ((isset($eh_stripe_payment_request_button_options) && in_array('checkout', $eh_stripe_payment_request_button_options, true)) || (isset($eh_stripe_apple_pay_options) && in_array('checkout', $eh_stripe_apple_pay_options, true)))) {
                     return true;
                 }
                 else{

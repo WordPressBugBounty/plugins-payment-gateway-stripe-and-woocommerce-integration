@@ -19,7 +19,7 @@ class Eh_Stripe_Checkout extends WC_Payment_Gateway {
 		
 		$this->id                 = 'eh_stripe_checkout';
 		$this->method_title       = __( 'Stripe Checkout', 'payment-gateway-stripe-and-woocommerce-integration' );
-		$this->method_description = sprintf( __( 'Pay with Stripe Checkout', 'payment-gateway-stripe-and-woocommerce-integration' ) );
+		$this->method_description = __( 'Pay with Stripe Checkout', 'payment-gateway-stripe-and-woocommerce-integration' );
 		$this->supports           = array(
 			'products',
 			'refunds',
@@ -33,13 +33,14 @@ class Eh_Stripe_Checkout extends WC_Payment_Gateway {
         
         $this->eh_stripe_option        = get_option("woocommerce_eh_stripe_pay_settings");
         
-		$this->title                   = __($this->get_option( 'eh_stripe_checkout_title' ), 'payment-gateway-stripe-and-woocommerce-integration' );
-        $this->description             = __($this->get_option( 'eh_stripe_checkout_description' ), 'payment-gateway-stripe-and-woocommerce-integration' );
-        $this->method_description      = __( '<p style="max-width: 97%;"> Stripe Checkout redirects users to a secure, Stripe-hosted payment page to accept payment. You will have to specify an account name in Stripe <a href="https://dashboard.stripe.com/account" target="_blank">Dashboard</a> prior to configuring the settings. <a class="thickbox" href="'.EH_STRIPE_MAIN_URL_PATH . 'assets/img/stripe_checkout_line_items.gif?TB_iframe=true&width=100&height=100" >Preview</a></p><p><a target="_blank" href="https://www.webtoffee.com/woocommerce-stripe-payment-gateway-plugin-user-guide/#stripe_checkout"> Read documentation </a>  </p>', 'payment-gateway-stripe-and-woocommerce-integration' );
+		$this->title                   = $this->get_option( 'eh_stripe_checkout_title' );
+        $this->description             = $this->get_option( 'eh_stripe_checkout_description' );
+        /* translators: %1$s: Opening paragraph tag with style, %2$s: Dashboard link opening, %3$s: Dashboard link closing, %4$s: Preview link opening, %5$s: Preview link closing, %6$s: Closing paragraph tag, %7$s: Documentation link opening, %8$s: Documentation link closing, %9$s: Closing paragraph tag */
+        $this->method_description      = sprintf( __( '%1$sStripe Checkout redirects users to a secure, Stripe-hosted payment page to accept payment. You will have to specify an account name in Stripe %2$sDashboard%3$s prior to configuring the settings. %4$sPreview%5$s%6$s%7$sRead documentation%8$s%9$s', 'payment-gateway-stripe-and-woocommerce-integration' ), '<p style="max-width: 97%;">', '<a href="https://dashboard.stripe.com/account" target="_blank">', '</a>', '<a class="thickbox" href="' . EH_STRIPE_MAIN_URL_PATH . 'assets/img/stripe_checkout_line_items.gif?TB_iframe=true&width=100&height=100" >', '</a>', '</p>','<p><a target="_blank" href="https://www.webtoffee.com/woocommerce-stripe-payment-gateway-plugin-user-guide/#stripe_checkout">', '</a>', '</p>' );
         
         $this->enabled                 = $this->get_option( 'enabled' );
         $this->eh_order_button         = $this->get_option( 'eh_stripe_checkout_order_button');
-        $this->order_button_text       = __($this->eh_order_button, 'payment-gateway-stripe-and-woocommerce-integration');
+        $this->order_button_text       = $this->eh_order_button;
         $this->stripe_checkout_page_locale = $this->get_option( 'eh_stripe_checkout_page_locale');
         $this->stripe_checkout_send_line_items = $this->get_option( 'eh_send_line_items');
         $this->collect_billing = $this->get_option( 'eh_collect_billing');
@@ -145,7 +146,7 @@ class Eh_Stripe_Checkout extends WC_Payment_Gateway {
                     'tr'  => __('Turkish', 'payment-gateway-stripe-and-woocommerce-integration'),
                     'vi'  => __('Vietnamese', 'payment-gateway-stripe-and-woocommerce-integration'),
                 ),
-                'description' => sprintf(__('Choose a desired locale code from the drop down (Languages supported by Stripe Checkout are listed)', 'payment-gateway-stripe-and-woocommerce-integration')),
+                'description' => __('Choose a desired locale code from the drop down (Languages supported by Stripe Checkout are listed)', 'payment-gateway-stripe-and-woocommerce-integration'),
                 'default'     => 'auto',
                 'desc_tip'    => true,
             ),
@@ -178,6 +179,7 @@ class Eh_Stripe_Checkout extends WC_Payment_Gateway {
 
             'eh_checkout_webhook_desc' => array(
                 'type' => 'title',
+                /* translators: %1$s: Opening HTML div and paragraph tags, %2$s: Documentation link opening, %3$s: Documentation link closing, %4$s: Closing HTML paragraph and div tags */
                 'description' => sprintf(__('%1$sTo accept payments via delayed payment methods from Stripe hosted page, you must configure the webhook endpoint and subscribe to relevant events. %2$sClick here%3$s to know more%4$s', 'payment-gateway-stripe-and-woocommerce-integration'), '<div class="wt_info_div"><p>', '<a target="_blank" href="https://www.webtoffee.com/setting-up-webhooks-and-supported-webhooks/">', '</a>', '</p></div>'),
             ),              
 		);   
@@ -228,7 +230,7 @@ class Eh_Stripe_Checkout extends WC_Payment_Gateway {
 		echo '<div class="status-box">';
         
         if ($description) {
-            echo apply_filters('eh_stripe_desc', wpautop(wp_kses_post("<span>" . $description . "</span>")));
+            echo wp_kses_post(apply_filters('eh_stripe_desc', wpautop(wp_kses_post("<span>" . $description . "</span>"))));
         }
         echo "</div>";
 	}
@@ -289,7 +291,8 @@ class Eh_Stripe_Checkout extends WC_Payment_Gateway {
             }
         }
         //WPML Language URL format compatibility.
-        $language = isset($_GET['lang']) ? sanitize_text_field($_GET['lang']) : '';
+        //phpcs:ignore WordPress.Security.NonceVerification.Recommended 
+        $language = isset($_GET['lang']) ? sanitize_text_field(wp_unslash($_GET['lang'])) : '';
         $home_url =  $language ? wp_sanitize_redirect( home_url('/')) : wp_sanitize_redirect(home_url());
 
         $query_args_success = array(
@@ -325,7 +328,8 @@ class Eh_Stripe_Checkout extends WC_Payment_Gateway {
             'mode' => 'payment',
             
             'payment_intent_data' => [
-                'description' => wp_specialchars_decode( get_bloginfo( 'name' ), ENT_QUOTES ) . ' Order #' . $order->get_order_number(),
+                /* translators: %1$s: Site name, %2$s: Order number */
+                'description' => sprintf( __( '%1$s Order #%2$s', 'payment-gateway-stripe-and-woocommerce-integration' ), wp_specialchars_decode( get_bloginfo( 'name' ), ENT_QUOTES ), $order->get_order_number() ),
                 'capture_method' => $capture_method,
             ],
             'success_url' => $success_url,
@@ -375,7 +379,7 @@ class Eh_Stripe_Checkout extends WC_Payment_Gateway {
                             'currency' => strtolower($currency),
                             'unit_amount' => EH_Stripe_Payment::get_stripe_amount( round( $item_amount / $item->get_quantity(), 2), $currency ),
                             'product_data' => array(
-                                'name' => wp_specialchars_decode( __($item->get_name(), 'payment-gateway-stripe-and-woocommerce-integration' ) ),
+                                'name' => wp_specialchars_decode( $item->get_name() ),
                             ),
                         ),
                        
@@ -611,7 +615,7 @@ class Eh_Stripe_Checkout extends WC_Payment_Gateway {
                     array(
                         'session_id' => $session_id,
                         'order_id'      => (version_compare(WC()->version, '2.7.0', '<')) ? $order->id : $order->get_id(),
-                        'time'          => rand(
+                        'time'          => wp_rand(
                             0,
                             999999
                         ),
@@ -668,21 +672,25 @@ class Eh_Stripe_Checkout extends WC_Payment_Gateway {
         
         if(!EH_Helper_Class::verify_nonce(EH_STRIPE_PLUGIN_NAME, 'eh_checkout_nonce'))
         {
-            die(_e('Access Denied', 'payment-gateway-stripe-and-woocommerce-integration'));
+            die(esc_html__('Access Denied', 'payment-gateway-stripe-and-woocommerce-integration'));
         }
-        $order_id = intval( $_GET['order_id'] );
+        //phpcs:ignore WordPress.Security.NonceVerification.Recommended 
+        $order_id = isset($_GET['order_id']) ? intval( sanitize_text_field(wp_unslash($_GET['order_id'])) ) : 0 ;
         $order = wc_get_order($order_id);
 
-        if(isset($_REQUEST['action']) && 'cancel_checkout' === sanitize_text_field($_REQUEST['action'])){
+        //phpcs:ignore WordPress.Security.NonceVerification.Recommended 
+        if(isset($_REQUEST['action']) && 'cancel_checkout' === sanitize_text_field(wp_unslash($_REQUEST['action']))){
             wc_add_notice(__('You have cancelled Stripe Checkout Session. Please try to process your order again.', 'payment-gateway-stripe-and-woocommerce-integration'), 'notice');
             wp_redirect(wc_get_checkout_url());
             exit;
         }
         else{
-            $session_id = sanitize_text_field( $_GET['sessionid'] );
+            //phpcs:ignore WordPress.Security.NonceVerification.Recommended 
+            $session_id = isset($_GET['sessionid']) ?  sanitize_text_field( wp_unslash( $_GET['sessionid'] ) )  : '';
 
             $obj  = new EH_Stripe_Payment();
                 
+            //phpcs:ignore WordPress.DateTime.RestrictedFunctions.date_date
             $order_time = date('Y-m-d H:i:s', time() + get_option('gmt_offset') * 3600);
             
             $session = \Stripe\Checkout\Session::retrieve($session_id);
@@ -700,9 +708,9 @@ class Eh_Stripe_Checkout extends WC_Payment_Gateway {
 
             $data = $obj->make_charge_params($charge_response, $order_id);
             
-            if ($charge_response->paid == true) {
+            if (true === $charge_response->paid) {
 
-                if($charge_response->captured == true && $order->needs_payment()){
+                if(true === $charge_response->captured && $order->needs_payment()){
                     $order->payment_complete($data['id']);
                     $order->add_order_note(__('Payment Status : ', 'payment-gateway-stripe-and-woocommerce-integration') . ucfirst($data['status']) . ' [ ' . $order_time . ' ] . ' . __('Source : ', 'payment-gateway-stripe-and-woocommerce-integration') . $data['source_type'] . '. ' . __('Charge Status :', 'payment-gateway-stripe-and-woocommerce-integration') . $data['captured'] . (is_null($data['transaction_id']) ? '' : '.'.__('Transaction ID : ','payment-gateway-stripe-and-woocommerce-integration') . $data['transaction_id']));
                 }
@@ -776,7 +784,7 @@ class Eh_Stripe_Checkout extends WC_Payment_Gateway {
 					$charge_response = \Stripe\Charge::retrieve($charge_id);
 					$refund_response = $charge_response->refunds->create($refund_params);
 					if ($refund_response) {
-										
+                        //phpcs:ignore WordPress.DateTime.RestrictedFunctions.date_date
 						$refund_time = date('Y-m-d H:i:s', time() + get_option('gmt_offset') * 3600);
 						
 						$data = $obj->make_refund_params($refund_response, $amount, ((version_compare(WC()->version, '2.7.0', '<')) ? $wc_order->order_currency : $wc_order->get_currency()), $order_id);

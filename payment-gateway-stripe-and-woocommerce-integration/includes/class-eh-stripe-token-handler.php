@@ -97,6 +97,7 @@ class EH_Stripe_Token_Handler {
         $retry_delay = 2; // seconds
 
         while ($retry_count < $max_retries) {
+            //phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fopen
             $lock_handle = fopen($lock_file_path, 'w+');
             if ($lock_handle === false) {
                 throw new Exception('Could not open lock file.');
@@ -157,8 +158,10 @@ class EH_Stripe_Token_Handler {
                         'body'    => $access_token_json_data,
                         'headers' => array(
                             'Content-Type' => 'application/json', // Tell the server it's JSON.
+                            'User-Agent' => self::wt_get_api_user_agent(), 
                         ),
-                        'timeout' => apply_filters("wtst_refresh_token_timeout", 45), // Optional: Set a timeout for the request.
+                        'timeout' => apply_filters("wtst_refresh_token_timeout", 60), // Optional: Set a timeout for the request.
+                        'connect_timeout' => apply_filters("wtst_refresh_token_connect_timeout", 25), // Connection timeout
                     );
 
                     // Make the POST request.
@@ -242,31 +245,37 @@ class EH_Stripe_Token_Handler {
                 catch (Exception $e) {
                     if (is_resource($lock_handle)) {
                         flock($lock_handle, LOCK_UN);
+                        //phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fclose
                         fclose($lock_handle);
 
                     }
                     if(file_exists($lock_file_path)){
+                        //phpcs:ignore WordPress.WP.AlternativeFunctions.unlink_unlink
                         unlink($lock_file_path);
                     }
                     EH_Stripe_Log::log_update('oauth', $e->getMessage(),'Refresh token API error');
                    
                     if(!is_admin()){
                         if (function_exists('wc_add_notice')) {
-                            wc_add_notice(__('Please try again after some time', 'eh-stripe-gateway'), 'error');
+                            /* translators: Error message asking user to try again later */
+                            wc_add_notice(__('Please try again after some time', 'payment-gateway-stripe-and-woocommerce-integration'), 'error');
                         }
                     }
                 }
                 finally {
                     if (is_resource($lock_handle)) {
                         flock($lock_handle, LOCK_UN);
+                        //phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fclose
                         fclose($lock_handle);
                     }
                     if(file_exists($lock_file_path)){
+                        //phpcs:ignore WordPress.WP.AlternativeFunctions.unlink_unlink
                         unlink($lock_file_path);
                     }
                 }
                 break; // Exit the retry loop if successful
             } else {
+                //phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fclose
                 fclose($lock_handle);
                 $retry_count++;
                 if ($retry_count < $max_retries) {    
@@ -276,7 +285,8 @@ class EH_Stripe_Token_Handler {
                  
                     if(!is_admin()){
                         if (function_exists('wc_add_notice')) {
-                            wc_add_notice(__('Please try again after some time', 'eh-stripe-gateway'), 'error');
+                            /* translators: Error message asking user to try again later */
+                            wc_add_notice(__('Please try again after some time', 'payment-gateway-stripe-and-woocommerce-integration'), 'error');
                         }
                     }
                 }
@@ -480,7 +490,8 @@ class EH_Stripe_Token_Handler {
                 EH_Stripe_Log::log_update('oauth', 'Failed to create lock folder: ' . $folder_path, 'Directory creation error');
                 
                 if (!is_admin()) {
-                    wc_add_notice(__('Please try again after some time.', 'eh-stripe-gateway'), 'error');
+                    /* translators: Error message asking user to try again later */
+                    wc_add_notice(__('Please try again after some time.', 'payment-gateway-stripe-and-woocommerce-integration'), 'error');
                 }
             }
         }
@@ -491,4 +502,26 @@ class EH_Stripe_Token_Handler {
     public static function eh_stripe_refresh_oauth_token() {
         EH_Stripe_Token_Handler::wtst_refresh_token(true);
     }
+
+    /**
+     * Get the user agent string for API requests
+     * @return string
+     */
+    public static function wt_get_api_user_agent() {
+        $plugin_name = EH_STRIPE_PLUGIN_NAME;
+        $plugin_version = EH_STRIPE_VERSION;
+        $wp_version = get_bloginfo('version');
+        $php_version = PHP_VERSION;
+        
+        $user_agent =  sprintf(
+            '%s/%s (WordPress/%s; PHP/%s; %s)',
+            $plugin_name,
+            $plugin_version,
+            $wp_version,
+            $php_version,
+            home_url()
+        );
+
+        return apply_filters('eh_stripe_api_user_agent', $user_agent);
+    }     
 }

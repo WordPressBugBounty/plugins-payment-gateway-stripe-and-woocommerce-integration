@@ -7,11 +7,13 @@ function eh_stripe_analytics()
     
     if(!EH_Helper_Class::check_write_access(EH_STRIPE_PLUGIN_NAME, 'ajax-eh-spg-nonce'))
     {
-       die(_e('You are not allowed to view this page.', 'payment-gateway-stripe-and-woocommerce-integration'));
+       die(esc_html__('You are not allowed to view this page.', 'payment-gateway-stripe-and-woocommerce-integration'));
     }
 
-    $start      = sanitize_text_field($_POST['start']);
-    $end        = sanitize_text_field($_POST['end']);
+    //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing
+    $start      = isset($_POST['start']) ? sanitize_text_field(wp_unslash($_POST['start'])) : '';
+    //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing
+    $end        = isset($_POST['end']) ? sanitize_text_field(wp_unslash($_POST['end'])) : '';
     $order_id   = eh_stripe_overview_get_order_ids();
     $temp_json  = array();
     $temp_json2 = array();
@@ -23,6 +25,7 @@ function eh_stripe_analytics()
 
         if(isset($id_data['captured']) && ($id_data['captured'] === 'Captured' ))
         {
+            //phpcs:ignore WordPress.DateTime.RestrictedFunctions.date_date
             $id_date = date('Y-m-d',strtotime($id_data['created']));
             if(strtotime($id_date) >= strtotime($start) && strtotime($id_date) <= strtotime($end))
             {
@@ -34,6 +37,7 @@ function eh_stripe_analytics()
         if(isset($id_data['captured']) && ($id_data['captured'] === 'Uncaptured' ))
         { 
             
+            //phpcs:ignore WordPress.DateTime.RestrictedFunctions.date_date
             $id_date = date('Y-m-d',strtotime($id_data['created']));
             if(strtotime($id_date) >= strtotime($start) && strtotime($id_date) <= strtotime($end))
             {
@@ -47,24 +51,25 @@ function eh_stripe_analytics()
     $id = eh_stripe_overview_get_order_ids();
 
     for($i=0,$k=0;$i<count($id);$i++)
-    {
+    { 
        
        $data = EH_Helper_Class::wt_stripe_order_db_operations($id[$i], null, 'get', '_eh_stripe_payment_refund', null, false);
 
-        if($data!=='')
+        if($data!=='' && count($data) >= 0)
         {
-            for($j=0;$j<count($data);$j++)
+            foreach($data as $j => $data_ref)
             {           
 
-                if('succeeded' === $data[$j]['status'])
+                if('succeeded' === $data_ref['status'])
                 
                 {
-                    $id_date = date('Y-m-d',strtotime($data[$j]['created']));
+                    //phpcs:ignore WordPress.DateTime.RestrictedFunctions.date_date
+                    $id_date = date('Y-m-d',strtotime($data_ref['created']));
                  
                     if(strtotime($id_date) >= strtotime($start) && strtotime($id_date) <= strtotime($end))
                     {
                         $temp_json3[$k]['label3'] = $id_date;
-                        $temp_json3[$k]['value3'] = floatval($data[$j]['order_amount']);
+                        $temp_json3[$k]['value3'] = floatval($data_ref['order_amount']);
                         $k++;
                     }
                     
@@ -73,10 +78,12 @@ function eh_stripe_analytics()
         }
     }
     $a[0]=array(
+        //phpcs:ignore WordPress.DateTime.RestrictedFunctions.date_date
         'label' =>date('Y-m-d', strtotime('-1 day', strtotime($start))),
         'value' =>0
     );
     $c[0]=array(
+        //phpcs:ignore WordPress.DateTime.RestrictedFunctions.date_date
         'label' =>date('Y-m-d', strtotime('+1 day', strtotime($end))),
         'value' =>0
     );
@@ -102,10 +109,12 @@ function eh_stripe_analytics()
 
 
     $a2[0]=array(
+        //phpcs:ignore WordPress.DateTime.RestrictedFunctions.date_date
         'label2' =>date('Y-m-d', strtotime('-1 day', strtotime($start))),
         'value2' =>0
     );
     $c2[0]=array(
+        //phpcs:ignore WordPress.DateTime.RestrictedFunctions.date_date
         'label2' =>date('Y-m-d', strtotime('+1 day', strtotime($end))),
         'value2' =>0
     );
@@ -131,10 +140,12 @@ function eh_stripe_analytics()
 
 
     $a3[0]=array(
+        //phpcs:ignore WordPress.DateTime.RestrictedFunctions.date_date
         'label3' =>date('Y-m-d', strtotime('-1 day', strtotime($start))),
         'value3' =>0
     );
     $c3[0]=array(
+        //phpcs:ignore WordPress.DateTime.RestrictedFunctions.date_date
         'label3' =>date('Y-m-d', strtotime('+1 day', strtotime($end))),
         'value3' =>0
     );
@@ -158,19 +169,21 @@ function eh_stripe_analytics()
         $charge3 = array_merge_recursive($a3,$c3);
     }
 
-    die(json_encode(array(array_values($charge),array_values($charge2),array_values($charge3))));
+    die(wp_json_encode(array(array_values($charge),array_values($charge2),array_values($charge3))));
 
 }
 function eh_order_status_update_callback()
 {
     if(!EH_Helper_Class::check_write_access(EH_STRIPE_PLUGIN_NAME, 'ajax-eh-spg-nonce'))
     {
-       die(_e('You are not allowed to view this page.', 'payment-gateway-stripe-and-woocommerce-integration'));
+       die(esc_html__('You are not allowed to view this page.', 'payment-gateway-stripe-and-woocommerce-integration'));
     }
 
-    $ids = sanitize_text_field($_POST['order_id']); //$_POST['order_id] is a string value of order ids seperated by ' , '
+    //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing
+    $ids = isset($_POST['order_id']) ? sanitize_text_field(wp_unslash($_POST['order_id'])) : ''; //$_POST['order_id] is a string value of order ids seperated by ' , '
     $order_id = ($ids != '') ? explode(',', $ids) : '';
-    $order_action = sanitize_text_field( $_POST['order_action'] );
+    //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing
+    $order_action = isset($_POST['order_action']) ? sanitize_text_field(wp_unslash($_POST['order_action'])) : '';
     if(count($order_id)!=1)
     {
         for($i=0;$i<count($order_id);$i++)
@@ -214,9 +227,10 @@ function eh_spg_list_order_all_callback()
 {
     if(!EH_Helper_Class::check_write_access(EH_STRIPE_PLUGIN_NAME, 'ajax-eh-spg-nonce'))
     {
-       die(_e('You are not allowed to view this page.', 'payment-gateway-stripe-and-woocommerce-integration'));
+       die(esc_html__('You are not allowed to view this page.', 'payment-gateway-stripe-and-woocommerce-integration'));
     }
-    $page = intval($_POST['paged']);
+    //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing
+    $page = isset($_POST['paged']) ? intval(sanitize_text_field(wp_unslash($_POST['paged']))) : 0;
     $obj  = new Eh_Stripe_Order_Datatables();
     $obj->input();
     $obj->ajax_response($page);
@@ -226,9 +240,10 @@ function eh_spg_list_stripe_all_callback()
 {
     if(!EH_Helper_Class::check_write_access(EH_STRIPE_PLUGIN_NAME, 'ajax-eh-spg-nonce'))
     {
-       die(_e('You are not allowed to view this page.', 'payment-gateway-stripe-and-woocommerce-integration'));
+       die(esc_html__('You are not allowed to view this page.', 'payment-gateway-stripe-and-woocommerce-integration'));
     }
-    $page = intval($_POST['paged']);
+    //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing
+    $page = isset($_POST['paged']) ? intval(sanitize_text_field(wp_unslash($_POST['paged']))) : 0;
     $obj  = new Eh_Stripe_Datatables();
     $obj->input();
     $obj->ajax_response($page);
@@ -238,9 +253,10 @@ function eh_order_display_count_callback()
 {
     if(!EH_Helper_Class::check_write_access(EH_STRIPE_PLUGIN_NAME, 'ajax-eh-spg-nonce'))
     {
-       die(_e('You are not allowed to view this page.', 'payment-gateway-stripe-and-woocommerce-integration'));
+       die(esc_html__('You are not allowed to view this page.', 'payment-gateway-stripe-and-woocommerce-integration'));
     }
-    $value=  intval($_POST['row_count']);
+    //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing
+    $value=  isset($_POST['row_count']) ? intval(sanitize_text_field(wp_unslash($_POST['row_count']))) : 0;
     update_option('eh_order_table_row', $value);
     die('success');
 }
@@ -248,9 +264,10 @@ function eh_stripe_display_count_callback()
 {
     if(!EH_Helper_Class::check_write_access(EH_STRIPE_PLUGIN_NAME, 'ajax-eh-spg-nonce'))
     {
-       die(_e('You are not allowed to view this page.', 'payment-gateway-stripe-and-woocommerce-integration'));
+       die(esc_html__('You are not allowed to view this page.', 'payment-gateway-stripe-and-woocommerce-integration'));
     }
-    $value=  intval($_POST['row_count']);
+    //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing   
+    $value=  isset($_POST['row_count']) ? intval(sanitize_text_field(wp_unslash($_POST['row_count']))) : 0;
     update_option('eh_stripe_table_row', $value);
     die('success');
 }

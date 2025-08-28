@@ -20,6 +20,7 @@ class EH_Affirm extends WC_Payment_Gateway {
         $this->id                 = 'eh_affirm_stripe';
         $this->method_title       = __( 'Affirm', 'payment-gateway-stripe-and-woocommerce-integration' );
 
+        /* translators: %1$s: Preview link opening, %2$s: Preview link closing */
         $this->method_description = sprintf(__( 'Affirm is a ‘Buy Now, Pay Later’ method that enables customers in the US to pay in installments. %1$s[Preview] %2$s', 'payment-gateway-stripe-and-woocommerce-integration' ), '<a  class="thickbox" href="'.EH_STRIPE_MAIN_URL_PATH . 'assets/img/affirm-preview.png?TB_iframe=true&width=100&height=100">', '</a>');
         $this->supports = array(
             'products',
@@ -35,11 +36,11 @@ class EH_Affirm extends WC_Payment_Gateway {
         $stripe_settings               = get_option( 'woocommerce_eh_stripe_pay_settings' );
         $this->capture_now = ((isset($stripe_settings['eh_stripe_capture']) && !empty($stripe_settings['eh_stripe_capture'])) ? $stripe_settings['eh_stripe_capture'] : '');
         
-        $this->title                   = __($this->get_option( 'eh_stripe_affirm_title' ), 'payment-gateway-stripe-and-woocommerce-integration' );
-        $this->description             = __($this->get_option( 'eh_stripe_affirm_description' ), 'payment-gateway-stripe-and-woocommerce-integration' );
+        $this->title                   = $this->get_option( 'eh_stripe_affirm_title' );
+        $this->description             = $this->get_option( 'eh_stripe_affirm_description' );
         $this->enabled                 = $this->get_option( 'enabled' );
         $this->eh_order_button         = $this->get_option( 'eh_stripe_affirm_order_button');
-        $this->order_button_text       = __($this->eh_order_button, 'payment-gateway-stripe-and-woocommerce-integration');
+        $this->order_button_text       = $this->eh_order_button;
 
         add_action( 'woocommerce_update_options_payment_gateways_' . $this->id, array( $this, 'process_admin_options' ) );
 
@@ -63,6 +64,7 @@ class EH_Affirm extends WC_Payment_Gateway {
 
             'eh_affirm_desc' => array(
                 'type' => 'title',
+                /* translators: %1$s: Opening HTML div and list tags, %2$s: Bold tag opening, %3$s: Bold tag closing, %4$s: Bold tag opening, %5$s: Bold tag closing, %6$s: Closing HTML list and div tags */
                 'description' => sprintf(__('%1$sSupported currency: %2$sUSD%3$s %4$sStripe accounts in the following country can accept the payment: %5$sUnited States%6$s', 'payment-gateway-stripe-and-woocommerce-integration'), '<div class="wt_info_div"><ul><li>', '<b>','</b>', '</li><li>', '<b>', '</b></li></ul></div>'),
             ),
             'eh_stripe_affirm_form_title'   => array(
@@ -160,6 +162,7 @@ class EH_Affirm extends WC_Payment_Gateway {
         $mode = isset($stripe_settings['eh_stripe_mode']) ? $stripe_settings['eh_stripe_mode'] : 'live';
         
         if ( (is_checkout()  && !is_order_received_page())) {
+            //phpcs:ignore WordPress.WP.EnqueuedResourceParameters.MissingVersion, WordPress.WP.EnqueuedResourceParameters.NotInFooter            
             wp_register_script('stripe_v3_js', 'https://js.stripe.com/v3/');
 
          wp_enqueue_script('eh_affirm_js', plugins_url('assets/js/eh-affirm.js', EH_STRIPE_MAIN_FILE), array('stripe_v3_js','jquery'),EH_STRIPE_VERSION, true);
@@ -182,14 +185,14 @@ class EH_Affirm extends WC_Payment_Gateway {
                 'key' => $public_key,
                 'currency' => get_woocommerce_currency(),
             );
-
+            //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing
             $stripe_params['is_checkout'] = ( is_checkout() && empty( $_GET['pay_for_order'] ) ) ? 'yes' : 'no';
 
             // If we're on the pay page we need to pass stripe.js the address of the order.
+            //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing
             if ( isset( $_GET['pay_for_order'] ) && 'true' === $_GET['pay_for_order'] ) {
 
-                $order     = wc_get_order( absint( get_query_var( 'order-pay' ) ) );
-                $order_id  = method_exists($order, 'get_id') ? $order->get_id() : $order->id;
+                $order     = wc_get_order( absint( get_query_var( 'order-pay' ) ) );   
 
                 if ( is_a( $order, 'WC_Order' ) ) {
                     $stripe_params['billing_first_name'] = method_exists($order, 'get_billing_first_name') ? $order->get_billing_first_name() : $order->billing_first_name;
@@ -215,7 +218,7 @@ class EH_Affirm extends WC_Payment_Gateway {
         echo '<div class="status-box">';
         
         if ($description) {
-            echo apply_filters('eh_stripe_desc', wpautop(wp_kses_post("<span>" . $description . "</span>")));
+            echo wp_kses_post(apply_filters('eh_stripe_desc', wpautop(wp_kses_post("<span>" . $description . "</span>"))));
         }
         echo "</div>";
         echo '<div class="eh-affirm-errors" role="alert" style="color:#ff0000"></div>';
@@ -228,8 +231,8 @@ class EH_Affirm extends WC_Payment_Gateway {
         $order = wc_get_order( $order_id );
         
         try{ 
-
-            $payment_method = isset($_POST['eh_affirm_token']) ? sanitize_text_field($_POST['eh_affirm_token']) : '';
+            //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing   
+            $payment_method = isset($_POST['eh_affirm_token']) ? sanitize_text_field(wp_unslash($_POST['eh_affirm_token'])) : '';
             if (empty($payment_method)) {
                 throw new Exception(__('Unable to process this payment, please try again.', 'payment-gateway-stripe-and-woocommerce-integration' ));
                 
@@ -241,7 +244,7 @@ class EH_Affirm extends WC_Payment_Gateway {
                 
             if (!empty($customer) && isset($customer->id)) {
                 $user_id = $order->get_user_id();
-                update_user_meta($user_id, "_affirm_customer_id", sanitize_text_field($customer->id));
+                update_user_meta($user_id, "_affirm_customer_id", sanitize_text_field(wp_unslash($customer->id)));
 
                 $intent = $this->get_payment_intent_from_order( $order );
                
@@ -286,6 +289,7 @@ class EH_Affirm extends WC_Payment_Gateway {
 
         }
         catch(Exception $e){
+            /* translators: %s: Error message */
             $order->update_status( 'failed', sprintf( __( 'Affirm payment failed: %s', 'payment-gateway-stripe-and-woocommerce-integration' ),$e->getMessage() ) );
             
            wc_add_notice( $e->getMessage(), 'error' );
@@ -359,7 +363,8 @@ class EH_Affirm extends WC_Payment_Gateway {
                 'WP customer #' => (version_compare(WC()->version, '2.7.0', '<')) ? $wc_order->user_id : $wc_order->get_user_id(),
                 'Billing Email' => (version_compare(WC()->version, '2.7.0', '<')) ? $wc_order->billing_email : $wc_order->get_billing_email()
             ),
-            'description' => wp_specialchars_decode( get_bloginfo( 'name' ), ENT_QUOTES ) . ' Order #' . $wc_order->get_order_number(),
+            /* translators: %1$s: Site name, %2$s: Order number */
+            'description' => sprintf( __( '%1$s Order #%2$s', 'payment-gateway-stripe-and-woocommerce-integration' ), wp_specialchars_decode( get_bloginfo( 'name' ), ENT_QUOTES ), $wc_order->get_order_number() ),
         );
         
         $eh_stripe = get_option("woocommerce_eh_stripe_pay_settings");
@@ -372,7 +377,8 @@ class EH_Affirm extends WC_Payment_Gateway {
                 
         if($show_items_details){
             
-            $charge['description']=$charge['metadata']['Products'] .' '.wp_specialchars_decode( get_bloginfo( 'name' ), ENT_QUOTES ) . ' Order #' . $wc_order->get_order_number();
+            /* translators: %1$s: Products list, %2$s: Site name, %3$s: Order number */
+            $charge['description'] = sprintf( __( '%1$s %2$s Order #%3$s', 'payment-gateway-stripe-and-woocommerce-integration' ), $charge['metadata']['Products'], wp_specialchars_decode( get_bloginfo( 'name' ), ENT_QUOTES ), $wc_order->get_order_number() );
         }
         $charge['confirm'] =  true ;
         $charge['return_url'] =  add_query_arg('order_id', $order_id, WC()->api_request_url('EH_Affirm')) ; 
@@ -402,9 +408,9 @@ class EH_Affirm extends WC_Payment_Gateway {
      */
     public function get_clients_details() {
         return array(
-            'IP' => $_SERVER['REMOTE_ADDR'],
-            'Agent' => $_SERVER['HTTP_USER_AGENT'],
-            'Referer' => $_SERVER['HTTP_REFERER']
+            'IP' => isset($_SERVER['REMOTE_ADDR']) ? sanitize_text_field(wp_unslash($_SERVER['REMOTE_ADDR'])) : '',
+            'Agent' => isset($_SERVER['HTTP_USER_AGENT']) ? sanitize_text_field(wp_unslash($_SERVER['HTTP_USER_AGENT'])) : '',
+            'Referer' => isset($_SERVER['HTTP_REFERER']) ? esc_url_raw(wp_unslash($_SERVER['HTTP_REFERER'])) : '',
         );
     }
 
@@ -447,7 +453,7 @@ class EH_Affirm extends WC_Payment_Gateway {
                     //$charge_response = \Stripe\Charge::retrieve($charge_id);
                     $refund_response = \Stripe\Refund::create($refund_params);
                     if ($refund_response) {
-                                        
+                        //phpcs:ignore WordPress.DateTime.RestrictedFunctions.date_date
                         $refund_time = date('Y-m-d H:i:s', time() + get_option('gmt_offset') * 3600);
                         $obj = new EH_Stripe_Payment();
                         $data = $obj->make_refund_params($refund_response, $amount, ((version_compare(WC()->version, '2.7.0', '<')) ? $order->order_currency : $order->get_currency()), $order_id);
@@ -497,15 +503,18 @@ class EH_Affirm extends WC_Payment_Gateway {
     }
 
     public function eh_affirm_callback_handler() {
+        //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing   
         if (isset($_REQUEST['order_id']) && !empty($_REQUEST['order_id'])) {
-            $order_id = sanitize_text_field($_REQUEST['order_id']);
+            //phpcs:ignore WordPress.Security.NonceVerification.Recommended 
+            $order_id = sanitize_text_field(wp_unslash($_REQUEST['order_id']));
             $order = wc_get_order( $order_id );
 
         }
+        //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing   
         if (isset($_REQUEST['payment_intent']) && !empty($_REQUEST['payment_intent'])) {
             if(true === apply_filters('wt_stripe_inline_processing', false)){
-
-            $intent_id = sanitize_text_field($_REQUEST['payment_intent']);
+                //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing    
+            $intent_id = sanitize_text_field(wp_unslash($_REQUEST['payment_intent']));
             $intent_result = \Stripe\PaymentIntent::retrieve( $intent_id );
             if (!empty($intent_result)) {
                 $this->eh_process_payment_response($intent_result, $order);
@@ -565,6 +574,7 @@ class EH_Affirm extends WC_Payment_Gateway {
             }
         }
         
+        //phpcs:ignore WordPress.DateTime.RestrictedFunctions.date_date
         $order_time = date('Y-m-d H:i:s', time() + get_option('gmt_offset') * 3600); 
         $charge_status = (isset($charge_response->status) ? $charge_response->status : '');
         $payment_method_tye = (isset($charge_response->payment_method_details->type) ? $charge_response->payment_method_details->type : '');

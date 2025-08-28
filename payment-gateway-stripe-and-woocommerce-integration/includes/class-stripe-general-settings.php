@@ -24,6 +24,7 @@ class EH_Stripe_General_Settings extends EH_Stripe_Payment {
         $log_file_success = '';
         $log_file_failed = '';
         if ( function_exists( 'wp_hash' ) ) {
+            //phpcs:ignore WordPress.DateTime.RestrictedFunctions.date_date
             $date_suffix = date( 'Y-m-d', time() );
             
             $handle_success = 'eh_stripe_pay_live';
@@ -140,6 +141,7 @@ class EH_Stripe_General_Settings extends EH_Stripe_Payment {
                   /*'class'=> 'eh-css-class',*/
                   'title' => sprintf('<span style="font-weight: bold; font-size: 15px; color:#23282d;">'.__( 'Webhooks','payment-gateway-stripe-and-woocommerce-integration' ).'<span>'),
                   'type' => 'title',
+                  /* translators: %1$s: Opening paragraph tag, %2$s: Line break and bold tag opening, %3$s: Webhook URL, %4$s: Bold tag closing, %5$s: Closing paragraph tag */
                   'description' => sprintf(__('Stripe uses webhooks to notify charge statuses and update order statuses for payment method like SEPA Direct Debit, Klarna, Bacs Direct Debit, BECS Direct Debit, Boleto, OXXO, Stripe Checkout.%1$sTo confgure, add the following webhook endpoint %2$s %3$s %4$s to your <a href="https://dashboard.stripe.com/account/webhooks" target="_blank">Stripe account (Dashboard > Developers > Webhooks > Add endpoint)</a>%5$s', 'payment-gateway-stripe-and-woocommerce-integration'), '<p>', '<br><b>', $url, '</b>', '</p>'),
                  ),
                 'eh_stripe_webhook_secret' => array(
@@ -153,7 +155,8 @@ class EH_Stripe_General_Settings extends EH_Stripe_Payment {
                     'title' => sprintf('<span style="font-weight: bold; font-size: 15px; color:#23282d;">'.__( 'Debug','payment-gateway-stripe-and-woocommerce-integration' ).'<span>'),
                     'type' => 'title',
                    /* 'class'=> 'eh-css-class',*/
-                    'description' => sprintf(__('Records Stripe payment transactions into WooCommerce status log. <a href="' . admin_url("admin.php?page=wc-status&tab=logs") . '" target="_blank"> View log </a>', 'payment-gateway-stripe-and-woocommerce-integration')),
+                    /* translators: %s: Admin URL for viewing logs */
+                    'description' => sprintf(__('Records Stripe payment transactions into WooCommerce status log. <a href="%s" target="_blank"> View log </a>', 'payment-gateway-stripe-and-woocommerce-integration'), admin_url("admin.php?page=wc-status&tab=logs")),
                 ),
                 'eh_stripe_debug' => array(
                     'title' => __('Debug mode', 'payment-gateway-stripe-and-woocommerce-integration'),
@@ -166,7 +169,8 @@ class EH_Stripe_General_Settings extends EH_Stripe_Payment {
                     'title' => __('Log', 'payment-gateway-stripe-and-woocommerce-integration'),
                     'label' => __('Enable', 'payment-gateway-stripe-and-woocommerce-integration'),
                     'type' => 'checkbox',
-                    'description' => sprintf('<span style="color:green">'.__( 'Success log file','payment-gateway-stripe-and-woocommerce-integration' ).'</span>: ' . $log_file_success . ' <br> <br><span style="color:red">'.__( 'Failure log file','payment-gateway-stripe-and-woocommerce-integration' ).'</span >: ' . $log_file_failed),
+                    /* translators: %1$s: Success log file label, %2$s: Success log file path, %3$s: Failure log file label, %4$s: Failure log file path */
+                    'description' => sprintf(__( '%1$s: %2$s <br> <br>%3$s: %4$s', 'payment-gateway-stripe-and-woocommerce-integration' ), '<span style="color:green">' . __( 'Success log file','payment-gateway-stripe-and-woocommerce-integration' ) . '</span>', $log_file_success, '<span style="color:red">' . __( 'Failure log file','payment-gateway-stripe-and-woocommerce-integration' ) . '</span>', $log_file_failed),
                     'default' => 'yes',
                     'desc_tip' => __('Enable to record stripe payment transaction in a log file.', 'payment-gateway-stripe-and-woocommerce-integration')
                 )
@@ -255,6 +259,7 @@ class EH_Stripe_General_Settings extends EH_Stripe_Payment {
                   /*'class'=> 'eh-css-class',*/
                   'title' => sprintf('<span style="font-weight: bold; font-size: 15px; color:#23282d;">'.__( 'Webhooks','payment-gateway-stripe-and-woocommerce-integration' ).'<span>'),
                   'type' => 'title',
+                  /* translators: %1$s: Opening paragraph tag, %2$s: Line break and bold tag opening, %3$s: Webhook URL, %4$s: Bold tag closing, %5$s: Closing paragraph tag */
                   'description' => sprintf(__('Stripe uses webhooks to notify charge statuses and update order statuses for payment method like SEPA Direct Debit, Klarna, Bacs Direct Debit, BECS Direct Debit, Boleto, OXXO, Stripe Checkout.%1$sTo confgure, add the following webhook endpoint %2$s %3$s %4$s to your <a href="https://dashboard.stripe.com/account/webhooks" target="_blank">Stripe account (Dashboard > Developers > Webhooks > Add endpoint)</a>%5$s', 'payment-gateway-stripe-and-woocommerce-integration'), '<p>', '<br><b>', $url, '</b>', '</p>'),
                  ),
                 'eh_stripe_webhook_secret' => array(
@@ -268,7 +273,8 @@ class EH_Stripe_General_Settings extends EH_Stripe_Payment {
                     'title' => sprintf('<span style="font-weight: bold; font-size: 15px; color:#23282d;">'.__( 'Debug','payment-gateway-stripe-and-woocommerce-integration' ).'<span>'),
                     'type' => 'title',
                    /* 'class'=> 'eh-css-class',*/
-                    'description' => sprintf(__('Records Stripe payment transactions into WooCommerce status log. <a href="' . admin_url("admin.php?page=wc-status&tab=logs") . '" target="_blank"> View log </a>', 'payment-gateway-stripe-and-woocommerce-integration')),
+                    /* translators: %s: Admin URL for viewing logs */
+                    'description' => sprintf(__('Records Stripe payment transactions into WooCommerce status log. <a href="%s" target="_blank"> View log </a>', 'payment-gateway-stripe-and-woocommerce-integration'), admin_url("admin.php?page=wc-status&tab=logs")),
                 ),
                 'eh_stripe_debug' => array(
                     'title' => __('Debug mode', 'payment-gateway-stripe-and-woocommerce-integration'),
@@ -281,7 +287,8 @@ class EH_Stripe_General_Settings extends EH_Stripe_Payment {
                     'title' => __('Log', 'payment-gateway-stripe-and-woocommerce-integration'),
                     'label' => __('Enable', 'payment-gateway-stripe-and-woocommerce-integration'),
                     'type' => 'checkbox',
-                    'description' => sprintf('<span style="color:green">'.__( 'Success log file','payment-gateway-stripe-and-woocommerce-integration' ).'</span>: ' . $log_file_success . ' <br> <br><span style="color:red">'.__( 'Failure log file','payment-gateway-stripe-and-woocommerce-integration' ).'</span >: ' . $log_file_failed),
+                    /* translators: %1$s: Success log file label, %2$s: Success log file path, %3$s: Failure log file label, %4$s: Failure log file path */
+                    'description' => sprintf(__( '%1$s: %2$s <br> <br>%3$s: %4$s', 'payment-gateway-stripe-and-woocommerce-integration' ), '<span style="color:green">' . __( 'Success log file','payment-gateway-stripe-and-woocommerce-integration' ) . '</span>', $log_file_success, '<span style="color:red">' . __( 'Failure log file','payment-gateway-stripe-and-woocommerce-integration' ) . '</span>', $log_file_failed),
                     'default' => 'yes',
                     'desc_tip' => __('Enable to record stripe payment transaction in a log file.', 'payment-gateway-stripe-and-woocommerce-integration')
                 )
@@ -435,9 +442,9 @@ class EH_Stripe_General_Settings extends EH_Stripe_Payment {
                  <a id="eh_test_mode" href="#" class="button eh_test_mode">%5$s</a>
             </td>            
             <td scope="row" class="eh-stripe-mode" data-eh-stripe-mode="live"  class="titledesc" style="text-align:right; display:%6$s">
-                 <a id="eh_live_mode" href="#" class="button eh_live_mode">'. __( 'Switch to test mode', 'custom_paypal' ).'</a>
+                 <a id="eh_live_mode" href="#" class="button eh_live_mode">%7$s</a>
             </td>
-        </tr>',  __( 'Connect to Stripe', 'payment-gateway-stripe-and-woocommerce-integration' ), $current_mode_icon,  __($current_mode, 'payment-gateway-stripe-and-woocommerce-integration'), $visibility_test,  __( 'Switch to live mode', 'custom_paypal' ), $visibility_live);
+        </tr>',  __( 'Connect to Stripe', 'payment-gateway-stripe-and-woocommerce-integration' ), $current_mode_icon,  $current_mode, $visibility_test,  __( 'Switch to live mode', 'payment-gateway-stripe-and-woocommerce-integration' ), $visibility_live, __( 'Switch to test mode', 'payment-gateway-stripe-and-woocommerce-integration' ));
 
         return $html;
     }

@@ -21,7 +21,8 @@ class EH_Sepa_Stripe_Gateway extends WC_Payment_Gateway {
         $this->method_title       = __( 'SEPA', 'payment-gateway-stripe-and-woocommerce-integration' );
 
         $url = add_query_arg( 'wc-api', 'wt_stripe', trailingslashit( get_home_url() ) );
-        $this->method_description = sprintf( __( 'SEPA (Single Euro Payments Area) Direct Debit payment authenticates customers using the IBAN number. ' . '<a  class="thickbox" href="'.EH_STRIPE_MAIN_URL_PATH . 'assets/img/sepa-preview.png?TB_iframe=true&width=100&height=100"> [Preview] </a>', 'payment-gateway-stripe-and-woocommerce-integration' ));
+        /* translators: %s: URL path to the plugin assets directory */
+        $this->method_description = sprintf( __( 'SEPA (Single Euro Payments Area) Direct Debit payment authenticates customers using the IBAN number. <a class="thickbox" href="%sassets/img/sepa-preview.png?TB_iframe=true&width=100&height=100">[Preview] </a>', 'payment-gateway-stripe-and-woocommerce-integration' ), EH_STRIPE_MAIN_URL_PATH );
         $this->supports = array(
             'products',
             'refunds',
@@ -36,17 +37,18 @@ class EH_Sepa_Stripe_Gateway extends WC_Payment_Gateway {
         
         $stripe_settings               = get_option( 'woocommerce_eh_stripe_pay_settings' );
         
-        $this->title                   = __($this->get_option( 'eh_stripe_sepa_title' ), 'payment-gateway-stripe-and-woocommerce-integration' );
-        $this->description             = __($this->get_option( 'eh_stripe_sepa_description' ), 'payment-gateway-stripe-and-woocommerce-integration' );
+        $this->title                   = $this->get_option( 'eh_stripe_sepa_title' );
+        $this->description             = $this->get_option( 'eh_stripe_sepa_description' );
         $this->enabled                 = $this->get_option( 'enabled' );
         $this->eh_order_button         = $this->get_option( 'eh_stripe_sepa_order_button');
-        $this->order_button_text       = __($this->eh_order_button, 'payment-gateway-stripe-and-woocommerce-integration');
+        $this->order_button_text       = $this->eh_order_button;
 
         if (isset($stripe_settings['eh_stripe_mode']) && 'test' === $stripe_settings['eh_stripe_mode']) {
-            $this->description = $this->description . ' ' . __( '<p><strong>TEST MODE ENABLED</strong>. In test mode, you can use IBAN number AT611904300234573201.</p>', 'payment-gateway-stripe-and-woocommerce-integration' );
+            /* translators: %1$s: Opening paragraph and strong tags, %2$s: Closing strong and paragraph tags */
+            $this->description = $this->description . ' ' . sprintf( __( '%1$sTEST MODE ENABLED%2$s. In test mode, you can use IBAN number AT611904300234573201.', 'payment-gateway-stripe-and-woocommerce-integration' ), '<p><strong>', '</strong></p>' );
         }
 
-        $this->mandate_description = __(apply_filters('wt_sepa_mandate', 'By providing your IBAN and confirming this payment, you authorise and Stripe, our payment service provider, to send instructions to your bank to debit your account and your bank to debit your account in accordance with those instructions. You are entitled to a refund from your bank under the terms and conditions of your agreement with your bank. A refund must be claimed within 8 weeks starting from the date on which your account was debited.'), 'payment-gateway-stripe-and-woocommerce-integration' );
+        $this->mandate_description = apply_filters('wt_sepa_mandate', __('By providing your IBAN and confirming this payment, you authorise and Stripe, our payment service provider, to send instructions to your bank to debit your account and your bank to debit your account in accordance with those instructions. You are entitled to a refund from your bank under the terms and conditions of your agreement with your bank. A refund must be claimed within 8 weeks starting from the date on which your account was debited.', 'payment-gateway-stripe-and-woocommerce-integration' ));
 
         add_action( 'woocommerce_update_options_payment_gateways_' . $this->id, array( $this, 'process_admin_options' ) );
 
@@ -73,7 +75,8 @@ class EH_Sepa_Stripe_Gateway extends WC_Payment_Gateway {
 
             'eh_sepa_desc' => array(
                 'type' => 'title',
-                'description' => sprintf(__('%sSupported currency: %s EUR %sStripe accounts in the following countries can accept the payment: %sAustralia, Austria, Belgium, Bulgaria, Canada, Cyprus, Czech Republic, Denmark, Estonia, Finland, France, Germany, Greece, Hong Kong, Hungary, Ireland, Italy, Japan, Latvia, Lithuania, Luxembourg, Malta, Mexico, Netherlands, New Zealand, Norway, Poland, Portugal, Romania, Singapore, Slovakia, Slovenia, Spain, Sweden, Switzerland, United Kingdom, United States%s %s Read documentation %s', 'payment-gateway-stripe-and-woocommerce-integration'), '<div class="wt_info_div"><ul><li>', '<b>','</b></li><li>', '<b>', '</b></li></ul></div>', '<p><a target="_blank" href="https://www.webtoffee.com/woocommerce-stripe-payment-gateway-plugin-user-guide/#sepa_pay">', '</a></p>'),
+                /* translators: %1$s: Opening HTML div and list tags, %2$s: Bold tag opening, %3$s: Bold tag closing, %4$s: Bold tag opening, %5$s: Bold tag closing, %6$s: Closing HTML list and div tags, %7$s: Documentation link opening, %8$s: Documentation link closing */
+                'description' => sprintf(__('%1$sSupported currency: %2$s EUR %3$sStripe accounts in the following countries can accept the payment: %4$sAustralia, Austria, Belgium, Bulgaria, Canada, Cyprus, Czech Republic, Denmark, Estonia, Finland, France, Germany, Greece, Hong Kong, Hungary, Ireland, Italy, Japan, Latvia, Lithuania, Luxembourg, Malta, Mexico, Netherlands, New Zealand, Norway, Poland, Portugal, Romania, Singapore, Slovakia, Slovenia, Spain, Sweden, Switzerland, United Kingdom, United States%5$s%6$s%7$s Read documentation %8$s', 'payment-gateway-stripe-and-woocommerce-integration'), '<div class="wt_info_div"><ul><li>', '<b>','</b></li><li>', '<b>', '</b></li></ul></div>', '<p><a target="_blank" href="https://www.webtoffee.com/woocommerce-stripe-payment-gateway-plugin-user-guide/#sepa_pay">', '</a></p>', ''),
             ),
             'eh_stripe_sepa_form_title'   => array(
                 'type'        => 'title',
@@ -111,6 +114,7 @@ class EH_Sepa_Stripe_Gateway extends WC_Payment_Gateway {
             ),
             'eh_sepa_webhook_desc' => array(
                 'type' => 'title',
+                /* translators: %1$s: Opening HTML div and paragraph tags, %2$s: Documentation link opening, %3$s: Documentation link closing, %4$s: Closing HTML paragraph and div tags */
                 'description' => sprintf(__('%1$sTo accept payments via SEPA payment method, you must configure the webhook endpoint and subscribe to relevant events. %2$sClick here%3$s to know more%4$s', 'payment-gateway-stripe-and-woocommerce-integration'), '<div class="wt_info_div"><p>', '<a target="_blank" href="https://www.webtoffee.com/setting-up-webhooks-and-supported-webhooks/">', '</a>', '</p></div>'),
             ),
         );   
@@ -135,6 +139,7 @@ class EH_Sepa_Stripe_Gateway extends WC_Payment_Gateway {
 
         if ( (is_checkout()  && !is_order_received_page())) {
             $stripe_settings   = get_option( 'woocommerce_eh_stripe_pay_settings' );
+            //phpcs:ignore WordPress.WP.EnqueuedResourceParameters.MissingVersion, WordPress.WP.EnqueuedResourceParameters.NotInFooter
             wp_register_script('stripe_v3_js', 'https://js.stripe.com/v3/');
 
            wp_enqueue_script('eh_sepa_pay', plugins_url('assets/js/eh-sepa.js', EH_STRIPE_MAIN_FILE), array('stripe_v3_js','jquery'),EH_STRIPE_VERSION, true);
@@ -177,11 +182,12 @@ class EH_Sepa_Stripe_Gateway extends WC_Payment_Gateway {
                                              ),
                 )
             );
-
+            //phpcs:ignore WordPress.Security.NonceVerification.Recommended 
             $stripe_params['is_checkout']                             = ( is_checkout() && empty( $_GET['pay_for_order'] ) ) ? 'yes' : 'no';
             $stripe_params['inline_postalcode']                       = apply_filters('hide_inline_postal_code', true);
 
             // If we're on the pay page we need to pass stripe.js the address of the order.
+            //phpcs:ignore WordPress.Security.NonceVerification.Recommended 
             if ( isset( $_GET['pay_for_order'] ) && 'true' === $_GET['pay_for_order'] ) {
 
                 $order     = wc_get_order( absint( get_query_var( 'order-pay' ) ) );
@@ -219,7 +225,7 @@ class EH_Sepa_Stripe_Gateway extends WC_Payment_Gateway {
         echo '<div class="status-box">';
 
         if ($description) {
-            echo apply_filters('eh_sepa_desc', wpautop(wp_kses_post("<span>" . $description . "</span>")));
+            echo wp_kses_post(apply_filters('eh_sepa_desc', wpautop(wp_kses_post("<span>" . $description . "</span>"))));
         }
         echo "</div>";
         $pay_button_text = __('Pay', 'payment-gateway-stripe-and-woocommerce-integration');
@@ -235,7 +241,7 @@ class EH_Sepa_Stripe_Gateway extends WC_Payment_Gateway {
                 data-name="' . esc_attr(sprintf(get_bloginfo('name', 'display'))) . '"
                 data-currency="' . esc_attr(((version_compare(WC()->version, '2.7.0', '<')) ? $order->order_currency : $order->get_currency())) . '">';
 
-           echo $this->elements_form();
+           echo wp_kses_post($this->elements_form());
             echo '</div>';
 
         } else {
@@ -247,7 +253,7 @@ class EH_Sepa_Stripe_Gateway extends WC_Payment_Gateway {
                 data-name="' . esc_attr(sprintf(get_bloginfo('name', 'display'))) . '"
                 data-currency="' . esc_attr(strtolower(get_woocommerce_currency())) . '">';
 
-           echo $this->elements_form();
+           echo wp_kses_post($this->elements_form());
            
            echo '</div>';
         }
@@ -258,6 +264,7 @@ class EH_Sepa_Stripe_Gateway extends WC_Payment_Gateway {
      *Renders stripe elements on payment form.
      */
     public function elements_form() {
+        ob_start();
         ?>
         <fieldset id="eh-<?php echo esc_attr( $this->id ); ?>-cc-form" class="eh-credit-card-form eh-payment-form" style="background:transparent;">
 
@@ -275,7 +282,7 @@ class EH_Sepa_Stripe_Gateway extends WC_Payment_Gateway {
                     </div>
                 </div> 
               <!-- Display mandate acceptance text. -->
-              <div id="mandate-acceptance"><?php esc_html_e($this->mandate_description, "payment-gateway-stripe-and-woocommerce-integration")  ?>
+              <div id="mandate-acceptance"><?php echo esc_html($this->mandate_description); ?>
               </div>
                 <div class="clear"></div>
 
@@ -284,6 +291,7 @@ class EH_Sepa_Stripe_Gateway extends WC_Payment_Gateway {
             <div class="clear"></div>
         </fieldset>
         <?php
+        return ob_get_clean();
     }
 
 
@@ -329,8 +337,8 @@ class EH_Sepa_Stripe_Gateway extends WC_Payment_Gateway {
         $currency =  $order->get_currency();
         
         try{ 
-
-            $payment_method = isset($_POST['eh_sepa_token']) ? sanitize_text_field($_POST['eh_sepa_token']) : '';
+            //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing
+            $payment_method = isset($_POST['eh_sepa_token']) ? sanitize_text_field(wp_unslash($_POST['eh_sepa_token'])) : '';
             if (empty($payment_method)) {
                 throw new Exception(__('Unable to process this payment, please try again.', 'payment-gateway-stripe-and-woocommerce-integration' ));
                 
@@ -389,6 +397,7 @@ class EH_Sepa_Stripe_Gateway extends WC_Payment_Gateway {
 
         }
         catch(Exception $e){
+            /* translators: %s: Error message */
             $order->update_status( 'failed', sprintf( __( 'Sepa payment failed: %s', 'payment-gateway-stripe-and-woocommerce-integration' ),$e->getMessage() ) );
             
            wc_add_notice( $e->getMessage(), 'error' );
@@ -510,9 +519,9 @@ class EH_Sepa_Stripe_Gateway extends WC_Payment_Gateway {
      */
     public function get_clients_details() {
         return array(
-            'IP' => $_SERVER['REMOTE_ADDR'],
-            'Agent' => $_SERVER['HTTP_USER_AGENT'],
-            'Referer' => $_SERVER['HTTP_REFERER']
+            'IP' => isset($_SERVER['REMOTE_ADDR']) ? sanitize_text_field(wp_unslash($_SERVER['REMOTE_ADDR'])) : '',
+            'Agent' => isset($_SERVER['HTTP_USER_AGENT']) ? sanitize_text_field(wp_unslash($_SERVER['HTTP_USER_AGENT'])) : '',
+            'Referer' => isset($_SERVER['HTTP_REFERER']) ? esc_url_raw(wp_unslash($_SERVER['HTTP_REFERER'])) : ''
         );
     }
 
@@ -528,6 +537,7 @@ class EH_Sepa_Stripe_Gateway extends WC_Payment_Gateway {
         $currency                        =  $order->get_currency();
         $post_data['currency']           =  strtolower( $currency);
         $post_data['amount']             =  EH_Stripe_Payment::get_stripe_amount( $order->get_total(), $currency );
+        /* translators: %1$s: Site name, %2$s: Order number */
         $post_data['description']        =  sprintf( __( '%1$s - Order %2$s', 'payment-gateway-stripe-and-woocommerce-integration' ), wp_specialchars_decode( get_bloginfo( 'name' ), ENT_QUOTES ), $order->get_order_number() );
         $billing_email                   =  (version_compare(WC()->version, '2.7.0', '<')) ? $order->billing_email      : $order->get_billing_email();
         $billing_first_name              =  (version_compare(WC()->version, '2.7.0', '<')) ? $order->billing_first_name : $order->get_billing_first_name();
@@ -599,23 +609,26 @@ class EH_Sepa_Stripe_Gateway extends WC_Payment_Gateway {
                     //$charge_response = \Stripe\Charge::retrieve($charge_id);
                     $refund_response = \Stripe\Refund::create($refund_params);
                     if ($refund_response) {
-                                        
+                        //phpcs:ignore WordPress.DateTime.RestrictedFunctions.date_date
                         $refund_time = date('Y-m-d H:i:s', time() + get_option('gmt_offset') * 3600);
                         $obj = new EH_Stripe_Payment();
                         $data = $obj->make_refund_params($refund_response, $amount, ((version_compare(WC()->version, '2.7.0', '<')) ? $order->order_currency : $order->get_currency()), $order_id);
                        EH_Helper_Class::wt_stripe_order_db_operations($order_id, $order, 'add', '_eh_stripe_payment_refund', $data, false); 
-                        $order->add_order_note(__('Reason : ', 'payment-gateway-stripe-and-woocommerce-integration') . $reason . '.<br>' . __('Amount : ', 'payment-gateway-stripe-and-woocommerce-integration') . get_woocommerce_currency_symbol() . $amount . '.<br>' . __('Status : refunded ', 'payment-gateway-stripe-and-woocommerce-integration') . ' [ ' . $refund_time . ' ] ' . (is_null($data['transaction_id']) ? '' : '<br>' . __('Transaction ID : ', 'payment-gateway-stripe-and-woocommerce-integration') . $data['transaction_id']));
+                        /* translators: %1$s: Reason text, %2$s: Amount text, %3$s: Status text, %4$s: Transaction ID text */
+                        $order->add_order_note(sprintf(__('Reason : %1$s<br>Amount : %2$s<br>Status : refunded [ %3$s ] %4$s', 'payment-gateway-stripe-and-woocommerce-integration'), $reason, get_woocommerce_currency_symbol() . $amount, $refund_time, (is_null($data['transaction_id']) ? '' : '<br>Transaction ID : ' . $data['transaction_id'])));
                         EH_Stripe_Log::log_update('live', $data, get_bloginfo('blogname') . ' - Refund - Order #' . $order->get_order_number());
                         return true;
                     } else {
                         EH_Stripe_Log::log_update('dead', $data, get_bloginfo('blogname') . ' - Refund Error - Order #' . $order->get_order_number());
-                        $order->add_order_note(__('Reason : ', 'payment-gateway-stripe-and-woocommerce-integration') . $reason . '.<br>' . __('Amount : ', 'payment-gateway-stripe-and-woocommerce-integration') . get_woocommerce_currency_symbol() . $amount . '.<br>' . __(' Status : Failed ', 'payment-gateway-stripe-and-woocommerce-integration'));
+                        /* translators: %1$s: Reason text, %2$s: Amount text */
+                        $order->add_order_note(sprintf(__('Reason : %1$s<br>Amount : %2$s<br>Status : Failed', 'payment-gateway-stripe-and-woocommerce-integration'), $reason, get_woocommerce_currency_symbol() . $amount));
                         return new WP_Error('error', $data->message);
                     }
                 } catch (Exception $error) {
                     $oops = $error->getJsonBody();
                     EH_Stripe_Log::log_update('dead', $oops['error'], get_bloginfo('blogname') . ' - Refund Error - Order #' . $order->get_order_number());
-                    $order->add_order_note(__('Reason : ', 'payment-gateway-stripe-and-woocommerce-integration') . $reason . '.<br>' . __('Amount : ', 'payment-gateway-stripe-and-woocommerce-integration') . get_woocommerce_currency_symbol() . $amount . '.<br>' . __('Status : ', 'payment-gateway-stripe-and-woocommerce-integration') . $oops['error']['message']);
+                    /* translators: %1$s: Reason text, %2$s: Amount text, %3$s: Error message */
+                    $order->add_order_note(sprintf(__('Reason : %1$s<br>Amount : %2$s<br>Status : %3$s', 'payment-gateway-stripe-and-woocommerce-integration'), $reason, get_woocommerce_currency_symbol() . $amount, $oops['error']['message']));
                     return new WP_Error('error', $oops['error']['message']);
                 }
             } else {
@@ -648,14 +661,18 @@ class EH_Sepa_Stripe_Gateway extends WC_Payment_Gateway {
     }
 
     public function eh_sepa_callback_handler() { 
+        //phpcs:ignore WordPress.Security.NonceVerification.Recommended 
         if (isset($_REQUEST['order_id']) && !empty($_REQUEST['order_id'])) {
-            $order_id = sanitize_text_field($_REQUEST['order_id']);
+            //phpcs:ignore WordPress.Security.NonceVerification.Recommended 
+            $order_id = sanitize_text_field(wp_unslash($_REQUEST['order_id']));
             $order = wc_get_order( $order_id );
 
         }
-  
+
+        //phpcs:ignore WordPress.Security.NonceVerification.Recommended 
         if (isset($_REQUEST['payment_intent']) && !empty($_REQUEST['payment_intent'])) {
-            $intent_id = sanitize_text_field($_REQUEST['payment_intent']);
+            //phpcs:ignore WordPress.Security.NonceVerification.Recommended 
+            $intent_id = sanitize_text_field(wp_unslash($_REQUEST['payment_intent']));
             $intent_result = \Stripe\PaymentIntent::retrieve( $intent_id );
             if (!empty($intent_result)) {
                 $this->eh_process_payment_response($intent_result, $order);
@@ -712,6 +729,7 @@ class EH_Sepa_Stripe_Gateway extends WC_Payment_Gateway {
             }
         }
         
+        //phpcs:ignore WordPress.DateTime.RestrictedFunctions.date_date
         $order_time = date('Y-m-d H:i:s', time() + get_option('gmt_offset') * 3600); 
         $charge_status = (isset($charge_response->status) ? $charge_response->status : '');
         $payment_method_tye = (isset($charge_response->payment_method_details->type) ? $charge_response->payment_method_details->type : '');
@@ -722,12 +740,14 @@ class EH_Sepa_Stripe_Gateway extends WC_Payment_Gateway {
 
                 if(isset($charge_response->captured) && $charge_response->captured === true && $order->needs_payment()){
                     $order->payment_complete( $charge_response->id );
-                    $order->add_order_note( __('Payment Status : ', 'payment-gateway-stripe-and-woocommerce-integration') . ucfirst($charge_status) .' [ ' . $order_time . ' ] . ' . __('Source : ', 'payment-gateway-stripe-and-woocommerce-integration') . $payment_method_tye . '. ' . __('Charge Status :', 'payment-gateway-stripe-and-woocommerce-integration') . $captured . (is_null($charge_response->balance_transaction) ? '' :'. Transaction ID : ' . $charge_response->balance_transaction) );
+                    /* translators: %1$s: Payment status, %2$s: Order time, %3$s: Source type, %4$s: Charge status, %5$s: Transaction ID */
+                    $order->add_order_note( sprintf( __('Payment Status : %1$s [ %2$s ] . Source : %3$s . Charge Status : %4$s%5$s', 'payment-gateway-stripe-and-woocommerce-integration'), ucfirst($charge_status), $order_time, $payment_method_tye, $captured, (is_null($charge_response->balance_transaction) ? '' : '. Transaction ID : ' . $charge_response->balance_transaction) ) );
 
                 }
                 elseif($order->get_status() !== 'on-hold'){
                     $order->update_status('on-hold');
-                    $order->add_order_note( __('Payment Status : ', 'payment-gateway-stripe-and-woocommerce-integration') . ucfirst($charge_status) .' [ ' . $order_time . ' ] . ' . __('Source : ', 'payment-gateway-stripe-and-woocommerce-integration') . $payment_method_tye . '. ' . __('Charge Status :', 'payment-gateway-stripe-and-woocommerce-integration') . $captured . (is_null($charge_response->balance_transaction) ? '' :'. Transaction ID : ' . $charge_response->balance_transaction) );
+                    /* translators: %1$s: Payment status, %2$s: Order time, %3$s: Source type, %4$s: Charge status, %5$s: Transaction ID */
+                    $order->add_order_note( sprintf( __('Payment Status : %1$s [ %2$s ] . Source : %3$s . Charge Status : %4$s%5$s', 'payment-gateway-stripe-and-woocommerce-integration'), ucfirst($charge_status), $order_time, $payment_method_tye, $captured, (is_null($charge_response->balance_transaction) ? '' : '. Transaction ID : ' . $charge_response->balance_transaction) ) );
 
                 }
                 WC()->cart->empty_cart();
@@ -748,7 +768,8 @@ class EH_Sepa_Stripe_Gateway extends WC_Payment_Gateway {
         }         
         elseif($response->status == 'requires_capture'){
             $order->update_status( 'on-hold', __( 'Payment is authorized and requires a capture.', 'payment-gateway-stripe-and-woocommerce-integration' ) );
-            $order->add_order_note( __('Payment Status : ', 'payment-gateway-stripe-and-woocommerce-integration') . ucfirst($charge_status) .' [ ' . $order_time . ' ] . ' . __('Source : ', 'payment-gateway-stripe-and-woocommerce-integration') . $payment_method_tye . '. ' . __('Charge Status :', 'payment-gateway-stripe-and-woocommerce-integration') . $captured . (is_null($charge_response->balance_transaction) ? '' :'. Transaction ID : ' . $charge_response->balance_transaction) );
+            /* translators: %1$s: Payment status, %2$s: Order time, %3$s: Source type, %4$s: Charge status, %5$s: Transaction ID */
+            $order->add_order_note( sprintf( __('Payment Status : %1$s [ %2$s ] . Source : %3$s . Charge Status : %4$s%5$s', 'payment-gateway-stripe-and-woocommerce-integration'), ucfirst($charge_status), $order_time, $payment_method_tye, $captured, (is_null($charge_response->balance_transaction) ? '' : '. Transaction ID : ' . $charge_response->balance_transaction) ) );
 
 
         }        
@@ -767,7 +788,7 @@ class EH_Sepa_Stripe_Gateway extends WC_Payment_Gateway {
         global $wpdb;
  
         $raw_post = file_get_contents( 'php://input' );
-        $sig_header = $_SERVER['HTTP_STRIPE_SIGNATURE'];
+        $sig_header = isset($_SERVER['HTTP_STRIPE_SIGNATURE']) ? sanitize_text_field(wp_unslash($_SERVER['HTTP_STRIPE_SIGNATURE'])) : '';
         $eh_stripe_option = get_option("woocommerce_eh_stripe_pay_settings");
         $endpoint_secret = isset($eh_stripe_option["eh_stripe_webhook_secret"]) ? $eh_stripe_option["eh_stripe_webhook_secret"] : '';
 
@@ -800,7 +821,7 @@ class EH_Sepa_Stripe_Gateway extends WC_Payment_Gateway {
                         if ( isset( $decoded['data']['object']['metadata']['site_url'] ) ) {
                             
                             $home_url       = home_url();
-                            $site_url_meta  = $decoded['data']['object']['metadata']['site_url'];
+                            $site_url_meta  = sanitize_url( $decoded['data']['object']['metadata']['site_url'] );
                     
                             if ( strpos( $site_url_meta, $home_url ) === false ) {
                                 wc_get_logger()->debug('url miss match',array('source' => 'eh_stripe_debug_url_log'));
@@ -819,7 +840,7 @@ class EH_Sepa_Stripe_Gateway extends WC_Payment_Gateway {
                     
                     }
 
-                    $sleep_time_interval = abs( apply_filters( 'wtst_webhook_sleep_time', 20 ) );
+                    $sleep_time_interval = abs( apply_filters( 'wtst_webhook_sleep_time', 2 ) );
                     
                     EH_Stripe_Log::log_update('live', $decoded, get_bloginfo('blogname') . ' - WebHook event');
                     switch (strtolower($decoded['type'])) {
@@ -828,16 +849,18 @@ class EH_Sepa_Stripe_Gateway extends WC_Payment_Gateway {
                             sleep($sleep_time_interval);
                             $order_need_processing = apply_filters('wt_stripe_order_need_processing_on_charge',true, $decoded);
                            if (isset($decoded['data']['object']['metadata']['order_id']) && !empty($decoded['data']['object']['metadata']['order_id']) && $order_need_processing ) {
-                                $order_id = $decoded['data']['object']['metadata']['order_id'];
+                                $order_id = absint( $decoded['data']['object']['metadata']['order_id'] );
 
                                 $transaction_id = sanitize_text_field($decoded['data']['object']['id']);
 
 
                                 if(!$order = wc_get_order( $order_id )){
                                     if(true === EH_Stripe_Payment::wt_stripe_is_HPOS_compatibile()){
+                                        //phpcs:ignore WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.DirectQuery	
                                         $meta = $wpdb->get_results( $wpdb->prepare("SELECT order_id FROM {$wpdb->prefix}wc_orders_meta WHERE meta_key = '_transaction_id' AND meta_value= %s", $transaction_id ));
                                     }
                                     else{
+                                        //phpcs:ignore WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.DirectQuery
                                         $meta = $wpdb->get_results( $wpdb->prepare("SELECT post_id FROM {$wpdb->postmeta} WHERE meta_key = '_transaction_id' AND meta_value = %s",  $transaction_id ));                                        
                                     }                                
 
@@ -848,9 +871,11 @@ class EH_Sepa_Stripe_Gateway extends WC_Payment_Gateway {
                                    else if(isset($decoded['data']['object']['payment_intent'])){
                                         $payment_intent_id = sanitize_text_field($decoded['data']['object']['payment_intent']);
                                         if(true === EH_Stripe_Payment::wt_stripe_is_HPOS_compatibile()){
+                                            //phpcs:ignore WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.DirectQuery
                                             $meta = $wpdb->get_results($wpdb->prepare( "SELECT order_id FROM {$wpdb->prefix}wc_orders_meta WHERE meta_key = '_eh_stripe_payment_intent' AND meta_value = %s", $payment_intent_id));                                            
                                         }
                                         else{
+                                            //phpcs:ignore WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.DirectQuery
                                             $meta = $wpdb->get_results($wpdb->prepare( "SELECT post_id FROM {$wpdb->postmeta} WHERE meta_key = '_eh_stripe_payment_intent' AND meta_value= %s", $payment_intent_id) );                                            
                                         }                                    
                                         
@@ -877,28 +902,30 @@ class EH_Sepa_Stripe_Gateway extends WC_Payment_Gateway {
                                 
                                 if ( 'on-hold' === $order->status || 'pending' === $order->status || 'failed' === $order->status) {
                                     if (isset($decoded['data']['object']['status']) && $decoded['data']['object']['status'] === 'succeeded') {
-                                         $status = $decoded['data']['object']['status'];
+                                         $status = sanitize_text_field( $decoded['data']['object']['status'] );
 
                                             $order->set_transaction_id( sanitize_text_field($decoded['data']['object']['id'] ));
 
-                                            
+                                            //phpcs:ignore WordPress.DateTime.RestrictedFunctions.date_date
                                             $order_time = date('Y-m-d H:i:s', time() + get_option('gmt_offset') * 3600); 
-                                            $source_type = $decoded['data']['object']['payment_method_details']['type'];
-                                            $source_type = (isset($decoded['data']['object']['payment_method_details']['type']) ? $decoded['data']['object']['payment_method_details']['type'] : (isset($decoded['data']['object']['source']['type']) ? $decoded['data']['object']['source']['type'] : 'unknown') );
-                                             $balance_transaction_id = ((is_array($decoded['data']['object']['balance_transaction']) && isset($decoded['data']['object']['balance_transaction']['id'])) ? $decoded['data']['object']['balance_transaction']['id'] : (isset($decoded['data']['object']['balance_transaction']) ? $decoded['data']['object']['balance_transaction'] : 'unknown'));
+                                            $source_type = sanitize_text_field( $decoded['data']['object']['payment_method_details']['type'] ?? '' );
+                                            $source_type = (isset($decoded['data']['object']['payment_method_details']['type']) ? sanitize_text_field( $decoded['data']['object']['payment_method_details']['type'] ) : (isset($decoded['data']['object']['source']['type']) ? sanitize_text_field( $decoded['data']['object']['source']['type'] ) : 'unknown') );
+                                             $balance_transaction_id = ((is_array($decoded['data']['object']['balance_transaction']) && isset($decoded['data']['object']['balance_transaction']['id'])) ? sanitize_text_field( $decoded['data']['object']['balance_transaction']['id'] ) : (isset($decoded['data']['object']['balance_transaction']) ? sanitize_text_field( $decoded['data']['object']['balance_transaction'] ) : 'unknown'));
 
 
 
                                             if ($decoded['data']['object']['captured'] == true ) {
                                                 $captured = 'Captured';
                                                 $order->payment_complete( $transaction_id );
-                                                $order->add_order_note( __('Payment Status : ', 'payment-gateway-stripe-and-woocommerce-integration') . ucfirst($status) .' [ ' . $order_time . ' ] . ' . __('Source : ', 'payment-gateway-stripe-and-woocommerce-integration') . $source_type . '. ' . __('Charge Status :', 'payment-gateway-stripe-and-woocommerce-integration') . $captured . __('. Transaction ID : ', 'payment-gateway-stripe-and-woocommerce-integration') . $balance_transaction_id . __('. via webhook ', 'payment-gateway-stripe-and-woocommerce-integration') . $decoded['type'] );
+                                                /* translators: %1$s: Payment status, %2$s: Order time, %3$s: Source type, %4$s: Charge status, %5$s: Transaction ID, %6$s: Webhook type */
+                                                $order->add_order_note( sprintf( __('Payment Status : %1$s [ %2$s ] . Source : %3$s . Charge Status : %4$s . Transaction ID : %5$s . via webhook %6$s', 'payment-gateway-stripe-and-woocommerce-integration'), ucfirst($status), $order_time, $source_type, $captured, $balance_transaction_id, sanitize_text_field( $decoded['type'] ) ) );
 
                                             }
                                             elseif($order->get_status() !== 'on-hold'){
                                                 $captured = 'Uncaptured';
                                                 $order->update_status('on-hold');
-                                                $order->add_order_note( __('Payment Status : ', 'payment-gateway-stripe-and-woocommerce-integration') . ucfirst($status) .' [ ' . $order_time . ' ] . ' . __('Source : ', 'payment-gateway-stripe-and-woocommerce-integration') . $source_type . '. ' . __('Charge Status :', 'payment-gateway-stripe-and-woocommerce-integration') . $captured . __('. Transaction ID : ', 'payment-gateway-stripe-and-woocommerce-integration') . $balance_transaction_id . __('. via webhook ', 'payment-gateway-stripe-and-woocommerce-integration') . $decoded['type'] );
+                                                /* translators: %1$s: Payment status, %2$s: Order time, %3$s: Source type, %4$s: Charge status, %5$s: Transaction ID, %6$s: Webhook type */
+                                                $order->add_order_note( sprintf( __('Payment Status : %1$s [ %2$s ] . Source : %3$s . Charge Status : %4$s . Transaction ID : %5$s . via webhook %6$s', 'payment-gateway-stripe-and-woocommerce-integration'), ucfirst($status), $order_time, $source_type, $captured, $balance_transaction_id, sanitize_text_field( $decoded['type'] ) ) );
 
                                             }
                                     } 
@@ -916,9 +943,11 @@ class EH_Sepa_Stripe_Gateway extends WC_Payment_Gateway {
                                $charge_id = sanitize_text_field($decoded['data']['object']['charge']);
                                 if (!empty($charge_id) && $order_need_processing) {
                                     if(true === EH_Stripe_Payment::wt_stripe_is_HPOS_compatibile()){
+                                        //phpcs:ignore WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.DirectQuery
                                         $meta = $wpdb->get_results($wpdb->prepare( "SELECT order_id FROM {$wpdb->prefix}wc_orders_meta WHERE meta_key = '_transaction_id' AND meta_value= %s", $charge_id ) );                                         
                                     }
                                     else{
+                                        //phpcs:ignore WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.DirectQuery
                                         $meta = $wpdb->get_results($wpdb->prepare( "SELECT post_id FROM {$wpdb->postmeta} WHERE meta_key = '_transaction_id' AND meta_value= %s", $charge_id) );                                        
                                     }                                 
                                      if (!empty($meta)) { 
@@ -929,7 +958,8 @@ class EH_Sepa_Stripe_Gateway extends WC_Payment_Gateway {
                                         }
                                         $order = wc_get_order( $order_id );
 
-                                        $order->add_order_note( __('A dispute was created for this order : ', 'payment-gateway-stripe-and-woocommerce-integration') . $decoded['data']['object']['charge'] . __('. via webhook ', 'payment-gateway-stripe-and-woocommerce-integration') . $decoded['type']);
+                                        /* translators: %1$s: Charge ID, %2$s: Webhook type */
+                                        $order->add_order_note( sprintf( __('A dispute was created for this order : %1$s . via webhook %2$s', 'payment-gateway-stripe-and-woocommerce-integration'), sanitize_text_field( $decoded['data']['object']['charge'] ), sanitize_text_field( $decoded['type'] ) ) );
 
                                         // Set order status to payment failed
                                          $order->update_status( 'failed', sprintf( __( 'Payment failed.', 'payment-gateway-stripe-and-woocommerce-integration' ) ) );
@@ -960,25 +990,28 @@ class EH_Sepa_Stripe_Gateway extends WC_Payment_Gateway {
                                             if ($decoded['data']['object']['status'] == 'failed') {
                                                 $reason = ((isset($decoded['data']['object']['failure_reason']) && !empty($decoded['data']['object']['failure_reason'])) ? $decoded['data']['object']['failure_reason'] 
                                                 : 'Refund failed - Unknown error occurred');
-                                                $order->add_order_note( __('Refund of '  . get_woocommerce_currency_symbol() . $refund_amount . ' failed - ' . $reason, 'payment-gateway-stripe-and-woocommerce-integration'));
+                                                
+                                                $order->add_order_note( sprintf( __('Refund of %1$s failed - %2$s', 'payment-gateway-stripe-and-woocommerce-integration'), get_woocommerce_currency_symbol() . $refund_amount, $reason ) );
 
                                                 // Set order status to payment failed
                                                     $order->update_status( 'processing', sprintf( __( 'Refund Failed.', 'payment-gateway-stripe-and-woocommerce-integration' ) ) );
                                             }
+                                            /*
                                             else{
                                                 
-                                                $order->add_order_note((__('Amount : ', 'payment-gateway-stripe-and-woocommerce-integration') .get_woocommerce_currency_symbol() . $refund_amount . '.<br>' . __('Status : ', 'payment-gateway-stripe-and-woocommerce-integration') . 'Success' . (is_null($decoded['data']['object']['balance_transaction']) ? '' : '<br>' . __('Transaction ID : ', 'payment-gateway-stripe-and-woocommerce-integration') . $decoded['data']['object']['balance_transaction'] )));
+                                                // translators: %1$s: Refund amount, %2$s: Transaction ID 
+                                                $order->add_order_note(sprintf(__('Amount : %1$s<br>Status : Success%2$s', 'payment-gateway-stripe-and-woocommerce-integration'), get_woocommerce_currency_symbol() . $refund_amount, (is_null($decoded['data']['object']['balance_transaction']) ? '' : '<br>Transaction ID : ' . $decoded['data']['object']['balance_transaction'] )));
 
                                                 // Set order status to payment failed
                                                     $order->update_status( 'refunded', sprintf( __( 'Refunded.', 'payment-gateway-stripe-and-woocommerce-integration' ) ) );
                                             }
+                                           
                                         }
                                     }
 
                                 }
-                           }
-                           break;
-                       */
+                           } */
+                           // break;
                        case 'payment_intent.succeeded':
                        case 'payment_intent.payment_failed':
                             sleep( $sleep_time_interval * 2 );
@@ -995,6 +1028,7 @@ class EH_Sepa_Stripe_Gateway extends WC_Payment_Gateway {
                                             $args    = array(
                                                         'post_type'      => 'shop_order',
                                                         'post_status'    => 'any',
+                                                        //phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
                                                         'meta_query'     => array(
                                                             array(
                                                                 'key'        => '_order_number',
@@ -1012,9 +1046,11 @@ class EH_Sepa_Stripe_Gateway extends WC_Payment_Gateway {
                                 }
                                 else{
                                     if(true === EH_Stripe_Payment::wt_stripe_is_HPOS_compatibile()){
+                                        //phpcs:ignore WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.DirectQuery
                                         $meta = $wpdb->get_results($wpdb->prepare( "SELECT order_id FROM {$wpdb->prefix}wc_orders_meta WHERE meta_key = '_eh_stripe_payment_intent' AND meta_value= %s", $intent_id) );                                         
                                     }
                                     else{
+                                        //phpcs:ignore WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.DirectQuery
                                         $meta = $wpdb->get_results($wpdb->prepare( "SELECT post_id FROM {$wpdb->postmeta} WHERE meta_key = '_eh_stripe_payment_intent' AND meta_value= %s", $intent_id) );                                        
                                     }                                
 
@@ -1033,7 +1069,7 @@ class EH_Sepa_Stripe_Gateway extends WC_Payment_Gateway {
                                             return;
                                         }
                                         $request = array('id' => $intent_id);
-                                        $reqst_json = json_encode($request );
+                                        $reqst_json = wp_json_encode($request );
                                         if ( 'on-hold' === $order->status || 'pending' === $order->status || 'failed' === $order->status ) {
 
                                         //charges array not present by default for API version 2022-11-15 onwards
@@ -1049,18 +1085,20 @@ class EH_Sepa_Stripe_Gateway extends WC_Payment_Gateway {
                                                 $obj1 = new EH_Stripe_Payment();
                                                 $charge_param = $obj1->make_charge_params($charges['data'][0], $order_id);
                                                 EH_Helper_Class::wt_stripe_order_db_operations($order_id, $order, 'update', '_eh_stripe_payment_charge', $charge_param, false);
-                                                
+                                                //phpcs:ignore WordPress.DateTime.RestrictedFunctions.date_date
                                                  $order_time = date('Y-m-d H:i:s', time() + get_option('gmt_offset') * 3600);
                                                 if (true === $charges['data'][0]['paid']) {
 
                                                     if(true === $charges['data'][0]['captured'] ){
                                                         $order->payment_complete($charge_param['id']);
-                                                        $order->add_order_note(__('Payment Status : ', 'payment-gateway-stripe-and-woocommerce-integration') . ucfirst($charge_param['status']) . ' [ ' . $order_time . ' ] . ' . __('Source : ', 'payment-gateway-stripe-and-woocommerce-integration') . $charge_param['source_type'] . '. ' . __('Charge Status :', 'payment-gateway-stripe-and-woocommerce-integration') . $charge_param['captured'] . (is_null($charge_param['transaction_id']) ? '' : '. <br>'.__('Transaction ID : ','payment-gateway-stripe-and-woocommerce-integration') . $charge_param['transaction_id'] . __('. via webhook ', 'payment-gateway-stripe-and-woocommerce-integration') . $decoded['type']));
+                                                        /* translators: %1$s: Payment status, %2$s: Order time, %3$s: Source type, %4$s: Charge status, %5$s: Transaction ID, %6$s: Webhook type */
+                                                        $order->add_order_note(sprintf(__('Payment Status : %1$s [ %2$s ] . Source : %3$s . Charge Status : %4$s%5$s via webhook %6$s', 'payment-gateway-stripe-and-woocommerce-integration'), ucfirst($charge_param['status']), $order_time, $charge_param['source_type'], $charge_param['captured'], (is_null($charge_param['transaction_id']) ? '' : '. <br>Transaction ID : ' . $charge_param['transaction_id']), $decoded['type'] ) );
 
                                                     }
                                                     if (!$charges['data'][0]['captured'] && $order->get_status() !== 'on-hold') {
                                                         $order->update_status('on-hold');
-                                                        $order->add_order_note(__('Payment Status : ', 'payment-gateway-stripe-and-woocommerce-integration') . ucfirst($charge_param['status']) . ' [ ' . $order_time . ' ] . ' . __('Source : ', 'payment-gateway-stripe-and-woocommerce-integration') . $charge_param['source_type'] . '. ' . __('Charge Status :', 'payment-gateway-stripe-and-woocommerce-integration') . $charge_param['captured'] . (is_null($charge_param['transaction_id']) ? '' : '. <br>'.__('Transaction ID : ','payment-gateway-stripe-and-woocommerce-integration') . $charge_param['transaction_id'] . __('. via webhook ', 'payment-gateway-stripe-and-woocommerce-integration') . $decoded['type']));
+                                                        /* translators: %1$s: Payment status, %2$s: Order time, %3$s: Source type, %4$s: Charge status, %5$s: Transaction ID, %6$s: Webhook type */
+                                                        $order->add_order_note(sprintf(__('Payment Status : %1$s [ %2$s ] . Source : %3$s . Charge Status : %4$s%5$s via webhook %6$s', 'payment-gateway-stripe-and-woocommerce-integration'), ucfirst($charge_param['status']), $order_time, $charge_param['source_type'], $charge_param['captured'], (is_null($charge_param['transaction_id']) ? '' : '. <br>Transaction ID : ' . $charge_param['transaction_id']), $decoded['type'] ) );
 
                                                     }
                                                     WC()->cart->empty_cart();
@@ -1213,7 +1251,7 @@ class EH_Sepa_Stripe_Gateway extends WC_Payment_Gateway {
                        //Stripe API v_2022-11-15 onwards expand refunds objects in charge retrieve API
                        elseif(isset($decoded['data']['object']['id'])){ 
                             $expanded_charge = \Stripe\Charge::retrieve(array('id' => $decoded['data']['object']['id'], 'expand' => array('refunds') ) );
-                            $refund_data = isset($expanded_charge->refunds) ? json_decode(json_encode($expanded_charge->refunds), true) : array();
+                            $refund_data = isset($expanded_charge->refunds) ? json_decode(wp_json_encode($expanded_charge->refunds), true) : array();
                        }
 
 
@@ -1228,6 +1266,7 @@ class EH_Sepa_Stripe_Gateway extends WC_Payment_Gateway {
                                 if(empty($order_id) && isset($decoded['data']['object']['payment_intent'])){
                                     $payment_intent_id = sanitize_text_field($decoded['data']['object']['payment_intent']);
                                     if(true === EH_Stripe_Payment::wt_stripe_is_HPOS_compatibile()){
+                                        //phpcs:ignore WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.DirectQuery
                                         $meta = $wpdb->get_results(
                                             $wpdb->prepare(
                                                 "SELECT order_id FROM {$wpdb->prefix}wc_orders_meta WHERE meta_key = '_eh_stripe_payment_intent' AND meta_value = %s",
@@ -1236,6 +1275,7 @@ class EH_Sepa_Stripe_Gateway extends WC_Payment_Gateway {
                                         );
                                     }
                                     else{
+                                        //phpcs:ignore WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.DirectQuery
                                         $meta = $wpdb->get_results(
                                             $wpdb->prepare(
                                                 "SELECT post_id FROM {$wpdb->postmeta} WHERE meta_key = '_eh_stripe_payment_intent' AND meta_value = %s",
@@ -1286,6 +1326,9 @@ class EH_Sepa_Stripe_Gateway extends WC_Payment_Gateway {
                                         'line_items'     => array(),
                                         ));
                                          
+                                        if ( is_wp_error( $refund ) ) {
+                                            return;
+                                        }
                                         
                                         do_action('woocommerce_refund_processed', $refund, true);    
                                         $refund_id = (version_compare(WC()->version, '2.7.0', '<')) ? $refund->id : $refund->get_id();
@@ -1317,7 +1360,8 @@ class EH_Sepa_Stripe_Gateway extends WC_Payment_Gateway {
                                         EH_Helper_Class::wt_stripe_order_db_operations($order_id, $order, 'add', '_eh_stripe_payment_refund', $data, false);
 
 
-                                        $order->add_order_note(__('Reason : ', 'payment-gateway-stripe-and-woocommerce-integration') . $data['reason'] . '.<br>' . __('Amount : ', 'payment-gateway-stripe-and-woocommerce-integration') . get_woocommerce_currency_symbol() . $amount_to_be_refund . '.<br>' . __('Status : ', 'payment-gateway-stripe-and-woocommerce-integration') . (($data['status'] === 'succeeded') ? 'Success' : 'Failed') . ' [ ' . $data['created'] . ' ] ' . (is_null($data['transaction_id']) ? '' : '<br>' . __('Transaction ID : ', 'payment-gateway-stripe-and-woocommerce-integration') . $data['transaction_id'] . __('. via webhook ', 'payment-gateway-stripe-and-woocommerce-integration') . $decoded['type']));                                                                            
+                                        /* translators: %1$s: Reason text, %2$s: Amount text, %3$s: Status text, %4$s: Created time, %5$s: Transaction ID, %6$s: Webhook type */
+                                        $order->add_order_note(sprintf(__('Reason : %1$s<br>Amount : %2$s<br>Status : %3$s [ %4$s ] %5$s via webhook %6$s', 'payment-gateway-stripe-and-woocommerce-integration'), $data['reason'], get_woocommerce_currency_symbol() . $amount_to_be_refund, (($data['status'] === 'succeeded') ? 'Success' : 'Failed'), $data['created'], (is_null($data['transaction_id']) ? '' : '<br>Transaction ID : ' . $data['transaction_id']), $decoded['type'] ) );                                                                            
 
 
                                     }    

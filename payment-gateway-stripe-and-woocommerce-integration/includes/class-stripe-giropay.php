@@ -20,7 +20,8 @@ class EH_Giropay extends WC_Payment_Gateway {
         $this->id                 = 'eh_giropay_stripe';
         $this->method_title       = __( 'Giropay', 'payment-gateway-stripe-and-woocommerce-integration' );
 
-        $this->method_description =  __( 'Giropay is a German payment method based on online banking. ' . '<a  class="thickbox" href="'.EH_STRIPE_MAIN_URL_PATH . 'assets/img/giropay-preview.png?TB_iframe=true&width=100&height=100">[Preview] </a>', 'payment-gateway-stripe-and-woocommerce-integration' );
+        /* translators: %1$s: Opening anchor tag with preview link, %2$s: Closing anchor tag */
+        $this->method_description = sprintf( __( 'Giropay is a German payment method based on online banking. %1$s[Preview]%2$s', 'payment-gateway-stripe-and-woocommerce-integration' ), '<a class="thickbox" href="'.EH_STRIPE_MAIN_URL_PATH . 'assets/img/giropay-preview.png?TB_iframe=true&width=100&height=100">', '</a>' );
         $this->supports = array(
             'products',
             'refunds',
@@ -35,11 +36,11 @@ class EH_Giropay extends WC_Payment_Gateway {
         $stripe_settings               = get_option( 'woocommerce_eh_stripe_pay_settings' );
         $this->capture_now = ((isset($stripe_settings['eh_stripe_capture']) && !empty($stripe_settings['eh_stripe_capture'])) ? $stripe_settings['eh_stripe_capture'] : '');
         
-        $this->title                   = __($this->get_option( 'eh_stripe_giropay_title' ), 'payment-gateway-stripe-and-woocommerce-integration' );
-        $this->description             = __($this->get_option( 'eh_stripe_giropay_description' ), 'payment-gateway-stripe-and-woocommerce-integration' );
+        $this->title                   = $this->get_option( 'eh_stripe_giropay_title' );
+        $this->description             = $this->get_option( 'eh_stripe_giropay_description' );
         $this->enabled                 = $this->get_option( 'enabled' );
         $this->eh_order_button         = $this->get_option( 'eh_stripe_giropay_order_button');
-        $this->order_button_text       = __($this->eh_order_button, 'payment-gateway-stripe-and-woocommerce-integration');
+        $this->order_button_text       = $this->eh_order_button;
 
         add_action( 'woocommerce_update_options_payment_gateways_' . $this->id, array( $this, 'process_admin_options' ) );
 
@@ -62,7 +63,8 @@ class EH_Giropay extends WC_Payment_Gateway {
         $this->form_fields = array(
             'eh_giropay_desc' => array(
                 'type' => 'title',
-                'description' => sprintf(__('%sSupported currencies: %sEUR%sStripe accounts in the following countries can accept the payment: %sAustralia, Austria, Belgium, Bulgaria, Canada, Cyprus, Czech Republic, Denmark, Estonia, Finland, France, Germany, Greece, Hong Kong, Hungary, Ireland, Italy, Japan, Latvia, Lithuania, Luxembourg, Malta, Mexico, Netherlands, New Zealand, Norway, Poland, Portugal, Romania, Singapore, Slovakia, Slovenia, Spain, Sweden, Switzerland, United Kingdom, United States%s', 'payment-gateway-stripe-and-woocommerce-integration'), '<div class="wt_info_div"><ul><li>', '<b>', '</b></li><li>', '<b>', '</b></li></ul></div>'),
+                /* translators: %1$s: Opening HTML div and list tags, %2$s: Bold tag opening, %3$s: Bold tag closing, %4$s: Bold tag opening, %5$s: Bold tag closing, %6$s: Closing HTML list and div tags */
+                'description' => sprintf(__('%1$sSupported currencies: %2$sEUR%3$sStripe accounts in the following countries can accept the payment: %4$sAustralia, Austria, Belgium, Bulgaria, Canada, Cyprus, Czech Republic, Denmark, Estonia, Finland, France, Germany, Greece, Hong Kong, Hungary, Ireland, Italy, Japan, Latvia, Lithuania, Luxembourg, Malta, Mexico, Netherlands, New Zealand, Norway, Poland, Portugal, Romania, Singapore, Slovakia, Slovenia, Spain, Sweden, Switzerland, United Kingdom, United States%5$s', 'payment-gateway-stripe-and-woocommerce-integration'), '<div class="wt_info_div"><ul><li>', '<b>', '</b></li><li>', '<b>', '</b></li></ul></div>'),
             ),
 
             'eh_stripe_giropay_form_title'   => array(
@@ -158,6 +160,7 @@ class EH_Giropay extends WC_Payment_Gateway {
 
         $stripe_settings   = get_option( 'woocommerce_eh_stripe_pay_settings' );
         if ( (is_checkout()  && !is_order_received_page())) {
+            //phpcs:ignore WordPress.WP.EnqueuedResourceParameters.MissingVersion, WordPress.WP.EnqueuedResourceParameters.NotInFooter            
             wp_register_script('stripe_v3_js', 'https://js.stripe.com/v3/');
 
          wp_enqueue_script('eh_giropay_js', plugins_url('assets/js/eh-giropay.js', EH_STRIPE_MAIN_FILE), array('stripe_v3_js','jquery'),EH_STRIPE_VERSION, true);
@@ -180,14 +183,14 @@ class EH_Giropay extends WC_Payment_Gateway {
                 'key' => $public_key,
                 'currency' => get_woocommerce_currency(),
             );
-
+            //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing
             $stripe_params['is_checkout'] = ( is_checkout() && empty( $_GET['pay_for_order'] ) ) ? 'yes' : 'no';
 
             // If we're on the pay page we need to pass stripe.js the address of the order.
-            if ( isset( $_GET['pay_for_order'] ) && 'true' === $_GET['pay_for_order'] ) {
+            //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing
+            if ( isset( $_GET['pay_for_order'] ) && 'true' === sanitize_text_field(wp_unslash($_GET['pay_for_order'])) ) {
 
                 $order     = wc_get_order( absint( get_query_var( 'order-pay' ) ) );
-                $order_id  = method_exists($order, 'get_id') ? $order->get_id() : $order->id;
 
                 if ( is_a( $order, 'WC_Order' ) ) {
                     $stripe_params['billing_first_name'] = method_exists($order, 'get_billing_first_name') ? $order->get_billing_first_name() : $order->billing_first_name;
@@ -213,7 +216,7 @@ class EH_Giropay extends WC_Payment_Gateway {
         echo '<div class="status-box">';
         
         if ($description) {
-            echo apply_filters('eh_stripe_desc', wpautop(wp_kses_post("<span>" . $description . "</span>")));
+            echo wp_kses_post(apply_filters('eh_stripe_desc', wpautop(wp_kses_post("<span>" . $description . "</span>"))));
         }
         echo "</div>";
         echo '<div class="eh-giropay-errors" role="alert" style="color:#ff0000"></div>';
@@ -227,7 +230,8 @@ class EH_Giropay extends WC_Payment_Gateway {
         
         try{ 
 
-            $payment_method = isset($_POST['eh_giropay_token']) ? sanitize_text_field($_POST['eh_giropay_token']) : '';
+            //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing   
+            $payment_method = isset($_POST['eh_giropay_token']) ? sanitize_text_field(wp_unslash($_POST['eh_giropay_token'])) : '';
             if (empty($payment_method)) {
                 throw new Exception(__('Unable to process this payment, please try again.', 'payment-gateway-stripe-and-woocommerce-integration' ));
                 
@@ -285,6 +289,7 @@ class EH_Giropay extends WC_Payment_Gateway {
 
         }
         catch(Exception $e){
+            /* translators: %s: Error message */
             $order->update_status( 'failed', sprintf( __( 'Giropay payment failed: %s', 'payment-gateway-stripe-and-woocommerce-integration' ),$e->getMessage() ) );
             
            wc_add_notice( $e->getMessage(), 'error' );
@@ -401,9 +406,9 @@ class EH_Giropay extends WC_Payment_Gateway {
      */
     public function get_clients_details() {
         return array(
-            'IP' => $_SERVER['REMOTE_ADDR'],
-            'Agent' => $_SERVER['HTTP_USER_AGENT'],
-            'Referer' => $_SERVER['HTTP_REFERER']
+                'IP' => isset($_SERVER['REMOTE_ADDR']) ? sanitize_text_field(wp_unslash($_SERVER['REMOTE_ADDR'])) : '',
+            'Agent' => isset($_SERVER['HTTP_USER_AGENT']) ? sanitize_text_field(wp_unslash($_SERVER['HTTP_USER_AGENT'])) : '',
+            'Referer' => isset($_SERVER['HTTP_REFERER']) ? esc_url_raw(wp_unslash($_SERVER['HTTP_REFERER'])) : ''
         );
     }
 
@@ -445,7 +450,7 @@ class EH_Giropay extends WC_Payment_Gateway {
                     //$charge_response = \Stripe\Charge::retrieve($charge_id);
                     $refund_response = \Stripe\Refund::create($refund_params);
                     if ($refund_response) {
-                                        
+                        //phpcs:ignore WordPress.DateTime.RestrictedFunctions.date_date
                         $refund_time = date('Y-m-d H:i:s', time() + get_option('gmt_offset') * 3600);
                         $obj = new EH_Stripe_Payment();
                         $data = $obj->make_refund_params($refund_response, $amount, ((version_compare(WC()->version, '2.7.0', '<')) ? $order->order_currency : $order->get_currency()), $order_id);
@@ -495,13 +500,17 @@ class EH_Giropay extends WC_Payment_Gateway {
     }
 
     public function eh_giropay_callback_handler() {
+        //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing
         if (isset($_REQUEST['order_id']) && !empty($_REQUEST['order_id'])) {
-            $order_id = $_REQUEST['order_id'];
+            //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing
+            $order_id = sanitize_text_field(wp_unslash($_REQUEST['order_id']));
             $order = wc_get_order( $order_id );
 
         }
+        //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing       
         if (isset($_REQUEST['payment_intent']) && !empty($_REQUEST['payment_intent'])) {
-            $intent_id = $_REQUEST['payment_intent'];
+            //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing
+            $intent_id = sanitize_text_field(wp_unslash($_REQUEST['payment_intent']));
             $intent_result = \Stripe\PaymentIntent::retrieve( $intent_id );
             if (!empty($intent_result)) {
                 $this->eh_process_payment_response($intent_result, $order);
@@ -559,6 +568,7 @@ class EH_Giropay extends WC_Payment_Gateway {
             }
         }
         
+        //phpcs:ignore WordPress.DateTime.RestrictedFunctions.date_date
         $order_time = date('Y-m-d H:i:s', time() + get_option('gmt_offset') * 3600); 
         
         $order->set_transaction_id( $charge_response->id );

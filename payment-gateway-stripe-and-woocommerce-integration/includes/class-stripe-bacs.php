@@ -32,13 +32,14 @@ class Eh_Bacs extends WC_Payment_Gateway {
 		$this->init_settings();
         
         $this->eh_stripe_option        = get_option("woocommerce_eh_stripe_pay_settings");
-		$this->title                   = __($this->get_option( 'eh_bacs_title' ), 'payment-gateway-stripe-and-woocommerce-integration' );
-        $this->description             = __($this->get_option( 'eh_bacs_description' ), 'payment-gateway-stripe-and-woocommerce-integration' );
-        $this->method_description      = __( '<p style="max-width: 88%;">Enables users in the UK can accept Bacs Direct Debit payments from customers with a UK bank account. <a class="thickbox" href="'.EH_STRIPE_MAIN_URL_PATH . 'assets/img/bacs-preview.png?TB_iframe=true&width=100&height=100" >Preview</a>', 'payment-gateway-stripe-and-woocommerce-integration' );
+		$this->title                   = $this->get_option( 'eh_bacs_title' );
+        $this->description             = $this->get_option( 'eh_bacs_description' );
+        /* translators: %s: URL path to the plugin assets directory */
+        $this->method_description      = sprintf( __( '<p style="%1$s">Enables users in the UK can accept Bacs Direct Debit payments from customers with a UK bank account. <a class="thickbox" href="%2$sassets/img/bacs-preview.png?TB_iframe=true&width=100&height=100" >Preview</a>', 'payment-gateway-stripe-and-woocommerce-integration' ), "max-width: 88%;", EH_STRIPE_MAIN_URL_PATH );
         
         $this->enabled                     = $this->get_option( 'enabled' );
         $this->eh_order_button             = $this->get_option( 'eh_bacs_order_button');
-        $this->order_button_text           = __($this->eh_order_button, 'payment-gateway-stripe-and-woocommerce-integration');
+        $this->order_button_text           = $this->eh_order_button;
         $this->stripe_checkout_page_locale = $this->get_option( 'eh_bacs_page_locale');
 
 		add_action( 'woocommerce_update_options_payment_gateways_' . $this->id, array( $this, 'process_admin_options' ) );
@@ -64,7 +65,8 @@ class Eh_Bacs extends WC_Payment_Gateway {
 		$this->form_fields = array(
             'eh_bacs_desc' => array(
                 'type' => 'title',
-                'description' => sprintf(__('%sSupported currencies: %sGBP%sStripe accounts in the following countries can accept the payment: %sUK%s', 'payment-gateway-stripe-and-woocommerce-integration'), '<div class="wt_info_div"><ul><li>', '<b>', '</b></li><li>', '<b>', '</b></li></ul></div>'),
+                /* translators: %1$s: Opening HTML div and list tags, %2$s: Bold tag opening, %3$s: Bold tag closing, %4$s: Bold tag opening, %5$s: Bold tag closing, %6$s: Closing HTML list and div tags */
+                'description' => sprintf(__('%1$sSupported currencies: %2$sGBP%3$sStripe accounts in the following countries can accept the payment: %4$sUK%5$s', 'payment-gateway-stripe-and-woocommerce-integration'), '<div class="wt_info_div"><ul><li>', '<b>', '</b></li><li>', '<b>', '</b></li></ul></div>'),
             ),
 
             'eh_bacs_form_title' => array(
@@ -143,6 +145,7 @@ class Eh_Bacs extends WC_Payment_Gateway {
             ),
             'eh_bacs_webhook_desc' => array(
                 'type' => 'title',
+                /* translators: %1$s: Opening HTML div and paragraph tags, %2$s: Documentation link opening, %3$s: Documentation link closing, %4$s: Closing HTML paragraph and div tags */
                 'description' => sprintf(__('%1$sTo accept payments via Bacs Direct Debit payment method, you must configure the webhook endpoint and subscribe to relevant events. %2$sClick here%3$s to know more%4$s', 'payment-gateway-stripe-and-woocommerce-integration'), '<div class="wt_info_div"><p>', '<a target="_blank" href="https://www.webtoffee.com/setting-up-webhooks-and-supported-webhooks/">', '</a>', '</p></div>'),
             ),            
 		);   
@@ -209,7 +212,7 @@ class Eh_Bacs extends WC_Payment_Gateway {
 		echo '<div class="status-box">';
         
         if ($description) {
-            echo apply_filters('eh_stripe_desc', wpautop(wp_kses_post("<span>" . $description . "</span>")));
+            echo wp_kses_post(apply_filters('eh_stripe_desc', wpautop(wp_kses_post("<span>" . $description . "</span>"))));
         }
         echo "</div>";
 	}
@@ -225,6 +228,7 @@ class Eh_Bacs extends WC_Payment_Gateway {
         }
 
         if(is_checkout()){ 
+            //phpcs:ignore WordPress.WP.EnqueuedResourceParameters.MissingVersion, WordPress.WP.EnqueuedResourceParameters.NotInFooter            
              wp_register_script('stripe_v3_js', 'https://js.stripe.com/v3/');
             wp_enqueue_script('eh_checkout_script', EH_STRIPE_MAIN_URL_PATH . 'assets/js/eh-checkout.js',array('stripe_v3_js','jquery'),EH_STRIPE_VERSION ,true);
             
@@ -350,7 +354,7 @@ class Eh_Bacs extends WC_Payment_Gateway {
                     array(
                         'session_id' => $session_id,
                         'order_id'      => (version_compare(WC()->version, '2.7.0', '<')) ? $order->id : $order->get_id(),
-                        'time'          => rand(
+                        'time'          => wp_rand(
                             0,
                             999999
                         ),
@@ -369,11 +373,13 @@ class Eh_Bacs extends WC_Payment_Gateway {
       
         if(!EH_Helper_Class::verify_nonce(EH_STRIPE_PLUGIN_NAME, 'eh_checkout_nonce'))
         {
-            die(_e('Access Denied', 'payment-gateway-stripe-and-woocommerce-integration'));
+            die(esc_html__('Access Denied', 'payment-gateway-stripe-and-woocommerce-integration'));
         }
 
+        //phpcs:ignore WordPress.Security.NonceVerification.Recommended 
         if (isset($_REQUEST['action']) && 'cancel_order' == $_REQUEST['action']) { 
-            $order_id = intval( $_GET['order_id'] );
+            //phpcs:ignore WordPress.Security.NonceVerification.Recommended 
+            $order_id = isset($_GET['order_id']) ? intval( sanitize_text_field(wp_unslash($_GET['order_id'])) ) : 0 ;
             $order = wc_get_order($order_id);
 
             wc_add_notice(__('You have cancelled Bacs Direct Debit Session. Please try to process your order again.', 'payment-gateway-stripe-and-woocommerce-integration'), 'notice');
@@ -381,12 +387,15 @@ class Eh_Bacs extends WC_Payment_Gateway {
             exit;        
         }
         else{ 
-            $session_id = sanitize_text_field( $_GET['session_id'] );
-            $order_id = intval( $_GET['order_id'] );
+            //phpcs:ignore WordPress.Security.NonceVerification.Recommended 
+            $session_id = isset($_GET['session_id']) ? sanitize_text_field(wp_unslash($_GET['session_id'])) : '';
+            //phpcs:ignore WordPress.Security.NonceVerification.Recommended 
+            $order_id = isset($_GET['order_id']) ? intval( sanitize_text_field(wp_unslash($_GET['order_id'])) ) : 0;
             $order = wc_get_order($order_id);
 
             $obj = new EH_Stripe_Payment();
            
+            //phpcs:ignore WordPress.DateTime.RestrictedFunctions.date_date
             $order_time = date('Y-m-d H:i:s', time() + get_option('gmt_offset') * 3600);
             
             $session = \Stripe\Checkout\Session::retrieve($session_id);
@@ -396,7 +405,7 @@ class Eh_Bacs extends WC_Payment_Gateway {
 
             $payment_intent = \Stripe\PaymentIntent::retrieve($payment_intent_id);
 
-            if (isset($payment_intent->status) && $payment_intent->status == 'processing') {
+            if (isset($payment_intent->status) && 'processing' === $payment_intent->status) {
                $order->update_status('on-hold');
                $order->add_order_note(__('Wait for the payment to succeed or fail.', 'payment-gateway-stripe-and-woocommerce-integration'));
                  // Return thank you page redirect.
@@ -510,6 +519,7 @@ class Eh_Bacs extends WC_Payment_Gateway {
 					$refund_response = $charge_response->refunds->create($refund_params);
 					if ($refund_response) {
 										
+                        //phpcs:ignore WordPress.DateTime.RestrictedFunctions.date_date
 						$refund_time = date('Y-m-d H:i:s', time() + get_option('gmt_offset') * 3600);
 						
 						$data = $obj->make_refund_params($refund_response, $amount, ((version_compare(WC()->version, '2.7.0', '<')) ? $wc_order->order_currency : $wc_order->get_currency()), $order_id);

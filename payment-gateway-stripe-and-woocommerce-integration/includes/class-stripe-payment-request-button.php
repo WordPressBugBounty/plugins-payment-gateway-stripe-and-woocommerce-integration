@@ -1,6 +1,6 @@
 <?php
 if ( ! defined( 'ABSPATH' ) ) {
-	exit;
+    exit;
 }
 
 /**
@@ -61,10 +61,10 @@ class Eh_Stripe_Payment_Request_Class {
      * 
      */
     public function eh_set_session() {
-		if ( ! is_product() || ( isset( WC()->session ) && WC()->session->has_session() ) ) {
-			return;
-		}
-		WC()->session->set_customer_session_cookie( true );
+        if ( ! is_product() || ( isset( WC()->session ) && WC()->session->has_session() ) ) {
+            return;
+        }
+        WC()->session->set_customer_session_cookie( true );
     }
     
 
@@ -77,8 +77,9 @@ class Eh_Stripe_Payment_Request_Class {
         if( ( isset($this->eh_stripe_option['eh_payment_request']) && ($this->eh_stripe_option['eh_payment_request'] === 'yes') ) || ( isset($this->eh_stripe_option['eh_stripe_apple_pay']) && ($this->eh_stripe_option['eh_stripe_apple_pay'] === 'yes') ) ){
            
             if($this->is_payment_request_button_enabled() || $this->is_apple_pay_enabled() ){
-                
+                //phpcs:ignore WordPress.WP.EnqueuedResourceParameters.MissingVersion, WordPress.WP.EnqueuedResourceParameters.NotInFooter
                 wp_enqueue_style('eh_apple_pay_style', EH_STRIPE_MAIN_URL_PATH . 'assets/css/apple-pay.css',EH_STRIPE_VERSION);
+                //phpcs:ignore WordPress.WP.EnqueuedResourceParameters.MissingVersion, WordPress.WP.EnqueuedResourceParameters.NotInFooter
                 wp_enqueue_script('eh_payment_request', EH_STRIPE_MAIN_URL_PATH . 'assets/js/eh-payment-request-button.js',array('stripe_v3_js','jquery'),EH_STRIPE_VERSION);
 
                 //Test mode
@@ -107,7 +108,8 @@ class Eh_Stripe_Payment_Request_Class {
                     }
                 }
                 if ( empty( $site ) ) {
-                    $site = $_SERVER['SERVER_NAME'];
+                    //phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.Security.NonceVerification.Missing
+                    $site = isset($_SERVER['SERVER_NAME']) ? sanitize_text_field(wp_unslash($_SERVER['SERVER_NAME'])) : '';
                 }
                 
                 $gpay_button_type   = isset($this->eh_stripe_option['eh_payment_request_button_type'])   ? $this->eh_stripe_option['eh_payment_request_button_type']   : 'buy';
@@ -158,12 +160,12 @@ class Eh_Stripe_Payment_Request_Class {
         }
     }
     public function eh_supported_product_types() {
-		return apply_filters(
-			'eh_supported_product_types',
-			array(
-				'simple','variable','variation','booking','bundle','composite','mix-and-match',
-			)
-		);
+        return apply_filters(
+            'eh_supported_product_types',
+            array(
+                'simple','variable','variation','booking','bundle','composite','mix-and-match',
+            )
+        );
     }
     
     public function eh_check_for_allowed_product() {
@@ -174,7 +176,7 @@ class Eh_Stripe_Payment_Request_Class {
             $product = wc_get_product( $post->ID );
             $product_type = (version_compare(WC()->version, '3.0', '<')) ? $product->product_type : $product->get_type();
             
-            if ( ! in_array( $product_type, $this->eh_supported_product_types() ) ) {
+            if ( ! in_array( $product_type, $this->eh_supported_product_types(), true ) ) {
                 return false;
             }
            
@@ -184,7 +186,7 @@ class Eh_Stripe_Payment_Request_Class {
                 $_product = apply_filters( 'woocommerce_cart_item_product', $cart_item['data'], $cart_item, $cart_item_key );
 
                 $product_type = (version_compare(WC()->version, '3.0', '<')) ? $_product->product_type : $_product->get_type();
-                if ( ! in_array( $product_type, $this->eh_supported_product_types() ) ) {
+                if ( ! in_array( $product_type, $this->eh_supported_product_types(), true ) ) {
                     return false;
                 }
               
@@ -200,7 +202,7 @@ class Eh_Stripe_Payment_Request_Class {
      */
     public function is_payment_request_button_enabled(){
        
-        if ((isset($this->eh_stripe_option['eh_payment_request']) && ('yes' === $this->eh_stripe_option['eh_payment_request'] )) && ((is_cart() && isset($this->eh_stripe_payment_request_button_options) && in_array('cart', $this->eh_stripe_payment_request_button_options)) || (is_checkout() && isset($this->eh_stripe_payment_request_button_options) && in_array('checkout', $this->eh_stripe_payment_request_button_options)) || (is_product() && isset($this->eh_stripe_payment_request_button_options) && in_array('product', $this->eh_stripe_payment_request_button_options))) ) {
+        if ((isset($this->eh_stripe_option['eh_payment_request']) && ('yes' === $this->eh_stripe_option['eh_payment_request'] )) && ((is_cart() && isset($this->eh_stripe_payment_request_button_options) && in_array('cart', $this->eh_stripe_payment_request_button_options, true)) || (is_checkout() && isset($this->eh_stripe_payment_request_button_options) && in_array('checkout', $this->eh_stripe_payment_request_button_options, true)) || (is_product() && isset($this->eh_stripe_payment_request_button_options) && in_array('product', $this->eh_stripe_payment_request_button_options, true))) ) {
             return true;
         }else{
             return false;
@@ -224,7 +226,7 @@ class Eh_Stripe_Payment_Request_Class {
                     
                     <!-- A Stripe Element will be inserted here. -->
                 </div>';
-            echo $payment_request_button;
+            echo wp_kses_post($payment_request_button);
         }
     }
 
@@ -240,7 +242,7 @@ class Eh_Stripe_Payment_Request_Class {
                 return;
             }
 
-            echo '<div id="eh-payment-request-button-seperator"><p style = "margin-top:1.5em;text-align:center;"> '. __( 'OR', 'payment-gateway-stripe-and-woocommerce-integration' ) .' </p></div>';
+            echo '<div id="eh-payment-request-button-seperator"><p style = "margin-top:1.5em;text-align:center;"> '. esc_html__( 'OR', 'payment-gateway-stripe-and-woocommerce-integration' ) .' </p></div>';
         }
     }
     
@@ -252,7 +254,7 @@ class Eh_Stripe_Payment_Request_Class {
 
         if(!EH_Helper_Class::verify_nonce(EH_STRIPE_PLUGIN_NAME, '_eh_payment_request_button_cart_nonce'))
         {
-            wp_die(__('Access Denied', 'payment-gateway-stripe-and-woocommerce-integration'));
+            wp_die(esc_html__('Access Denied', 'payment-gateway-stripe-and-woocommerce-integration'));
         }
         
         
@@ -400,16 +402,16 @@ class Eh_Stripe_Payment_Request_Class {
      */
     public function eh_create_order() {
 
-		if ( WC()->cart->is_empty() ) {
-			wp_send_json_error( __( 'Empty cart', 'payment-gateway-stripe-and-woocommerce-integration' ) );
-		}
+        if ( WC()->cart->is_empty() ) {
+                            wp_send_json_error( esc_html__( 'Empty cart', 'payment-gateway-stripe-and-woocommerce-integration' ) );
+        }
 
-		if ( ! defined( 'WOOCOMMERCE_CHECKOUT' ) ) {
-			define( 'WOOCOMMERCE_CHECKOUT', true );
-		}
+        if ( ! defined( 'WOOCOMMERCE_CHECKOUT' ) ) {
+            define( 'WOOCOMMERCE_CHECKOUT', true );
+        }
         add_filter('wt_stripe_gateway_available', array($this, 'wt_stripe_gateway_available'));
 
-		WC()->checkout()->process_checkout();
+        WC()->checkout()->process_checkout();
 
     }
 
@@ -421,12 +423,15 @@ class Eh_Stripe_Payment_Request_Class {
 
         if(!EH_Helper_Class::verify_nonce(EH_STRIPE_PLUGIN_NAME, '_eh_add_to_cart_nonce'))
         {
-            wp_die(__('Access Denied', 'payment-gateway-stripe-and-woocommerce-integration'));
+            wp_die(esc_html__('Access Denied', 'payment-gateway-stripe-and-woocommerce-integration'));
         }
         
-        $product_id   = absint( $_POST['product_id'] );
-        $variation_id = absint( $_POST['variation_id'] );
-        $qty          = ! isset( $_POST['qty'] ) ? 1 : absint( $_POST['qty'] );
+        //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing
+        $product_id   =  isset($_POST['product_id']) ? absint( sanitize_text_field(wp_unslash($_POST['product_id'])) ) : 0;
+        //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing
+        $variation_id = isset($_POST['variation_id']) ? absint( sanitize_text_field(wp_unslash($_POST['variation_id'])) ) : 0;
+        //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing
+        $qty          = isset($_POST['qty']) ? absint( sanitize_text_field(wp_unslash($_POST['qty'])) ) : 1;
 
         /**
          * 
@@ -459,31 +464,34 @@ class Eh_Stripe_Payment_Request_Class {
         WC()->cart->calculate_totals();
 
         $data           = array();
-        $data          += $this->get_params_cc_payment_request();
+        $payment_params = $this->get_params_cc_payment_request();
+        if ( null !== $payment_params ) {
+            $data += $payment_params;
+        }
         $data['result'] = 'success';
         $data = apply_filters("wt_stripe_add_to_cart_params", $data);
         wp_send_json( $data );
     }
 
     /**
-	 * Get shipping options.
-	 *
+     * Get shipping options.
+     *
      */
     public function eh_get_shipping_methods() {
 
         if(!EH_Helper_Class::verify_nonce(EH_STRIPE_PLUGIN_NAME, '_eh_payment_request_get_shipping_nonce'))
         {
-            wp_die(__('Access Denied', 'payment-gateway-stripe-and-woocommerce-integration'));
+            wp_die(esc_html__('Access Denied', 'payment-gateway-stripe-and-woocommerce-integration'));
         }
         
         try {     
-			$base_location = wc_get_base_location(); // returns array with 'country' and 'state'
-			$address = array(
-							'country'  => $base_location['country'],
-							'state'    => $base_location['state'],
-							'postcode' => get_option('woocommerce_store_postcode'),
-							'city'     => get_option('woocommerce_store_city'),
-							);
+            $base_location = wc_get_base_location(); // returns array with 'country' and 'state'
+            $address = array(
+                            'country'  => $base_location['country'],
+                            'state'    => $base_location['state'],
+                            'postcode' => get_option('woocommerce_store_postcode'),
+                            'city'     => get_option('woocommerce_store_city'),
+                            );
 
             /**
              * Apply filters to the shipping address.
@@ -514,7 +522,7 @@ class Eh_Stripe_Payment_Request_Class {
             if ( ! empty( $packages ) && WC()->customer->has_calculated_shipping() ) {
                 foreach ( $packages as $package_key => $package ) {
                     if ( empty( $package['rates'] ) ) {
-                        throw new Exception( __( 'Unable to find shipping method for address.', 'payment-gateway-stripe-and-woocommerce-integration' ) );
+                        throw new Exception( esc_html__( 'Unable to find shipping method for address.', 'payment-gateway-stripe-and-woocommerce-integration' ) );
                     }
 
                     foreach ( $package['rates'] as $key => $rate ) {
@@ -526,7 +534,7 @@ class Eh_Stripe_Payment_Request_Class {
                     }
                 }
             } else {
-                throw new Exception( __( 'Unable to find shipping method for address.', 'payment-gateway-stripe-and-woocommerce-integration' ) );
+                throw new Exception( esc_html__( 'Unable to find shipping method for address.', 'payment-gateway-stripe-and-woocommerce-integration' ) );
             }    
 
             if ( isset( $data[0] ) ) {
@@ -534,10 +542,14 @@ class Eh_Stripe_Payment_Request_Class {
                 WC()->session->set( 'chosen_shipping_methods', array( $data[0]['id'] ) );
             }
 
-            if(isset($_REQUEST['is_product']) && 'yes' !== sanitize_text_field($_REQUEST['is_product'])){
+            //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing
+            if(isset($_REQUEST['is_product']) && 'yes' !== sanitize_text_field(wp_unslash($_REQUEST['is_product']))){
                 WC()->cart->calculate_totals();
 
-                $data += $this->get_params_cc_payment_request();
+                $payment_params = $this->get_params_cc_payment_request();
+                if ( null !== $payment_params ) {
+                    $data += $payment_params;
+                }
             }
 
             $data['result'] = 'success';
@@ -549,17 +561,20 @@ class Eh_Stripe_Payment_Request_Class {
             wp_send_json( $data );
            
         } catch ( Exception $e ) {
-            $data += $this->get_params_cc_payment_request();
-	 		$data['result'] = 'invalid_shipping_address';
-			$data['debug'] =  $this->eh_stripe_option['eh_stripe_debug'] === 'yes' ? true : false;
+            $payment_params = $this->get_params_cc_payment_request();
+            if ( null !== $payment_params ) {
+                $data += $payment_params;
+            }
+            $data['result'] = 'invalid_shipping_address';
+            $data['debug'] =  $this->eh_stripe_option['eh_stripe_debug'] === 'yes' ? true : false;
 
             wp_send_json( $data );
         }
     }
 
     /**
-	 * Get shipping options.
-	 *
+     * Get shipping options.
+     *
      */
     public function calculate_shipping( $address = array() ) {
         $country  = strtoupper( $address['country'] );
@@ -630,18 +645,18 @@ class Eh_Stripe_Payment_Request_Class {
     }
 
     /**
-	 * Get shipping method on address change.
-	 *
+     * Get shipping method on address change.
+     *
      */
     public function eh_update_shipping_method() {
 
         if(!EH_Helper_Class::verify_nonce(EH_STRIPE_PLUGIN_NAME, '_eh_payment_request_update_shipping_nonce'))
         {
-            wp_die(__('Access Denied', 'payment-gateway-stripe-and-woocommerce-integration'));
+            wp_die(esc_html__('Access Denied', 'payment-gateway-stripe-and-woocommerce-integration'));
         }
         
         $chosen_shipping_methods = WC()->session->get( 'chosen_shipping_methods' );
-        $shipping_method         = filter_input( INPUT_POST, 'shipping_method', FILTER_DEFAULT, FILTER_REQUIRE_ARRAY );
+        $shipping_method         = filter_input( INPUT_POST, 'shipping_method', FILTER_SANITIZE_STRING, FILTER_REQUIRE_ARRAY );
         if ( is_array( $shipping_method ) ) {
             foreach ( $shipping_method as $i => $value ) {
                 $chosen_shipping_methods[ $i ] = wc_clean( $value );
@@ -653,7 +668,10 @@ class Eh_Stripe_Payment_Request_Class {
         WC()->cart->calculate_totals();
 
         $data           = array();
-        $data          += $this->get_params_cc_payment_request();
+        $payment_params = $this->get_params_cc_payment_request();
+        if ( null !== $payment_params ) {
+            $data += $payment_params;
+        }
         $data['result'] = 'success';
 
         wp_send_json( $data );
@@ -661,7 +679,7 @@ class Eh_Stripe_Payment_Request_Class {
 
     public function is_apple_pay_enabled(){
               
-        if ( ( isset($this->eh_stripe_option['eh_stripe_apple_pay']) && ('yes' === $this->eh_stripe_option['eh_stripe_apple_pay']) ) && ((is_cart() && isset($this->eh_stripe_apple_pay_options) && in_array('cart', $this->eh_stripe_apple_pay_options))  || (is_checkout() && isset($this->eh_stripe_apple_pay_options) && in_array('checkout', $this->eh_stripe_apple_pay_options))  || (is_product() && isset($this->eh_stripe_apple_pay_options) && in_array('product', $this->eh_stripe_apple_pay_options)))) {
+        if ( ( isset($this->eh_stripe_option['eh_stripe_apple_pay']) && ('yes' === $this->eh_stripe_option['eh_stripe_apple_pay']) ) && ((is_cart() && isset($this->eh_stripe_apple_pay_options) && in_array('cart', $this->eh_stripe_apple_pay_options, true))  || (is_checkout() && isset($this->eh_stripe_apple_pay_options) && in_array('checkout', $this->eh_stripe_apple_pay_options, true))  || (is_product() && isset($this->eh_stripe_apple_pay_options) && in_array('product', $this->eh_stripe_apple_pay_options, true)))) {
             return true;
         }else{
             return false;
@@ -715,7 +733,7 @@ class Eh_Stripe_Payment_Request_Class {
                                 <button class="apple-pay-button" lang="'.strtolower($lang).'" style="-webkit-appearance: -apple-pay-button; -apple-pay-button-type: '.$type.'; -apple-pay-button-style: '. $color .'"></button>
                                 ' . $below . '
                             </div>';
-            echo $apple_button;
+            echo wp_kses_post($apple_button);
         }
     }
 

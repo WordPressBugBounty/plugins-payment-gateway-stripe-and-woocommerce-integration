@@ -21,7 +21,8 @@ class EH_Grabpay extends WC_Payment_Gateway {
         $this->method_title       = __( 'Grabpay', 'payment-gateway-stripe-and-woocommerce-integration' );
 
         $url = add_query_arg( 'wc-api', 'wt_stripe', trailingslashit( get_home_url() ) );
-        $this->method_description = sprintf( __( 'GrabPay is a digital wallet - customers maintain a balance in their wallets that they pay out with. ' . '<a  class="thickbox" href="'.EH_STRIPE_MAIN_URL_PATH . 'assets/img/grabpay-preview.png?TB_iframe=true&width=100&height=100">[Preview] </a>', 'payment-gateway-stripe-and-woocommerce-integration' ));
+        /* translators: %s: URL path to the plugin assets directory */
+        $this->method_description = sprintf( __( 'GrabPay is a digital wallet - customers maintain a balance in their wallets that they pay out with. <a class="thickbox" href="%sassets/img/grabpay-preview.png?TB_iframe=true&width=100&height=100">[Preview] </a>', 'payment-gateway-stripe-and-woocommerce-integration' ), EH_STRIPE_MAIN_URL_PATH );
         $this->supports = array(
             'products',
             'refunds',
@@ -36,11 +37,11 @@ class EH_Grabpay extends WC_Payment_Gateway {
         
         $stripe_settings               = get_option( 'woocommerce_eh_stripe_pay_settings' );
         
-        $this->title                   = __($this->get_option( 'eh_stripe_grabpay_title' ), 'payment-gateway-stripe-and-woocommerce-integration' );
-        $this->description             = __($this->get_option( 'eh_stripe_grabpay_description' ), 'payment-gateway-stripe-and-woocommerce-integration' );
+        $this->title                   = $this->get_option( 'eh_stripe_grabpay_title' );
+        $this->description             = $this->get_option( 'eh_stripe_grabpay_description' );
         $this->enabled                 = $this->get_option( 'enabled' );
         $this->eh_order_button         = $this->get_option( 'eh_stripe_grabpay_order_button');
-        $this->order_button_text       = __($this->eh_order_button, 'payment-gateway-stripe-and-woocommerce-integration');
+        $this->order_button_text       = $this->eh_order_button;
 
         add_action( 'woocommerce_update_options_payment_gateways_' . $this->id, array( $this, 'process_admin_options' ) );
 
@@ -64,7 +65,8 @@ class EH_Grabpay extends WC_Payment_Gateway {
         $this->form_fields = array(
             'eh_grabpay_desc' => array(
                 'type' => 'title',
-                'description' => sprintf(__('%sSupported currencies: %sSGD, MYR%sStripe accounts in the following countries can accept the payment: %sMalaysia, Singapore%s', 'payment-gateway-stripe-and-woocommerce-integration'), '<div class="wt_info_div"><ul><li>', '<b>', '</b></li><li>', '<b>', '</b></li></ul></div>'),
+                /* translators: %1$s: Opening HTML div and list tags, %2$s: Bold tag opening, %3$s: Bold tag closing, %4$s: Bold tag opening, %5$s: Closing HTML list and div tags */
+                'description' => sprintf(__('%1$sSupported currencies: %2$sSGD, MYR%3$sStripe accounts in the following countries can accept the payment: %4$sMalaysia, Singapore%5$s', 'payment-gateway-stripe-and-woocommerce-integration'), '<div class="wt_info_div"><ul><li>', '<b>', '</b></li><li>', '<b>', '</b></li></ul></div>'),
             ),
 
             'eh_stripe_grabpay_form_title'   => array(
@@ -158,6 +160,7 @@ class EH_Grabpay extends WC_Payment_Gateway {
 
         $stripe_settings   = get_option( 'woocommerce_eh_stripe_pay_settings' );
         if ( (is_checkout()  && !is_order_received_page())) {
+            //phpcs:ignore WordPress.WP.EnqueuedResourceParameters.MissingVersion, WordPress.WP.EnqueuedResourceParameters.NotInFooter
             wp_register_script('stripe_v3_js', 'https://js.stripe.com/v3/');
 
            wp_enqueue_script('eh_grabpay_pay', plugins_url('assets/js/eh-grabpay.js', EH_STRIPE_MAIN_FILE), array('stripe_v3_js','jquery'),EH_STRIPE_VERSION, true);
@@ -196,15 +199,15 @@ class EH_Grabpay extends WC_Payment_Gateway {
                     ),
                 )
             );
-
+            //phpcs:ignore WordPress.Security.NonceVerification.Recommended 
             $stripe_params['is_checkout']                             = ( is_checkout() && empty( $_GET['pay_for_order'] ) ) ? 'yes' : 'no';
             $stripe_params['inline_postalcode']                       = apply_filters('hide_inline_postal_code', true);
 
             // If we're on the pay page we need to pass stripe.js the address of the order.
-            if ( isset( $_GET['pay_for_order'] ) && 'true' === $_GET['pay_for_order'] ) {
+            //phpcs:ignore WordPress.Security.NonceVerification.Recommended 
+            if ( isset( $_GET['pay_for_order'] ) && 'true' === sanitize_text_field(wp_unslash($_GET['pay_for_order'])) ) {
 
                 $order     = wc_get_order( absint( get_query_var( 'order-pay' ) ) );
-                $order_id  = method_exists($order, 'get_id') ? $order->get_id() : $order->id;
 
                 if ( is_a( $order, 'WC_Order' ) ) {
                     $stripe_params['billing_first_name'] = method_exists($order, 'get_billing_first_name') ? $order->get_billing_first_name() : $order->billing_first_name;
@@ -238,7 +241,7 @@ class EH_Grabpay extends WC_Payment_Gateway {
         echo '<div class="status-box">';
 
         if ($description) {
-            echo apply_filters('eh_grabpay_desc', wpautop(wp_kses_post("<span>" . $description . "</span>")));
+            echo wp_kses_post(apply_filters('eh_grabpay_desc', wpautop(wp_kses_post("<span>" . $description . "</span>"))));
         }
         echo "</div>";
         $pay_button_text = __('Pay', 'payment-gateway-stripe-and-woocommerce-integration');
@@ -254,7 +257,7 @@ class EH_Grabpay extends WC_Payment_Gateway {
                 data-name="' . esc_attr(sprintf(get_bloginfo('name', 'display'))) . '"
                 data-currency="' . esc_attr(((version_compare(WC()->version, '2.7.0', '<')) ? $order->order_currency : $order->get_currency())) . '">';
 
-           echo $this->elements_form();
+           echo wp_kses_post($this->elements_form());
             echo '</div>';
 
         } else {
@@ -266,7 +269,7 @@ class EH_Grabpay extends WC_Payment_Gateway {
                 data-name="' . esc_attr(sprintf(get_bloginfo('name', 'display'))) . '"
                 data-currency="' . esc_attr(strtolower(get_woocommerce_currency())) . '">';
 
-           echo $this->elements_form();
+           echo wp_kses_post($this->elements_form());
            
            echo '</div>';
         }
@@ -277,6 +280,7 @@ class EH_Grabpay extends WC_Payment_Gateway {
      *Renders stripe elements on payment form.
      */
     public function elements_form() {
+        ob_start();
         ?>
         <fieldset id="eh-<?php echo esc_attr( $this->id ); ?>-cc-form" class="eh-credit-card-form eh-payment-form" style="background:transparent;">
             <!-- Used to display form errors -->
@@ -284,6 +288,7 @@ class EH_Grabpay extends WC_Payment_Gateway {
             <div class="clear"></div>
         </fieldset>
         <?php
+        return ob_get_clean();
     }
 
     /**
@@ -294,7 +299,8 @@ class EH_Grabpay extends WC_Payment_Gateway {
         
         try{ 
 
-            $payment_method = isset($_POST['eh_grabpay_token']) ? sanitize_text_field($_POST['eh_grabpay_token']) : '';
+            //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing
+            $payment_method = isset($_POST['eh_grabpay_token']) ? sanitize_text_field(wp_unslash($_POST['eh_grabpay_token'])) : '';
             if (empty($payment_method)) {
                 throw new Exception(__('Unable to process this payment, please try again.', 'payment-gateway-stripe-and-woocommerce-integration' ));
                 
@@ -352,6 +358,7 @@ class EH_Grabpay extends WC_Payment_Gateway {
 
         }
         catch(Exception $e){
+            /* translators: %s: Error message from the payment gateway */
             $order->update_status( 'failed', sprintf( __( 'GrabPay payment failed: %s', 'payment-gateway-stripe-and-woocommerce-integration' ),$e->getMessage() ) );
             
            wc_add_notice( $e->getMessage(), 'error' );
@@ -466,9 +473,12 @@ class EH_Grabpay extends WC_Payment_Gateway {
      */
     public function get_clients_details() {
         return array(
-            'IP' => $_SERVER['REMOTE_ADDR'],
-            'Agent' => $_SERVER['HTTP_USER_AGENT'],
-            'Referer' => $_SERVER['HTTP_REFERER']
+            //phpcs: ignore WordPress.Security.ValidatedSanitizedInput.MissingUnslash
+            'IP' => isset($_SERVER['REMOTE_ADDR']) ? sanitize_text_field(wp_unslash($_SERVER['REMOTE_ADDR'])) : '',
+            //phpcs: ignore WordPress.Security.ValidatedSanitizedInput.MissingUnslash
+            'Agent' => isset($_SERVER['HTTP_USER_AGENT']) ? sanitize_text_field(wp_unslash($_SERVER['HTTP_USER_AGENT'])) : '',
+            //phpcs:ignore WordPress.Security.ValidatedSanitizedInput.MissingUnslash
+            'Referer' => isset($_SERVER['HTTP_REFERER']) ? esc_url_raw(wp_unslash($_SERVER['HTTP_REFERER'])) : ''
         );
     }
 
@@ -510,7 +520,7 @@ class EH_Grabpay extends WC_Payment_Gateway {
                     //$charge_response = \Stripe\Charge::retrieve($charge_id);
                     $refund_response = \Stripe\Refund::create($refund_params);
                     if ($refund_response) {
-                                        
+                        //phpcs:ignore WordPress.DateTime.RestrictedFunctions.date_date
                         $refund_time = date('Y-m-d H:i:s', time() + get_option('gmt_offset') * 3600);
                         $obj = new EH_Stripe_Payment();
                         $data = $obj->make_refund_params($refund_response, $amount, ((version_compare(WC()->version, '2.7.0', '<')) ? $order->order_currency : $order->get_currency()), $order_id);
@@ -560,13 +570,17 @@ class EH_Grabpay extends WC_Payment_Gateway {
     }
 
     public function eh_grabpay_callback_handler() {
+        //phpcs:ignore WordPress.Security.NonceVerification.Recommended 
         if (isset($_REQUEST['order_id']) && !empty($_REQUEST['order_id'])) {
-            $order_id = $_REQUEST['order_id'];
+            //phpcs:ignore WordPress.Security.NonceVerification.Recommended 
+            $order_id = sanitize_text_field(wp_unslash($_REQUEST['order_id']));
             $order = wc_get_order( $order_id );
 
         }
+        //phpcs:ignore WordPress.Security.NonceVerification.Recommended 
         if (isset($_REQUEST['payment_intent']) && !empty($_REQUEST['payment_intent'])) {
-            $intent_id = $_REQUEST['payment_intent'];
+            //phpcs:ignore WordPress.Security.NonceVerification.Recommended 
+            $intent_id = sanitize_text_field(wp_unslash($_REQUEST['payment_intent']));
             $intent_result = \Stripe\PaymentIntent::retrieve( $intent_id );
             if (!empty($intent_result)) {
                 $this->eh_process_payment_response($intent_result, $order);
@@ -624,6 +638,7 @@ class EH_Grabpay extends WC_Payment_Gateway {
             }
         }
         
+        //phpcs:ignore WordPress.DateTime.RestrictedFunctions.date_date
         $order_time = date('Y-m-d H:i:s', time() + get_option('gmt_offset') * 3600); 
         
         $order->set_transaction_id( $charge_response->id );

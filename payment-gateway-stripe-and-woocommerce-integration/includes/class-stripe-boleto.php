@@ -20,7 +20,8 @@ class EH_Boleto extends WC_Payment_Gateway {
         $this->id                 = 'eh_boleto_stripe';
         $this->method_title       = __( 'Boleto', 'payment-gateway-stripe-and-woocommerce-integration' );
 
-        $this->method_description =  __( 'Boleto is an official (regulated by the Central Bank of Brazil) payment method in Brazil.' . '<a  class="thickbox" href="'.EH_STRIPE_MAIN_URL_PATH . 'assets/img/boleto-preview.png?TB_iframe=true&width=100&height=100">[Preview] </a>', 'payment-gateway-stripe-and-woocommerce-integration' );
+        /* translators: %s: URL path to the plugin assets directory */
+        $this->method_description = sprintf( __( 'Boleto is an official (regulated by the Central Bank of Brazil) payment method in Brazil. <a class="thickbox" href="%sassets/img/boleto-preview.png?TB_iframe=true&width=100&height=100">[Preview] </a>', 'payment-gateway-stripe-and-woocommerce-integration' ), EH_STRIPE_MAIN_URL_PATH );
         $this->supports = array(
             'products',
             'refunds',
@@ -35,11 +36,11 @@ class EH_Boleto extends WC_Payment_Gateway {
         $stripe_settings               = get_option( 'woocommerce_eh_stripe_pay_settings' );
         $this->capture_now = ((isset($stripe_settings['eh_stripe_capture']) && !empty($stripe_settings['eh_stripe_capture'])) ? $stripe_settings['eh_stripe_capture'] : '');
         
-        $this->title                   = __($this->get_option( 'eh_stripe_boleto_title' ), 'payment-gateway-stripe-and-woocommerce-integration' );
-        $this->description             = __($this->get_option( 'eh_stripe_boleto_description' ), 'payment-gateway-stripe-and-woocommerce-integration' );
+        $this->title                   = $this->get_option( 'eh_stripe_boleto_title' );
+        $this->description             = $this->get_option( 'eh_stripe_boleto_description' );
         $this->enabled                 = $this->get_option( 'enabled' );
         $this->eh_order_button         = $this->get_option( 'eh_stripe_boleto_order_button');
-        $this->order_button_text       = __($this->eh_order_button, 'payment-gateway-stripe-and-woocommerce-integration');
+        $this->order_button_text       = $this->eh_order_button;
 
         add_action( 'woocommerce_update_options_payment_gateways_' . $this->id, array( $this, 'process_admin_options' ) );
 
@@ -66,7 +67,8 @@ class EH_Boleto extends WC_Payment_Gateway {
         $this->form_fields = array(
             'eh_oxxo_desc' => array(
                 'type' => 'title',
-                'description' => sprintf(__('%sSupported currency: %sBRL%sStripe accounts in the following countries can accept the payment: %sBrazil%s', 'payment-gateway-stripe-and-woocommerce-integration'), '<div class="wt_info_div"><ul><li>', '<b>', '</b></li><li>', '<b>', '</b></li></ul></div>'),
+                /* translators: %1$s: Opening HTML div and list tags, %2$s: Bold tag opening, %3$s: Bold tag closing, %4$s: Bold tag opening, %5$s: Bold tag closing, %6$s: Closing HTML list and div tags */
+                'description' => sprintf(__('%1$sSupported currency: %2$sBRL%3$sStripe accounts in the following countries can accept the payment: %4$sBrazil%5$s', 'payment-gateway-stripe-and-woocommerce-integration'), '<div class="wt_info_div"><ul><li>', '<b>', '</b></li><li>', '<b>', '</b></li></ul></div>'),
             ),
             'eh_stripe_boleto_form_title'   => array(
                 'type'        => 'title',
@@ -105,6 +107,7 @@ class EH_Boleto extends WC_Payment_Gateway {
             ),
             'eh_boleto_webhook_desc' => array(
                 'type' => 'title',
+                /* translators: %1$s: Opening HTML div and paragraph tags, %2$s: Documentation link opening, %3$s: Documentation link closing, %4$s: Closing HTML paragraph and div tags */
                 'description' => sprintf(__('%1$sTo accept payments via Boleto payment method, you must configure the webhook endpoint and subscribe to relevant events. %2$sClick here%3$s to know more%4$s', 'payment-gateway-stripe-and-woocommerce-integration'), '<div class="wt_info_div"><p>', '<a target="_blank" href="https://www.webtoffee.com/setting-up-webhooks-and-supported-webhooks/">', '</a>', '</p></div>'),
             ),
         );   
@@ -164,6 +167,7 @@ class EH_Boleto extends WC_Payment_Gateway {
 
         $stripe_settings   = get_option( 'woocommerce_eh_stripe_pay_settings' );
         if ( (is_checkout()  && !is_order_received_page())) {
+            //phpcs:ignore WordPress.WP.EnqueuedResourceParameters.MissingVersion, WordPress.WP.EnqueuedResourceParameters.NotInFooter
             wp_register_script('stripe_v3_js', 'https://js.stripe.com/v3/');
 
          wp_enqueue_script('eh_boleto_js', plugins_url('assets/js/eh-boleto.js', EH_STRIPE_MAIN_FILE), array('stripe_v3_js','jquery'),EH_STRIPE_VERSION, true);
@@ -186,14 +190,14 @@ class EH_Boleto extends WC_Payment_Gateway {
                 'key' => $public_key,
                 'currency' => get_woocommerce_currency(),
             );
-
+            //phpcs:ignore WordPress.Security.NonceVerification.Recommended 
             $stripe_params['is_checkout'] = ( is_checkout() && empty( $_GET['pay_for_order'] ) ) ? 'yes' : 'no';
 
             // If we're on the pay page we need to pass stripe.js the address of the order.
+            //phpcs:ignore WordPress.Security.NonceVerification.Recommended 
             if ( isset( $_GET['pay_for_order'] ) && 'true' === $_GET['pay_for_order'] ) {
 
                 $order     = wc_get_order( absint( get_query_var( 'order-pay' ) ) );
-                $order_id  = method_exists($order, 'get_id') ? $order->get_id() : $order->id;
 
                 if ( is_a( $order, 'WC_Order' ) ) {
                     $stripe_params['billing_first_name'] = method_exists($order, 'get_billing_first_name') ? $order->get_billing_first_name() : $order->billing_first_name;
@@ -219,7 +223,7 @@ class EH_Boleto extends WC_Payment_Gateway {
         echo '<div class="status-box">';
         
         if ($description) {
-            echo apply_filters('eh_stripe_desc', wpautop(wp_kses_post("<span>" . $description . "</span>")));
+            echo wp_kses_post(apply_filters('eh_stripe_desc', wpautop(wp_kses_post("<span>" . $description . "</span>"))));
         }
         echo "</div>";
          ?>
@@ -290,7 +294,8 @@ class EH_Boleto extends WC_Payment_Gateway {
                         'result'        => 'success',
                         'intent_secret' => $intent->client_secret,
                         'gateway' => $this->id,
-                        'boleto_id' => (isset($_REQUEST['eh-boleto-element']) ? $_REQUEST['eh-boleto-element'] : ''),
+                        //phpcs:ignore WordPress.Security.NonceVerification.Recommended 
+                        'boleto_id' => (isset($_REQUEST['eh-boleto-element']) ? sanitize_text_field(wp_unslash($_REQUEST['eh-boleto-element']))  : ''),
                         //'redirect'      => $this->get_return_url($order)
                         'redirect'      => add_query_arg(array('order_id' => $order_id, 'payment_intent' => $intent->id), WC()->api_request_url('EH_Boleto'))
                     );
@@ -314,6 +319,7 @@ class EH_Boleto extends WC_Payment_Gateway {
 
         }
         catch(Exception $e){
+            /* translators: %s: Error message */
             $order->update_status( 'failed', sprintf( __( 'Boleto payment failed: %s', 'payment-gateway-stripe-and-woocommerce-integration' ),$e->getMessage() ) );
             
            wc_add_notice( $e->getMessage(), 'error' );
@@ -430,9 +436,9 @@ class EH_Boleto extends WC_Payment_Gateway {
      */
     public function get_clients_details() {
         return array(
-            'IP' => $_SERVER['REMOTE_ADDR'],
-            'Agent' => $_SERVER['HTTP_USER_AGENT'],
-            'Referer' => $_SERVER['HTTP_REFERER']
+            'IP' => isset($_SERVER['REMOTE_ADDR']) ? sanitize_text_field(wp_unslash($_SERVER['REMOTE_ADDR'])) : '',
+            'Agent' => isset($_SERVER['HTTP_USER_AGENT']) ? sanitize_text_field(wp_unslash($_SERVER['HTTP_USER_AGENT'])) : '',
+            'Referer' => isset($_SERVER['HTTP_REFERER']) ? esc_url_raw(wp_unslash($_SERVER['HTTP_REFERER'])) : ''
         );
     }
 
@@ -475,25 +481,28 @@ class EH_Boleto extends WC_Payment_Gateway {
                     //$charge_response = \Stripe\Charge::retrieve($charge_id);
                     $refund_response = \Stripe\Refund::create($refund_params);
                     if ($refund_response) {
-                                        
+                        //phpcs:ignore WordPress.DateTime.RestrictedFunctions.date_date
                         $refund_time = date('Y-m-d H:i:s', time() + get_option('gmt_offset') * 3600);
                         $obj = new EH_Stripe_Payment();
                         $data = $obj->make_refund_params($refund_response, $amount, ((version_compare(WC()->version, '2.7.0', '<')) ? $order->order_currency : $order->get_currency()), $order_id);
                         
                         EH_Helper_Class::wt_stripe_order_db_operations($order_id, $order, 'add', '_eh_stripe_payment_refund', $data, false);  
 
-                        $order->add_order_note(__('Reason : ', 'payment-gateway-stripe-and-woocommerce-integration') . $reason . '.<br>' . __('Amount : ', 'payment-gateway-stripe-and-woocommerce-integration') . get_woocommerce_currency_symbol() . $amount . '.<br>' . __('Status : refunded ', 'payment-gateway-stripe-and-woocommerce-integration') . ' [ ' . $refund_time . ' ] ' . (is_null($data['transaction_id']) ? '' : '<br>' . __('Transaction ID : ', 'payment-gateway-stripe-and-woocommerce-integration') . $data['transaction_id']));
+                        /* translators: %1$s: Reason text, %2$s: Amount text, %3$s: Status text, %4$s: Transaction ID text */
+                        $order->add_order_note(sprintf(__('Reason : %1$s<br>Amount : %2$s<br>Status : refunded [ %3$s ] %4$s', 'payment-gateway-stripe-and-woocommerce-integration'), $reason, get_woocommerce_currency_symbol() . $amount, $refund_time, (is_null($data['transaction_id']) ? '' : '<br>Transaction ID : ' . $data['transaction_id'])));
                         EH_Stripe_Log::log_update('live', $data, get_bloginfo('blogname') . ' - Refund - Order #' . $order->get_order_number());
                         return true;
                     } else {
                         EH_Stripe_Log::log_update('dead', $data, get_bloginfo('blogname') . ' - Refund Error - Order #' . $order->get_order_number());
-                        $order->add_order_note(__('Reason : ', 'payment-gateway-stripe-and-woocommerce-integration') . $reason . '.<br>' . __('Amount : ', 'payment-gateway-stripe-and-woocommerce-integration') . get_woocommerce_currency_symbol() . $amount . '.<br>' . __(' Status : Failed ', 'payment-gateway-stripe-and-woocommerce-integration'));
+                        /* translators: %1$s: Reason text, %2$s: Amount text */
+                        $order->add_order_note(sprintf(__('Reason : %1$s<br>Amount : %2$s<br>Status : Failed', 'payment-gateway-stripe-and-woocommerce-integration'), $reason, get_woocommerce_currency_symbol() . $amount));
                         return new WP_Error('error', $data->message);
                     }
                 } catch (Exception $error) {
                     $oops = $error->getJsonBody();
                     EH_Stripe_Log::log_update('dead', $oops['error'], get_bloginfo('blogname') . ' - Refund Error - Order #' . $order->get_order_number());
-                    $order->add_order_note(__('Reason : ', 'payment-gateway-stripe-and-woocommerce-integration') . $reason . '.<br>' . __('Amount : ', 'payment-gateway-stripe-and-woocommerce-integration') . get_woocommerce_currency_symbol() . $amount . '.<br>' . __('Status : ', 'payment-gateway-stripe-and-woocommerce-integration') . $oops['error']['message']);
+                    /* translators: %1$s: Reason text, %2$s: Amount text, %3$s: Error message */
+                    $order->add_order_note(sprintf(__('Reason : %1$s<br>Amount : %2$s<br>Status : %3$s', 'payment-gateway-stripe-and-woocommerce-integration'), $reason, get_woocommerce_currency_symbol() . $amount, $oops['error']['message']));
                     return new WP_Error('error', $oops['error']['message']);
                 }
             } else {
@@ -525,13 +534,17 @@ class EH_Boleto extends WC_Payment_Gateway {
     }
 
     public function eh_boleto_callback_handler() {
+        //phpcs:ignore WordPress.Security.NonceVerification.Recommended 
         if (isset($_REQUEST['order_id']) && !empty($_REQUEST['order_id'])) {
-            $order_id = $_REQUEST['order_id'];
+            //phpcs:ignore WordPress.Security.NonceVerification.Recommended 
+            $order_id = sanitize_text_field(wp_unslash($_REQUEST['order_id']));
             $order = wc_get_order( $order_id );
 
         }
+        //phpcs:ignore WordPress.Security.NonceVerification.Recommended 
         if (isset($_REQUEST['payment_intent']) && !empty($_REQUEST['payment_intent'])) {
-            $intent_id = $_REQUEST['payment_intent'];
+            //phpcs:ignore WordPress.Security.NonceVerification.Recommended 
+            $intent_id = sanitize_text_field(wp_unslash($_REQUEST['payment_intent']));
             $intent_result = \Stripe\PaymentIntent::retrieve( $intent_id );
             if (!empty($intent_result)) {
                 $this->eh_process_payment_response($intent_result, $order);
@@ -592,6 +605,7 @@ class EH_Boleto extends WC_Payment_Gateway {
                     $order->update_meta_data( '_eh_boleto_charge_captured', $captured );
                 }
             
+                //phpcs:ignore WordPress.DateTime.RestrictedFunctions.date_date
                 $order_time = date('Y-m-d H:i:s', time() + get_option('gmt_offset') * 3600); 
                 
                 $order->set_transaction_id( $charge_response->id );
@@ -601,11 +615,13 @@ class EH_Boleto extends WC_Payment_Gateway {
 
                         if($charge_response->captured == true && $order->needs_payment()){
                             $order->payment_complete( $charge_response->id );
-                            $order->add_order_note( __('Payment Status : ', 'payment-gateway-stripe-and-woocommerce-integration') . ucfirst($charge_response->status) .' [ ' . $order_time . ' ] . ' . __('Source : ', 'payment-gateway-stripe-and-woocommerce-integration') . $charge_response->payment_method_details->type . '. ' . __('Charge Status :', 'payment-gateway-stripe-and-woocommerce-integration') . $captured . (is_null($charge_response->balance_transaction) ? '' :'. Transaction ID : ' . $charge_response->balance_transaction) );
+                            /* translators: %1$s: Payment status, %2$s: Order time, %3$s: Source type, %4$s: Charge status, %5$s: Transaction ID */
+                            $order->add_order_note( sprintf( __('Payment Status : %1$s [ %2$s ] . Source : %3$s . Charge Status : %4$s%5$s', 'payment-gateway-stripe-and-woocommerce-integration'), ucfirst($charge_response->status), $order_time, $charge_response->payment_method_details->type, $captured, (is_null($charge_response->balance_transaction) ? '' : '. Transaction ID : ' . $charge_response->balance_transaction) ) );
                         }
                         if (!$charge_response->captured && $order->get_status() !== 'on-hold') {
                             $order->update_status('on-hold');
-                            $order->add_order_note( __('Payment Status : ', 'payment-gateway-stripe-and-woocommerce-integration') . ucfirst($charge_response->status) .' [ ' . $order_time . ' ] . ' . __('Source : ', 'payment-gateway-stripe-and-woocommerce-integration') . $charge_response->payment_method_details->type . '. ' . __('Charge Status :', 'payment-gateway-stripe-and-woocommerce-integration') . $captured . (is_null($charge_response->balance_transaction) ? '' :'. Transaction ID : ' . $charge_response->balance_transaction) );
+                            /* translators: %1$s: Payment status, %2$s: Order time, %3$s: Source type, %4$s: Charge status, %5$s: Transaction ID */
+                            $order->add_order_note( sprintf( __('Payment Status : %1$s [ %2$s ] . Source : %3$s . Charge Status : %4$s%5$s', 'payment-gateway-stripe-and-woocommerce-integration'), ucfirst($charge_response->status), $order_time, $charge_response->payment_method_details->type, $captured, (is_null($charge_response->balance_transaction) ? '' : '. Transaction ID : ' . $charge_response->balance_transaction) ) );
                         }
                         WC()->cart->empty_cart();
                         EH_Stripe_Log::log_update('live', $charge_response, get_bloginfo('blogname') . ' - Charge - Order #' . $order->get_order_number());

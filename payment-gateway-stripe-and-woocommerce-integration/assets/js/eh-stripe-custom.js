@@ -20,7 +20,7 @@ jQuery(function() {
     });
     jQuery('#the-list').on('click', '.payment_capture_button', function() {
         var id=jQuery( this ).attr('id');
-        swal({
+        new Swal({
             title: "Stripe Alert",
             text: "Making capture payment action",
             showCancelButton: true,
@@ -41,7 +41,7 @@ jQuery(function() {
                      paged: parseInt(jQuery('input[name=paged]').val()) || '1'
                  },
                  success: function(response) {
-                     swal({
+                     new Swal({
                          title: 'Capture Status',
                          html: jQuery('<small>')
                            .text(response)
@@ -81,7 +81,7 @@ jQuery(function() {
        }
        if(flag)
        {
-            swal({
+            new Swal({
                  title: "Stripe Alert",
                  text: "Making Refund payment action",
                  showCancelButton: true,
@@ -104,7 +104,7 @@ jQuery(function() {
                           paged: parseInt(jQuery('input[name=paged]').val()) || '1'
                       },
                       success: function(response) {
-                          swal({
+                          new Swal({
                               title: 'Refund Status',
                               html: jQuery('<small>')
                                 .text(response)
@@ -191,7 +191,7 @@ jQuery(function() {
     }).change();
     jQuery('#the-list').on('click', '.stripe_refund_button', function() {
         var id=jQuery( this ).attr('id');
-        swal({
+        new Swal({
             title: "Stripe Alert",
             text: "Making Refund payment action",
             showCancelButton: true,
@@ -212,7 +212,7 @@ jQuery(function() {
                      paged: parseInt(jQuery('input[name=paged]').val()) || '1'
                  },
                  success: function(response) {
-                     swal({
+                     new Swal({
                          title: 'Refund Status',
                          html: jQuery('<small>')
                            .text(response)

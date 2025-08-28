@@ -1,5 +1,9 @@
 <?php
 
+if (!defined('ABSPATH')) {
+    exit; // Exit if accessed directly
+}
+
 /**
  * Webtoffee Security Library
  *
@@ -155,7 +159,8 @@ if(!class_exists('EH_Helper_Class'))
 		*/
 		public static function verify_nonce($plugin_id, $nonce_id = '')
 		{
-			$nonce = (isset($_REQUEST['_wpnonce']) ? sanitize_text_field($_REQUEST['_wpnonce']) : '');
+			//phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing
+			$nonce = (isset($_REQUEST['_wpnonce']) ? sanitize_text_field(wp_unslash($_REQUEST['_wpnonce'])) : '');
     		$nonce = (is_array($nonce) ? $nonce[0] : $nonce); //in some cases multiple nonces are declared
     		$nonce_id = ($nonce_id == "" ? $plugin_id : $nonce_id); //if nonce id not provided then uses plugin id as nonce id
     		
@@ -268,8 +273,9 @@ if(!class_exists('EH_Helper_Class'))
 		 * Function returns current page query parameter
 		 * @return current page query parameter
 		 */         
-        public static function wt_stripe_get_current_page(){        
-            return isset($_GET['page']) ? sanitize_text_field($_GET['page']) : '';
+        public static function wt_stripe_get_current_page(){  
+			//phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing
+            return isset($_GET['page']) ? sanitize_text_field(wp_unslash($_GET['page'])) : '';
 
         }
 
@@ -278,7 +284,7 @@ if(!class_exists('EH_Helper_Class'))
 		 * @return boolean true for allowed screens, otherwise false
 		 */ 
         public static function wt_stripe_is_screen_allowed(){
-            return in_array(self::wt_stripe_get_current_page(), self::wt_stripe_allowed_screens());
+            return in_array(self::wt_stripe_get_current_page(), self::wt_stripe_allowed_screens(), true);
 
         }                
 		

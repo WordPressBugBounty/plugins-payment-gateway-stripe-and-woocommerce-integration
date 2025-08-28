@@ -65,7 +65,7 @@ jQuery(function ($) {
                   shipping_city:             '',
                   shipping_state:            '',
                   shipping_postcode:         '',
-                  shipping_method:           [ null === evt.shippingRate ? null : evt.shippingRate.id ],
+                  shipping_method:           [ (evt.shippingRate && evt.shippingRate.id) ? evt.shippingRate.id : null ],
                   order_comments:            '',
                   payment_method:            'eh_stripe_pay',
                   payment_type:              'express_element',
@@ -117,7 +117,7 @@ jQuery(function ($) {
             amount: parseInt(cart.total),
               
           },
-          displayItems: cart.line_items.displayItems,
+          displayItems: (cart && cart.line_items && cart.line_items.displayItems) ? cart.line_items.displayItems : [],
           requestPayerName: true,
           requestPayerEmail: true,
           requestPayerPhone: true,
@@ -157,27 +157,6 @@ jQuery(function ($) {
         expressCheckoutElement.mount("#eh-stripe-payment-request-button");
 
 
-          var shippingReqData = {
-            '_wpnonce': eh_payment_request_params.eh_payment_request_get_shipping_nonce,
-            is_product:   (eh_payment_request_params.product) ? 'yes' : 'no',
-            country:   eh_payment_request_params.country_code,
-            state:     '',
-            postcode:  '',
-            city:      '',
-            address:   '',
-            address_2: '',
-          };
-
-        
-        $( document ).trigger("wt-stripe-get-shipping-request-data", shippingReqData);
-
-        var result = $.ajax( {
-          type:    'POST',
-          data:    shippingReqData,
-          url:     eh_payment_request_params.wc_ajaxurl.toString().replace( '%%change_end%%', "eh_spg_payment_request_get_shippings"),
-
-        });
-
         expressCheckoutElement.on('click', (event) => {
           if(eh_payment_request_params.product){ 
             eh_payment_request_gen.add_to_cart(event);
@@ -185,6 +164,26 @@ jQuery(function ($) {
 
           if((eh_payment_request_params.product && eh_payment_request_params.product_data.needs_shipping)|| 'yes' === eh_payment_request_params.needs_shipping){
 
+              var shippingReqData = {
+                '_wpnonce': eh_payment_request_params.eh_payment_request_get_shipping_nonce,
+                is_product:   (eh_payment_request_params.product) ? 'yes' : 'no',
+                country:   eh_payment_request_params.country_code,
+                state:     '',
+                postcode:  '',
+                city:      '',
+                address:   '',
+                address_2: '',
+              };
+
+            
+            $( document ).trigger("wt-stripe-get-shipping-request-data", shippingReqData);
+
+            var result = $.ajax( {
+              type:    'POST',
+              data:    shippingReqData,
+              url:     eh_payment_request_params.wc_ajaxurl.toString().replace( '%%change_end%%', "eh_spg_payment_request_get_shippings"),
+
+            });
             $.when(result).then(
               function (response) { 
 

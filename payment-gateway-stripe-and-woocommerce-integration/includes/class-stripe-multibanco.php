@@ -21,7 +21,8 @@ class EH_Multibanco extends WC_Payment_Gateway {
         $this->method_title       = __( 'Multibanco', 'payment-gateway-stripe-and-woocommerce-integration' );
 
         $url = add_query_arg( 'wc-api', 'wt_stripe', trailingslashit( get_home_url() ) );
-        $this->method_description = sprintf( __( 'Stripe users in Europe and the United States can accept Multibanco payments from customers in Portugal.' . '<a  class="thickbox" href="'.EH_STRIPE_MAIN_URL_PATH . 'assets/img/multibanco-preview.png?TB_iframe=true&width=100&height=100">[Preview] </a>', 'payment-gateway-stripe-and-woocommerce-integration' ));
+        /* translators: %1$s: Opening anchor tag with preview link, %2$s: Closing anchor tag */
+        $this->method_description = sprintf( __( 'Stripe users in Europe and the United States can accept Multibanco payments from customers in Portugal. %1$s[Preview]%2$s', 'payment-gateway-stripe-and-woocommerce-integration' ), '<a class="thickbox" href="'.EH_STRIPE_MAIN_URL_PATH . 'assets/img/multibanco-preview.png?TB_iframe=true&width=100&height=100">', '</a>' );
         $this->supports = array(
             'products',
             'refunds',
@@ -35,11 +36,11 @@ class EH_Multibanco extends WC_Payment_Gateway {
         
         $stripe_settings               = get_option( 'woocommerce_eh_stripe_pay_settings' );
         
-        $this->title                   = __($this->get_option( 'eh_stripe_multibanco_title' ), 'payment-gateway-stripe-and-woocommerce-integration' );
-        $this->description             = __($this->get_option( 'eh_stripe_multibanco_description' ), 'payment-gateway-stripe-and-woocommerce-integration' );
+        $this->title                   = $this->get_option( 'eh_stripe_multibanco_title' );
+        $this->description             = $this->get_option( 'eh_stripe_multibanco_description' );
         $this->enabled                 = $this->get_option( 'enabled' );
         $this->eh_order_button         = $this->get_option( 'eh_stripe_multibanco_order_button');
-        $this->order_button_text       = __($this->eh_order_button, 'payment-gateway-stripe-and-woocommerce-integration');
+        $this->order_button_text       = $this->eh_order_button;
 
         add_action( 'woocommerce_update_options_payment_gateways_' . $this->id, array( $this, 'process_admin_options' ) );
 
@@ -65,7 +66,8 @@ class EH_Multibanco extends WC_Payment_Gateway {
         $this->form_fields = array(
             'eh_multibanco_desc' => array(
                 'type' => 'title',
-                'description' => sprintf(__('%sSupported currencies: %sEUR%sStripe accounts in the following countries can accept the payment: %sEurope, United States%s', 'payment-gateway-stripe-and-woocommerce-integration'), '<div class="wt_info_div"><ul><li>', '<b>', '</b></li><li>', '<b>', '</b></li></ul></div>'),
+                /* translators: %1$s: Opening HTML div and list tags, %2$s: Bold tag opening, %3$s: Bold tag closing, %4$s: Bold tag opening, %5$s: Bold tag closing, %6$s: Closing HTML list and div tags */
+                'description' => sprintf(__('%1$sSupported currencies: %2$sEUR%3$sStripe accounts in the following countries can accept the payment: %4$sEurope, United States%5$s', 'payment-gateway-stripe-and-woocommerce-integration'), '<div class="wt_info_div"><ul><li>', '<b>', '</b></li><li>', '<b>', '</b></li></ul></div>'),
             ),
 
             'eh_stripe_multibanco_form_title'   => array(
@@ -154,6 +156,7 @@ class EH_Multibanco extends WC_Payment_Gateway {
     public function payment_scripts() {
         $stripe_settings   = get_option( 'woocommerce_eh_stripe_pay_settings' );
         if ( (is_checkout()  && !is_order_received_page())) {
+            //phpcs:ignore WordPress.WP.EnqueuedResourceParameters.MissingVersion, WordPress.WP.EnqueuedResourceParameters.NotInFooter            
             wp_register_script('stripe_v3_js', 'https://js.stripe.com/v3/');
         }
     }
@@ -174,7 +177,7 @@ class EH_Multibanco extends WC_Payment_Gateway {
         echo '<div class="status-box">';
 
         if ($description) {
-            echo apply_filters('eh_multibanco_desc', wpautop(wp_kses_post("<span>" . $description . "</span>")));
+            echo wp_kses_post(apply_filters('eh_multibanco_desc', wpautop(wp_kses_post("<span>" . $description . "</span>"))));
         }
         echo "</div>";
         $pay_button_text = __('Pay', 'payment-gateway-stripe-and-woocommerce-integration');
@@ -190,7 +193,7 @@ class EH_Multibanco extends WC_Payment_Gateway {
                 data-name="' . esc_attr(sprintf(get_bloginfo('name', 'display'))) . '"
                 data-currency="' . esc_attr(((version_compare(WC()->version, '2.7.0', '<')) ? $order->order_currency : $order->get_currency())) . '">';
 
-           echo $this->elements_form();
+           echo wp_kses_post($this->elements_form());
             echo '</div>';
 
         } else {
@@ -202,7 +205,7 @@ class EH_Multibanco extends WC_Payment_Gateway {
                 data-name="' . esc_attr(sprintf(get_bloginfo('name', 'display'))) . '"
                 data-currency="' . esc_attr(strtolower(get_woocommerce_currency())) . '">';
 
-           echo $this->elements_form();
+           echo wp_kses_post($this->elements_form());
            
            echo '</div>';
         }
@@ -213,6 +216,7 @@ class EH_Multibanco extends WC_Payment_Gateway {
      *Renders stripe elements on payment form.
      */
     public function elements_form() {
+        ob_start();
         ?>
         <fieldset id="eh-<?php echo esc_attr( $this->id ); ?>-cc-form" class="eh-credit-card-form eh-payment-form" style="background:transparent;">
 
@@ -223,6 +227,7 @@ class EH_Multibanco extends WC_Payment_Gateway {
             <div class="clear"></div>
         </fieldset>
         <?php
+        return ob_get_clean();
     }
 
     public function create_source( $order ) {
@@ -303,7 +308,7 @@ class EH_Multibanco extends WC_Payment_Gateway {
 
                     if ($obj_stripe->is_subscription($order_id)) {
                         if (!$customer) {
-                            throw new Exception(__("Could not process subscription order this time. Please try again.", 'payment-gateway-stripe-and-woocommerce-integration'));
+                            throw new Exception(esc_html__("Could not process subscription order this time. Please try again.", 'payment-gateway-stripe-and-woocommerce-integration'));
                         }
 
                         //if is zero payment
@@ -334,26 +339,27 @@ class EH_Multibanco extends WC_Payment_Gateway {
                 }
                 elseif ($source_status == 'pending') { 
                     if (isset($source_response['redirect']['url']) && !empty($source_response['redirect']['url'])) { 
-                        return array(
-                            'result'        => 'success',
-                            'redirect'      => $source_response['redirect']['url'],
-                        );
+                                            return array(
+                        'result'        => 'success',
+                        'redirect'      => esc_url($source_response['redirect']['url']),
+                    );
                         //wp_safe_redirect($source_response['redirect']['url']);
                     }
                 }
                 elseif ($source_status == 'failed') {
-                    throw new Exception( __( 'Unable to process this payment.', 'payment-gateway-stripe-and-woocommerce-integration' ));
+                    throw new Exception( esc_html__( 'Unable to process this payment.', 'payment-gateway-stripe-and-woocommerce-integration' ));
                     
                 } 
             }
             else{
 
-                throw new Exception( __( 'Unable to process this payment, please try again.', 'payment-gateway-stripe-and-woocommerce-integration' ));
+                throw new Exception( esc_html__( 'Unable to process this payment, please try again.', 'payment-gateway-stripe-and-woocommerce-integration' ));
             }
 
         }
         catch(Exception $e){
-            $order->update_status( 'failed', sprintf( __( 'Multibanco payment failed: %s', 'payment-gateway-stripe-and-woocommerce-integration' ),$e->getMessage() ) );
+            /* translators: %s: Error message */
+            $order->update_status( 'failed', sprintf( esc_html__( 'Multibanco payment failed: %s', 'payment-gateway-stripe-and-woocommerce-integration' ),$e->getMessage() ) );
             
            wc_add_notice( $e->getMessage(), 'error' );
             return array (
@@ -377,7 +383,8 @@ class EH_Multibanco extends WC_Payment_Gateway {
         $currency                        =  $order->get_currency();
         $post_data['currency']           =  strtolower( $currency);
         $post_data['amount']             =  EH_Stripe_Payment::get_stripe_amount( $order->get_total(), $currency );
-        $post_data['description']        =  sprintf( __( '%1$s - Order %2$s', 'payment-gateway-stripe-and-woocommerce-integration' ), wp_specialchars_decode( get_bloginfo( 'name' ), ENT_QUOTES ), $order->get_order_number() );
+        /* translators: %1$s: Site name, %2$s: Order number */
+        $post_data['description']        =  sprintf( esc_html__( '%1$s - Order %2$s', 'payment-gateway-stripe-and-woocommerce-integration' ), wp_specialchars_decode( get_bloginfo( 'name' ), ENT_QUOTES ), $order->get_order_number() );
         $billing_email                   =  (version_compare(WC()->version, '2.7.0', '<')) ? $order->billing_email      : $order->get_billing_email();
         $billing_first_name              =  (version_compare(WC()->version, '2.7.0', '<')) ? $order->billing_first_name : $order->get_billing_first_name();
         $billing_last_name               =  (version_compare(WC()->version, '2.7.0', '<')) ? $order->billing_last_name  : $order->get_billing_last_name();
@@ -393,8 +400,8 @@ class EH_Multibanco extends WC_Payment_Gateway {
         $post_data['shipping']['address']['country']     = (version_compare(WC()->version, '2.7.0', '<')) ? $order->shipping_country   : $order->get_shipping_country();
         
         $post_data['metadata']  = array(
-            __( 'customer_name', 'payment-gateway-stripe-and-woocommerce-integration' ) => sanitize_text_field( $billing_first_name ) . ' ' . sanitize_text_field( $billing_last_name ),
-            __( 'customer_email', 'payment-gateway-stripe-and-woocommerce-integration' ) => sanitize_email( $billing_email ),
+            esc_html__( 'customer_name', 'payment-gateway-stripe-and-woocommerce-integration' ) => sanitize_text_field( $billing_first_name ) . ' ' . sanitize_text_field( $billing_last_name ),
+            esc_html__( 'customer_email', 'payment-gateway-stripe-and-woocommerce-integration' ) => sanitize_email( $billing_email ),
             'order_id' => $order->get_id(),
         );
         
@@ -431,6 +438,7 @@ class EH_Multibanco extends WC_Payment_Gateway {
             $order->update_meta_data( '_eh_multibanco_charge_captured', $captured );
         }
         
+        //phpcs:ignore WordPress.DateTime.RestrictedFunctions.date_date
         $order_time = date('Y-m-d H:i:s', time() + get_option('gmt_offset') * 3600); 
 
         if ( 'Captured' === $captured ) {
@@ -444,13 +452,13 @@ class EH_Multibanco extends WC_Payment_Gateway {
 
                 $order->set_transaction_id( $response->id );
                 $order->update_status( 'on-hold');
-                $order->add_order_note( __('Payment Status : ', 'payment-gateway-stripe-and-woocommerce-integration') . ucfirst($response->status) .' [ ' . $order_time . ' ] . ' . __('Source : ', 'payment-gateway-stripe-and-woocommerce-integration') . $response->source->type . '. ' . __('Charge Status :', 'payment-gateway-stripe-and-woocommerce-integration') . $captured . (is_null($response->balance_transaction) ? '' :'. Transaction ID : ' . $response->balance_transaction) );
+                $order->add_order_note( esc_html__('Payment Status : ', 'payment-gateway-stripe-and-woocommerce-integration') . ucfirst($response->status) .' [ ' . $order_time . ' ] . ' . esc_html__('Source : ', 'payment-gateway-stripe-and-woocommerce-integration') . $response->source->type . '. ' . esc_html__('Charge Status :', 'payment-gateway-stripe-and-woocommerce-integration') . $captured . (is_null($response->balance_transaction) ? '' :'. Transaction ID : ' . $response->balance_transaction) );
             }
             
             if ( 'succeeded' === $response->status && $order->needs_payment() ) {
                 $order->payment_complete( $response->id );
 
-                $order->add_order_note( __('Payment Status : ', 'payment-gateway-stripe-and-woocommerce-integration') . ucfirst($response->status) .' [ ' . $order_time . ' ] . ' . __('Source : ', 'payment-gateway-stripe-and-woocommerce-integration') . $response->source->type . '. ' . __('Charge Status :', 'payment-gateway-stripe-and-woocommerce-integration') . $captured . (is_null($response->balance_transaction) ? '' :'. Transaction ID : ' . $response->balance_transaction) );
+                $order->add_order_note( esc_html__('Payment Status : ', 'payment-gateway-stripe-and-woocommerce-integration') . ucfirst($response->status) .' [ ' . $order_time . ' ] . ' . esc_html__('Source : ', 'payment-gateway-stripe-and-woocommerce-integration') . $response->source->type . '. ' . esc_html__('Charge Status :', 'payment-gateway-stripe-and-woocommerce-integration') . $captured . (is_null($response->balance_transaction) ? '' :'. Transaction ID : ' . $response->balance_transaction) );
             }
 
         } else {
@@ -460,7 +468,8 @@ class EH_Multibanco extends WC_Payment_Gateway {
                 wc_reduce_stock_levels( $order_id );
             }
 
-            $order->update_status( 'on-hold', sprintf( __( 'Stripe Multibanco order meta (Charge ID: %s). Process order to take payment, or cancel to remove the pre-authorization.', 'payment-gateway-stripe-and-woocommerce-integration' ), $response->id) );
+            /* translators: %s: Charge ID */
+            $order->update_status( 'on-hold', sprintf( esc_html__( 'Stripe Multibanco order meta (Charge ID: %s). Process order to take payment, or cancel to remove the pre-authorization.', 'payment-gateway-stripe-and-woocommerce-integration' ), $response->id) );
         }
 
         if ($auto_redirect) {
@@ -481,9 +490,9 @@ class EH_Multibanco extends WC_Payment_Gateway {
      */
     public function get_clients_details() {
         return array(
-            'IP' => $_SERVER['REMOTE_ADDR'],
-            'Agent' => $_SERVER['HTTP_USER_AGENT'],
-            'Referer' => $_SERVER['HTTP_REFERER']
+            'IP' => isset($_SERVER['REMOTE_ADDR']) ? sanitize_text_field(wp_unslash($_SERVER['REMOTE_ADDR'])) : '',
+            'Agent' => isset($_SERVER['HTTP_USER_AGENT']) ? sanitize_text_field(wp_unslash($_SERVER['HTTP_USER_AGENT'])) : '',
+            'Referer' => isset($_SERVER['HTTP_REFERER']) ? esc_url_raw(wp_unslash($_SERVER['HTTP_REFERER'])) : ''
         );
     }
 
@@ -541,29 +550,29 @@ class EH_Multibanco extends WC_Payment_Gateway {
                     //$charge_response = \Stripe\Charge::retrieve($charge_id);
                     $refund_response = \Stripe\Refund::create($refund_params);
                     if ($refund_response) {
-                                        
+                        //phpcs:ignore WordPress.DateTime.RestrictedFunctions.date_date
                         $refund_time = date('Y-m-d H:i:s', time() + get_option('gmt_offset') * 3600);
                         $obj = new EH_Stripe_Payment();
                         $data = $obj->make_refund_params($refund_response, $amount, ((version_compare(WC()->version, '2.7.0', '<')) ? $order->order_currency : $order->get_currency()), $order_id);
                         
                         EH_Helper_Class::wt_stripe_order_db_operations($order_id, $order, 'add', '_eh_stripe_payment_refund', $data, false); 
 
-                        $order->add_order_note(__('Reason : ', 'payment-gateway-stripe-and-woocommerce-integration') . $reason . '.<br>' . __('Amount : ', 'payment-gateway-stripe-and-woocommerce-integration') . get_woocommerce_currency_symbol() . $amount . '.<br>' . __('Status : refunded ', 'payment-gateway-stripe-and-woocommerce-integration') . ' [ ' . $refund_time . ' ] ' . (is_null($data['transaction_id']) ? '' : '<br>' . __('Transaction ID : ', 'payment-gateway-stripe-and-woocommerce-integration') . $data['transaction_id']));
+                        $order->add_order_note(esc_html__('Reason : ', 'payment-gateway-stripe-and-woocommerce-integration') . $reason . '.<br>' . esc_html__('Amount : ', 'payment-gateway-stripe-and-woocommerce-integration') . get_woocommerce_currency_symbol() . $amount . '.<br>' . esc_html__('Status : refunded ', 'payment-gateway-stripe-and-woocommerce-integration') . ' [ ' . $refund_time . ' ] ' . (is_null($data['transaction_id']) ? '' : '<br>' . esc_html__('Transaction ID : ', 'payment-gateway-stripe-and-woocommerce-integration') . $data['transaction_id']));
                         EH_Stripe_Log::log_update('live', $data, get_bloginfo('blogname') . ' - Refund - Order #' . $order->get_order_number());
                         return true;
                     } else {
                         EH_Stripe_Log::log_update('dead', $data, get_bloginfo('blogname') . ' - Refund Error - Order #' . $order->get_order_number());
-                        $order->add_order_note(__('Reason : ', 'payment-gateway-stripe-and-woocommerce-integration') . $reason . '.<br>' . __('Amount : ', 'payment-gateway-stripe-and-woocommerce-integration') . get_woocommerce_currency_symbol() . $amount . '.<br>' . __(' Status : Failed ', 'payment-gateway-stripe-and-woocommerce-integration'));
+                        $order->add_order_note(esc_html__('Reason : ', 'payment-gateway-stripe-and-woocommerce-integration') . $reason . '.<br>' . esc_html__('Amount : ', 'payment-gateway-stripe-and-woocommerce-integration') . get_woocommerce_currency_symbol() . $amount . '.<br>' . esc_html__(' Status : Failed ', 'payment-gateway-stripe-and-woocommerce-integration'));
                         return new WP_Error('error', $data->message);
                     }
                 } catch (Exception $error) {
                     $oops = $error->getJsonBody();
                     EH_Stripe_Log::log_update('dead', $oops['error'], get_bloginfo('blogname') . ' - Refund Error - Order #' . $order->get_order_number());
-                    $order->add_order_note(__('Reason : ', 'payment-gateway-stripe-and-woocommerce-integration') . $reason . '.<br>' . __('Amount : ', 'payment-gateway-stripe-and-woocommerce-integration') . get_woocommerce_currency_symbol() . $amount . '.<br>' . __('Status : ', 'payment-gateway-stripe-and-woocommerce-integration') . $oops['error']['message']);
-                    return new WP_Error('error', $oops['error']['message']);
+                    $order->add_order_note(esc_html__('Reason : ', 'payment-gateway-stripe-and-woocommerce-integration') . $reason . '.<br>' . esc_html__('Amount : ', 'payment-gateway-stripe-and-woocommerce-integration') . get_woocommerce_currency_symbol() . $amount . '.<br>' . esc_html__('Status : ', 'payment-gateway-stripe-and-woocommerce-integration') . esc_html($oops['error']['message']));
+                    return new WP_Error('error', esc_html($oops['error']['message']));
                 }
             } else {
-                return new WP_Error('error', __('Uncaptured Amount cannot be refunded', 'payment-gateway-stripe-and-woocommerce-integration'));
+                return new WP_Error('error', esc_html__('Uncaptured Amount cannot be refunded', 'payment-gateway-stripe-and-woocommerce-integration'));
             }
         } else {
             return false;
@@ -572,39 +581,46 @@ class EH_Multibanco extends WC_Payment_Gateway {
 
     //webhook callback
     public function eh_multibanco_callback_handler() { 
-       $order_id = (isset($_REQUEST['order_id']) && !empty($_REQUEST['order_id'])) ? $_REQUEST['order_id'] : '';
+        //phpcs:ignore WordPress.Security.NonceVerification.Recommended 
+       $order_id = (isset($_REQUEST['order_id']) && !empty($_REQUEST['order_id'])) ? sanitize_text_field(wp_unslash($_REQUEST['order_id'])) : '';
         $order = wc_get_order($order_id);
 
         try{ 
 
+            //phpcs:ignore WordPress.Security.NonceVerification.Recommended 
             if (isset($_REQUEST['source']) && !empty($_REQUEST['source'])) {
-                $source_id = sanitize_text_field($_REQUEST['source']);
+                //phpcs:ignore WordPress.Security.NonceVerification.Recommended 
+                $source_id = sanitize_text_field(wp_unslash($_REQUEST['source']));
+                //phpcs:ignore WordPress.Security.NonceVerification.Recommended 
                 if(isset($_REQUEST['redirect_status']) && !empty($_REQUEST['redirect_status'])){
-                    if (strtolower($_REQUEST['redirect_status']) == 'succeeded' || strtolower($_REQUEST['redirect_status']) == 'pending') { 
+                    //phpcs:ignore WordPress.Security.NonceVerification.Recommended 
+                    if (strtolower(sanitize_text_field(wp_unslash($_REQUEST['redirect_status']))) == 'succeeded' || strtolower(sanitize_text_field(wp_unslash($_REQUEST['redirect_status']))) == 'pending') { 
                         //Retrieve source
                         $source_response = \Stripe\Source::retrieve($source_id);
                         $this->process_source_response($source_response, $order);
                     }
                     else{
-                        throw new Exception(__('Unable to process this payment, please try again.', 'payment-gateway-stripe-and-woocommerce-integration'));
+                        throw new Exception(esc_html__('Unable to process this payment, please try again.', 'payment-gateway-stripe-and-woocommerce-integration'));
                         
                     }
 
                 }
                 else{
-                    throw new Exception(__('Unable to process this payment, please try again.', 'payment-gateway-stripe-and-woocommerce-integration'));
+                    throw new Exception(esc_html__('Unable to process this payment, please try again.', 'payment-gateway-stripe-and-woocommerce-integration'));
                 }                          
             }
             else{
-                throw new Exception(__('Unable to process this payment, please try again.', 'payment-gateway-stripe-and-woocommerce-integration'));
+                throw new Exception(esc_html__('Unable to process this payment, please try again.', 'payment-gateway-stripe-and-woocommerce-integration'));
             }
 
 
         }
         catch(Exception $e){
-            $order->update_status( 'failed', sprintf( __( 'Multibanco payment failed: %s', 'payment-gateway-stripe-and-woocommerce-integration' ),$e->getMessage() ) );
+            /* translators: %s: Error message */
+            $order->update_status( 'failed', sprintf( esc_html__( 'Multibanco payment failed: %s', 'payment-gateway-stripe-and-woocommerce-integration' ),$e->getMessage() ) );
 
-            wc_add_notice( sprintf( __( ' %s ', 'payment-gateway-stripe-and-woocommerce-integration' ), $e->getMessage()), 'error' );
+            /* translators: %s: Error message */
+            wc_add_notice( sprintf( esc_html__( 'Error: %s', 'payment-gateway-stripe-and-woocommerce-integration' ), $e->getMessage()), 'error' );
             wp_safe_redirect( wc_get_checkout_url() );
         }
 
@@ -613,7 +629,7 @@ class EH_Multibanco extends WC_Payment_Gateway {
     public function process_source_response($source_response, $order = null){ 
         if (!empty($source_response)) { 
             if (isset($source_response->error)) {
-                throw new Exception($source_response->error->message);
+                throw new Exception(esc_html($source_response->error->message));
             }
             else{ 
                 if (isset($source_response->status) && !empty($source_response->status)) {
@@ -633,9 +649,10 @@ class EH_Multibanco extends WC_Payment_Gateway {
                             wc_reduce_stock_levels( $order_id );
                         }
                         $order->update_status( 'on-hold');
-                        
+                        //phpcs:ignore WordPress.DateTime.RestrictedFunctions.date_date
                         $order_time = date('Y-m-d H:i:s', time() + get_option('gmt_offset') * 3600); 
-                        $order->add_order_note( __('Payment Status : Charge not initiated', 'payment-gateway-stripe-and-woocommerce-integration')  .' [ ' . $order_time . ' ] . '  );
+                        /* translators: %s: Order time */
+                        $order->add_order_note( sprintf( esc_html__('Payment Status : Charge not initiated [ %s ]', 'payment-gateway-stripe-and-woocommerce-integration'), $order_time ) );
 
                         wp_safe_redirect( $this->get_return_url($order) );
                         exit;
@@ -643,16 +660,17 @@ class EH_Multibanco extends WC_Payment_Gateway {
 
                     }
                     elseif ('consumed' == $source_response->status) {
-                        wc_add_notice(__('Your payment is already processed!!', 'payment-gateway-stripe-and-woocommerce-integration'));
+                        wc_add_notice(esc_html__('Your payment is already processed!!', 'payment-gateway-stripe-and-woocommerce-integration'));
                         wp_safe_redirect( $this->get_return_url($order) );
                         exit;
                     }
                     else{ 
-                        throw new Exception(sprintf(__('Source status is %s', 'payment-gateway-stripe-and-woocommerce-integration'), $source_response->status));
+                        /* translators: %s: Source status */
+                        throw new Exception(sprintf(esc_html__('Source status is %s', 'payment-gateway-stripe-and-woocommerce-integration'), esc_html($source_response->status)));
                     }
                 }
                 else{
-                     throw new Exception( __('Unable to find source status, please try again.', 'payment-gateway-stripe-and-woocommerce-integration'));
+                     throw new Exception( esc_html__('Unable to find source status, please try again.', 'payment-gateway-stripe-and-woocommerce-integration'));
                 }
             }
         }

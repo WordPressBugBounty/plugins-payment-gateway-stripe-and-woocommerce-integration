@@ -39,9 +39,9 @@ if ( ! class_exists( 'Wt_Promotion_Banner' ) )  {
 					<div class="wt_promotion_banner_inner">
 						<div class="wt_promotion_banner_left"></div>
 						<div class="wt_promotion_banner_right">
-							<h3 class="wt_promotion_banner_hd"><?php esc_html_e( 'Biggest sale of the year is here!' ); ?></h3>
-							<p><?php esc_html_e( 'Black Friday & Cyber Monday sale is now live! Get any WebToffee plugins at an exclusive 30% discount.' ); ?></p>
-							<button class="button button-primary"><?php esc_html_e( 'Grab this deal' ); ?> → </button>
+							<h3 class="wt_promotion_banner_hd"><?php esc_html_e( 'Biggest sale of the year is here!', 'payment-gateway-stripe-and-woocommerce-integration' ); ?></h3>
+							<p><?php esc_html_e( 'Black Friday & Cyber Monday sale is now live! Get any WebToffee plugins at an exclusive 30% discount.', 'payment-gateway-stripe-and-woocommerce-integration' ); ?></p>
+							<button class="button button-primary"><?php esc_html_e( 'Grab this deal', 'payment-gateway-stripe-and-woocommerce-integration' ); ?> → </button>
 						</div>
 					</div>
 				</div>
@@ -126,10 +126,10 @@ if ( ! class_exists( 'Wt_Promotion_Banner' ) )  {
 
     		if ( isset( $_POST['wt_promotion_banner_action_type'] ) ) {
 	            
-	            $action_type = absint( $_POST['wt_promotion_banner_action_type'] );
+	            $action_type = absint( sanitize_text_field(wp_unslash($_POST['wt_promotion_banner_action_type'])) );
 
 	            // Current action is allowed?
-	            if ( in_array( $action_type, array( 2, 3 ) ) ) {
+	            if ( in_array( $action_type, array( 2, 3 ), true ) ) {
 	                update_option( self::$banner_state_option_name, $action_type );
 	            }
 	        }

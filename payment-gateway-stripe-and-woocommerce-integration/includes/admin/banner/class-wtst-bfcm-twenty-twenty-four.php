@@ -68,9 +68,9 @@ if ( !class_exists( '\\Wtstripe\\Banners\\Wtst_Bfcm_Twenty_Twenty_Four' ) ) {
                                 </div>
                                 <div class="info">
                                     <p><?php 
-                                        echo sprintf(
-                                                __( 'Your Last Chance to Avail %1$s on WebToffee Plugins. Grab the deal before it`s gone!', 'payment-gateway-stripe-and-woocommerce-integration' ), 
-                                                '<span>30% '.__("OFF","payment-gateway-stripe-and-woocommerce-integration").'</span>'
+                                        /* translators: %1$s: Discount percentage with OFF text wrapped in span */
+                                        echo sprintf(esc_html__( 'Your Last Chance to Avail %1$s on WebToffee Plugins. Grab the deal before it`s gone!', 'payment-gateway-stripe-and-woocommerce-integration' ), 
+                                                '<span>30% ' . esc_html__( 'OFF', 'payment-gateway-stripe-and-woocommerce-integration' ) . '</span>'
                                             );
                                     ?></p>
                                 </div>
@@ -134,8 +134,9 @@ if ( !class_exists( '\\Wtstripe\\Banners\\Wtst_Bfcm_Twenty_Twenty_Four' ) ) {
              * 	@param 	string[] 	Default screen ids
              */
             $screens_to_show = (array) apply_filters( 'wtst_bfcm_banner_screens', array('toplevel_page_wt_stripe_menu') );
-            self::$show_banner = in_array( $screen_id, $screens_to_show );
+            self::$show_banner = in_array( $screen_id, $screens_to_show, true );
 
+            //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing
             if('woocommerce_page_wc-settings' === $screen_id && isset($_REQUEST['tab']) && "checkout" === $_REQUEST['tab'] ){
                 self::$show_banner = true;
             }
@@ -151,10 +152,10 @@ if ( !class_exists( '\\Wtstripe\\Banners\\Wtst_Bfcm_Twenty_Twenty_Four' ) ) {
     	public function update_banner_state() {
     		check_ajax_referer( 'wtst_bfcm_twenty_twenty_four_banner_nonce' );
     		if ( isset( $_POST['wtst_bfcm_twenty_twenty_four_banner_action_type'] ) ) {
-	            
-	            $action_type = absint( sanitize_text_field( $_POST['wtst_bfcm_twenty_twenty_four_banner_action_type'] ) );
+                //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing
+	            $action_type = absint( sanitize_text_field( wp_unslash( $_POST['wtst_bfcm_twenty_twenty_four_banner_action_type'] ) ) );
 	            // Current action is allowed?
-	            if ( in_array( $action_type, array( 2, 3 ) ) ) {
+	            if ( in_array( $action_type, array( 2, 3 ), true ) ) {
 	                update_option( self::$banner_state_option_name, $action_type );
 	            }
 	        }

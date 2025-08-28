@@ -1,4 +1,8 @@
-<style>
+<?php
+
+if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
+
+?><style>
 .eh_gopro_block {
     background: #ffffff;
     border-radius: 12px;
@@ -139,18 +143,18 @@
   <div class="eh_section" style="background-color: #EAF2FF;">
     <div class="eh_section_header" style="background-color: #DDEEFF;">
       <img src="<?php echo esc_url(EH_STRIPE_MAIN_URL_PATH.'assets/img/stripe-cta.svg'); ?>" alt="Stripe Icon">
-      <span><?php _e('Advanced Stripe for WooCommerce', 'payment-gateway-stripe-and-woocommerce-integration'); ?></span>
+      <span><?php esc_html_e('Advanced Stripe for WooCommerce', 'payment-gateway-stripe-and-woocommerce-integration'); ?></span>
     </div>
     <div class="eh_section_content">
       <ul>
-        <li><?php _e('Accept recurring payments for WooCommerce Subscriptions', 'payment-gateway-stripe-and-woocommerce-integration'); ?></li>
-        <li><?php _e('One-click payments via Link', 'payment-gateway-stripe-and-woocommerce-integration'); ?></li>
-        <li><?php _e('Offer 20+ payment options', 'payment-gateway-stripe-and-woocommerce-integration'); ?></li>
+        <li><?php esc_html_e('Accept recurring payments for WooCommerce Subscriptions', 'payment-gateway-stripe-and-woocommerce-integration'); ?></li>
+        <li><?php esc_html_e('One-click payments via Link', 'payment-gateway-stripe-and-woocommerce-integration'); ?></li>
+        <li><?php esc_html_e('Offer 20+ payment options', 'payment-gateway-stripe-and-woocommerce-integration'); ?></li>
       </ul>
       <div class="eh_section_button">
-        <a href="https://www.webtoffee.com/product/woocommerce-stripe-payment-gateway/?utm_source=free_plugin_sidebar&utm_medium=Stripe_basic&utm_campaign=Stripe&utm_content=<?php echo EH_STRIPE_VERSION; ?>" target="_blank">
+        <a href="https://www.webtoffee.com/product/woocommerce-stripe-payment-gateway/?utm_source=free_plugin_sidebar&utm_medium=Stripe_basic&utm_campaign=Stripe&utm_content=<?php echo esc_attr(EH_STRIPE_VERSION); ?>" target="_blank">
           <img src="<?php echo esc_url(EH_STRIPE_MAIN_URL_PATH.'assets/img/white-crown.svg'); ?>" alt="Crown" style="width:16px; vertical-align:middle; margin-right:6px;">
-          <?php _e('Upgrade to Premium', 'payment-gateway-stripe-and-woocommerce-integration'); ?>
+          <?php esc_html_e('Upgrade to Premium', 'payment-gateway-stripe-and-woocommerce-integration'); ?>
         </a>
       </div>
     </div>
@@ -160,26 +164,26 @@
   <div class="eh_section" style="background-color: #EBFAF0;">
     <div class="eh_section_header" style="background-color: #DDF9E4;">
       <img src="<?php echo esc_url(EH_STRIPE_MAIN_URL_PATH.'assets/img/subscription-cta.svg'); ?>" alt="Calendar Icon">
-      <span><?php _e('WebToffee WooCommerce Subscription Plugin', 'payment-gateway-stripe-and-woocommerce-integration'); ?></span>
+      <span><?php esc_html_e('WebToffee WooCommerce Subscription Plugin', 'payment-gateway-stripe-and-woocommerce-integration'); ?></span>
     </div>
     <div class="eh_section_content">
-      <p style="margin-bottom: 15px;"><?php _e('Want to offer subscription-based products?', 'payment-gateway-stripe-and-woocommerce-integration'); ?></p>
+      <p style="margin-bottom: 15px;"><?php esc_html_e('Want to offer subscription-based products?', 'payment-gateway-stripe-and-woocommerce-integration'); ?></p>
       <ul>
-        <li><?php _e('Create simple and variable subscriptions', 'payment-gateway-stripe-and-woocommerce-integration'); ?></li>
-        <li><?php _e('Offer free trials & charge signup fees', 'payment-gateway-stripe-and-woocommerce-integration'); ?></li>
-        <li><?php _e('Configure auto-renewals', 'payment-gateway-stripe-and-woocommerce-integration'); ?></li>
-        <li><?php _e('Offer discounts on renewals', 'payment-gateway-stripe-and-woocommerce-integration'); ?></li>
-        <li><?php _e('Synchronize subscription renewals', 'payment-gateway-stripe-and-woocommerce-integration'); ?></li>
-        <li><?php _e('Prorate subscription fee', 'payment-gateway-stripe-and-woocommerce-integration'); ?></li>
-        <li><?php _e('Manage access to content', 'payment-gateway-stripe-and-woocommerce-integration'); ?></li>
-        <li><?php _e('Send automated email reminders', 'payment-gateway-stripe-and-woocommerce-integration'); ?></li>
-        <li><?php _e('Supports Stripe and PayPal', 'payment-gateway-stripe-and-woocommerce-integration'); ?></li>
-        <li><?php _e('Supports 10+ languages', 'payment-gateway-stripe-and-woocommerce-integration'); ?></li>
+        <li><?php esc_html_e('Create simple and variable subscriptions', 'payment-gateway-stripe-and-woocommerce-integration'); ?></li>
+        <li><?php esc_html_e('Offer free trials & charge signup fees', 'payment-gateway-stripe-and-woocommerce-integration'); ?></li>
+        <li><?php esc_html_e('Configure auto-renewals', 'payment-gateway-stripe-and-woocommerce-integration'); ?></li>
+        <li><?php esc_html_e('Offer discounts on renewals', 'payment-gateway-stripe-and-woocommerce-integration'); ?></li>
+        <li><?php esc_html_e('Synchronize subscription renewals', 'payment-gateway-stripe-and-woocommerce-integration'); ?></li>
+        <li><?php esc_html_e('Prorate subscription fee', 'payment-gateway-stripe-and-woocommerce-integration'); ?></li>
+        <li><?php esc_html_e('Manage access to content', 'payment-gateway-stripe-and-woocommerce-integration'); ?></li>
+        <li><?php esc_html_e('Send automated email reminders', 'payment-gateway-stripe-and-woocommerce-integration'); ?></li>
+        <li><?php esc_html_e('Supports Stripe and PayPal', 'payment-gateway-stripe-and-woocommerce-integration'); ?></li>
+        <li><?php esc_html_e('Supports 10+ languages', 'payment-gateway-stripe-and-woocommerce-integration'); ?></li>
       </ul>
       <div class="eh_section_button">
-        <a href="https://www.webtoffee.com/product/woocommerce-subscription/?utm_source=free_plugin_sidebar&utm_medium=Stripe_basic&utm_campaign=Stripe&utm_content=<?php echo EH_STRIPE_VERSION; ?>" target="_blank">
+        <a href="https://www.webtoffee.com/product/woocommerce-subscription/?utm_source=free_plugin_sidebar&utm_medium=Stripe_basic&utm_campaign=Stripe&utm_content=<?php echo esc_attr(EH_STRIPE_VERSION); ?>" target="_blank">
           <img src="<?php echo esc_url(EH_STRIPE_MAIN_URL_PATH.'assets/img/white-crown.svg'); ?>" alt="Crown" style="width:16px; vertical-align:middle; margin-right:6px;">
-          <?php _e('Get woo Subscription', 'payment-gateway-stripe-and-woocommerce-integration'); ?>
+          <?php esc_html_e('Get woo Subscription', 'payment-gateway-stripe-and-woocommerce-integration'); ?>
         </a>
       </div>
     </div>
@@ -189,24 +193,24 @@
   <div class="eh_badge_section">
     <div class="eh_badge_item">
       <img src="<?php echo esc_url(EH_STRIPE_MAIN_URL_PATH.'assets/img/money-back.svg'); ?>" alt="30-Day Guarantee">
-      <div><strong><?php _e('30-Day', 'payment-gateway-stripe-and-woocommerce-integration'); ?></strong><br><?php _e('Money Back Guarantee', 'payment-gateway-stripe-and-woocommerce-integration'); ?></div>
+      <div><strong><?php esc_html_e('30-Day', 'payment-gateway-stripe-and-woocommerce-integration'); ?></strong><br><?php esc_html_e('Money Back Guarantee', 'payment-gateway-stripe-and-woocommerce-integration'); ?></div>
     </div>
     <div class="eh_badge_divider"></div>
     <div class="eh_badge_item">
       <img src="<?php echo esc_url(EH_STRIPE_MAIN_URL_PATH.'assets/img/customer-satisfaction.svg'); ?>" alt="99% Satisfaction">
-      <div><?php _e('99% Customer', 'payment-gateway-stripe-and-woocommerce-integration'); ?><br><strong><?php _e('Satisfaction Score', 'payment-gateway-stripe-and-woocommerce-integration'); ?></strong></div>
+      <div><?php esc_html_e('99% Customer', 'payment-gateway-stripe-and-woocommerce-integration'); ?><br><strong><?php esc_html_e('Satisfaction Score', 'payment-gateway-stripe-and-woocommerce-integration'); ?></strong></div>
     </div>
   </div>
 </div>
 
 <!-- Like This Plugin -->
 <div class="eh_like_plugin">
-  <h3><strong><?php _e('Like this plugin?', 'payment-gateway-stripe-and-woocommerce-integration'); ?></strong></h3>
+  <h3><strong><?php esc_html_e('Like this plugin?', 'payment-gateway-stripe-and-woocommerce-integration'); ?></strong></h3>
   <p>
-    <?php _e('If you find this plugin useful please show your support and rate it', 'payment-gateway-stripe-and-woocommerce-integration'); ?>
+    <?php esc_html_e('If you find this plugin useful please show your support and rate it', 'payment-gateway-stripe-and-woocommerce-integration'); ?>
     <a href="http://wordpress.org/support/view/plugin-reviews/payment-gateway-stripe-and-woocommerce-integration" target="_blank" style="color: #ffc600; text-decoration: none;">★★★★★</a>
-    <?php _e('on', 'payment-gateway-stripe-and-woocommerce-integration'); ?>
+    <?php esc_html_e('on', 'payment-gateway-stripe-and-woocommerce-integration'); ?>
     <a href="http://wordpress.org/support/view/plugin-reviews/payment-gateway-stripe-and-woocommerce-integration" target="_blank">WordPress.org</a>
-    – <?php _e('much appreciated!', 'payment-gateway-stripe-and-woocommerce-integration'); ?> :)
+    – <?php esc_html_e('much appreciated!', 'payment-gateway-stripe-and-woocommerce-integration'); ?> :)
   </p>
 </div>

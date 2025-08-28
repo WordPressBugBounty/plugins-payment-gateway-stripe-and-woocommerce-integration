@@ -1,4 +1,9 @@
 <?php
+
+if (!defined('ABSPATH')) {
+    exit; // Exit if accessed directly
+}
+
 class EH_Stripe_Log 
 {
     public static function init_live_log()
@@ -23,17 +28,20 @@ class EH_Stripe_Log
                 switch ($type)
                 {
                     case 'live':
+                        //phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_print_r
                         $log_text=$head.print_r((object)$msg,true);
                         $live_context = array( 'source' => 'eh_stripe_pay_live' );
                         $log->log("debug", $log_text,$live_context);
                         break;
                     case 'dead':
+                        //phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_print_r
                         $log_text=$head.print_r((object)$msg,true);
                         $dead_context = array( 'source' => 'eh_stripe_pay_dead' );
                         $log->log("debug", $log_text,$dead_context);
                         break;
                     case 'oauth':
                         $head="<------------------- ".$title."------------------->\n";
+                        //phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_print_r
                         $log_text=$head.print_r((object)$msg,true);
                         $oauth_context = array( 'source' => 'eh_stripe_pay_oauth' );
                         $log->log("info", $log_text,$oauth_context);
@@ -47,15 +55,18 @@ class EH_Stripe_Log
                 switch ($type)
                 {
                     case 'live':
+                        //phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_print_r
                         $log_text=$head.print_r((object)$msg,true);
                         $log->add("eh_stripe_pay_live",$log_text);
                         break;
                     case 'dead':
+                        //phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_print_r
                         $log_text=$head.print_r((object)$msg,true);
                         $log->add("eh_stripe_pay_dead",$log_text);
                         break;
                      case 'oauth':
                         $head="<------------------- ".$title."------------------->\n";
+                        //phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_print_r
                         $log_text=$head.print_r((object)$msg,true);
                         $log->add("eh_stripe_pay_oauth",$log_text);
                         break;

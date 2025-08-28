@@ -1,7 +1,5 @@
 <?php
 
-
-
 if (!defined('ABSPATH')) {
     exit;
 }  
@@ -36,8 +34,8 @@ class EH_Stripe_Oauth {
 
             if(isset($decoded['nonce']) && isset($decoded['access_token'])){
 				$nonce = $decoded['nonce'];
-				$user_id = isset($nonce['user_id']) ? $nonce['user_id'] : '';
-				$key = isset($nonce ['key']) ? $nonce ['key'] : '';
+				$user_id = isset($nonce['user_id']) ? absint($nonce['user_id']) : 0;
+				$key = isset($nonce ['key']) ? sanitize_text_field($nonce ['key']) : '';
 				$key_in_db = get_user_meta($user_id, 'wtst_random_key', true);
 
                 if(isset($key) && isset($key_in_db) && !empty($key) && $key_in_db === $key){
@@ -140,7 +138,7 @@ class EH_Stripe_Oauth {
         );
         EH_Stripe_Log::log_update('oauth', $response,'Stripe OAuth response');
        
-        echo json_encode( $response);
+        echo wp_json_encode( $response);
         exit;
     }
     /**
@@ -149,62 +147,87 @@ class EH_Stripe_Oauth {
      * */     
     public static function wtst_oauth_disconnect($force = false)
     {
-       if(isset($_REQUEST['_wpnonce']) && wp_verify_nonce($_REQUEST['_wpnonce'], "eh_stripe_oauth_connect") || $force){
-            $stripe_settings = get_option("woocommerce_eh_stripe_pay_settings");            
-            $mode = (isset($stripe_settings['eh_stripe_mode']) ? $stripe_settings['eh_stripe_mode'] : 'live');
-
-            //If mode is passed override 
-            $mode = (isset($_REQUEST['mode']) ? sanitize_text_field( wp_unslash($_REQUEST['mode']) ): $mode);
-            if('test' === $mode){ 
-                if(isset($_REQUEST['expire']) && 'access_token' === sanitize_text_field($_REQUEST['expire']) ){ 
-                    EH_Stripe_Token_Handler::wtst_get_site_option('delete', array('name' => 'wtst_oauth_expriy_test')); 
-                    EH_Stripe_Token_Handler::wtst_get_site_option('delete', null, array('name' => 'wtst_refresh_token_calling'));                   
-                }
-                else{  
-                    EH_Stripe_Token_Handler::wtst_get_site_option('delete', array('name' => 'wt_stripe_account_id_test'));
-                    EH_Stripe_Token_Handler::wtst_get_site_option('delete', array('name' => 'wt_stripe_access_token_test')); 
-                    EH_Stripe_Token_Handler::wtst_get_site_option('delete', array('name' => 'wt_stripe_refresh_token_test'));
-                    EH_Stripe_Token_Handler::wtst_get_site_option('delete', array('name' => 'wt_stripe_oauth_connected_test'));
-                    EH_Stripe_Token_Handler::wtst_get_site_option('delete', array('name' => 'wtst_oauth_expriy_test'));
-                    EH_Stripe_Token_Handler::wtst_get_site_option('delete', null, array('name' => 'wtst_refresh_token_calling'));   
-                    EH_Stripe_Token_Handler::wtst_get_site_option('delete', array('name' => 'wt_stripe_test_publishable_key'));
-                }
-
+        
+        
+        // Check if this is an AJAX request
+        if (wp_doing_ajax()) {
+            // AJAX request - verify nonce
+            $disconnect_nonce = isset($_REQUEST['_wpnonce']) ? sanitize_text_field(wp_unslash($_REQUEST['_wpnonce'])) : '';
+            if (isset($disconnect_nonce) && wp_verify_nonce($disconnect_nonce, 'eh_stripe_oauth_connect') && current_user_can('manage_woocommerce')) {
+                // Valid AJAX request with proper nonce - proceed
+                self::perform_oauth_disconnect($force);
+            } else {
+                // Invalid AJAX request - no nonce or invalid nonce
+                wp_die(esc_html__('Security check failed. Please try again.', 'payment-gateway-stripe-and-woocommerce-integration'));
             }
-            else{ 
-                if(isset($_REQUEST['expire']) && 'access_token' === sanitize_text_field($_REQUEST['expire']) ){
-                    EH_Stripe_Token_Handler::wtst_get_site_option('delete', array('name' => 'wtst_oauth_expriy_live'));                   
-                    EH_Stripe_Token_Handler::wtst_get_site_option('delete', null, array('name' => 'wtst_refresh_token_calling'));
-                }
-                else{                
-                    EH_Stripe_Token_Handler::wtst_get_site_option('delete', array('name' => 'wt_stripe_account_id_live'));
-                    EH_Stripe_Token_Handler::wtst_get_site_option('delete', array('name' => 'wt_stripe_access_token_live'));
-                    EH_Stripe_Token_Handler::wtst_get_site_option('delete', array('name' => 'wt_stripe_refresh_token_live')); 
-                    EH_Stripe_Token_Handler::wtst_get_site_option('delete', array('name' => 'wt_stripe_oauth_connected_live'));
-                    EH_Stripe_Token_Handler::wtst_get_site_option('delete', array('name' => 'wtst_oauth_expriy_live'));
-                    EH_Stripe_Token_Handler::wtst_get_site_option('delete', null, array('name' => 'wtst_refresh_token_calling'));
-                    EH_Stripe_Token_Handler::wtst_get_site_option('delete', array('name' => 'wt_stripe_live_publishable_key'));
-                    
-                }
+        } elseif ($force) {
+            // Non-AJAX request, Check if this is a forced disconnect
+
+            self::perform_oauth_disconnect($force);
+        }
+    }
+
+    /**
+     * Perform the actual OAuth disconnect operations
+     */
+    private static function perform_oauth_disconnect($force)
+    {
+        $stripe_settings = get_option("woocommerce_eh_stripe_pay_settings");            
+        $mode = (isset($stripe_settings['eh_stripe_mode']) ? $stripe_settings['eh_stripe_mode'] : 'live');
+
+        //If mode is passed override 
+        //phpcs:ignore WordPress.Security.NonceVerification.Recommended
+        $mode = (isset($_REQUEST['mode']) ? sanitize_text_field( wp_unslash($_REQUEST['mode']) ): $mode);
+        if('test' === $mode){ 
+            //phpcs:ignore WordPress.Security.NonceVerification.Recommended
+            if(isset($_REQUEST['expire']) && 'access_token' === sanitize_text_field(wp_unslash($_REQUEST['expire'])) ){ 
+                EH_Stripe_Token_Handler::wtst_get_site_option('delete', array('name' => 'wtst_oauth_expriy_test')); 
+                EH_Stripe_Token_Handler::wtst_get_site_option('delete', null, array('name' => 'wtst_refresh_token_calling'));                   
             }
-		   if(as_next_scheduled_action('eh_stripe_refresh_oauth_token')){
-
-			  as_unschedule_all_actions('eh_stripe_refresh_oauth_token');
-
-		    }
-            if($force){
-                // Get the admin email
-                $admin_email = get_option('admin_email');
-
-                // Set the email subject and message
-                $subject = 'Stripe Connection Lost';
-                $message = 'Please reconnect to Stripe. Due to some error, the Stripe connection is lost.';
-
-                // Send the email
-                wp_mail($admin_email, $subject, $message);
-
+            else{  
+                EH_Stripe_Token_Handler::wtst_get_site_option('delete', array('name' => 'wt_stripe_account_id_test'));
+                EH_Stripe_Token_Handler::wtst_get_site_option('delete', array('name' => 'wt_stripe_access_token_test')); 
+                EH_Stripe_Token_Handler::wtst_get_site_option('delete', array('name' => 'wt_stripe_refresh_token_test'));
+                EH_Stripe_Token_Handler::wtst_get_site_option('delete', array('name' => 'wt_stripe_oauth_connected_test'));
+                EH_Stripe_Token_Handler::wtst_get_site_option('delete', array('name' => 'wtst_oauth_expriy_test'));
+                EH_Stripe_Token_Handler::wtst_get_site_option('delete', null, array('name' => 'wtst_refresh_token_calling'));   
+                EH_Stripe_Token_Handler::wtst_get_site_option('delete', array('name' => 'wt_stripe_test_publishable_key'));
             }
-       }
+
+        }
+        else{ 
+            //phpcs:ignore WordPress.Security.NonceVerification.Recommended
+            if(isset($_REQUEST['expire']) && 'access_token' === sanitize_text_field(wp_unslash($_REQUEST['expire'])) ){
+                EH_Stripe_Token_Handler::wtst_get_site_option('delete', array('name' => 'wtst_oauth_expriy_live'));                   
+                EH_Stripe_Token_Handler::wtst_get_site_option('delete', null, array('name' => 'wtst_refresh_token_calling'));
+            }
+            else{                
+                EH_Stripe_Token_Handler::wtst_get_site_option('delete', array('name' => 'wt_stripe_account_id_live'));
+                EH_Stripe_Token_Handler::wtst_get_site_option('delete', array('name' => 'wt_stripe_access_token_live'));
+                EH_Stripe_Token_Handler::wtst_get_site_option('delete', array('name' => 'wt_stripe_refresh_token_live')); 
+                EH_Stripe_Token_Handler::wtst_get_site_option('delete', array('name' => 'wt_stripe_oauth_connected_live'));
+                EH_Stripe_Token_Handler::wtst_get_site_option('delete', array('name' => 'wtst_oauth_expriy_live'));
+                EH_Stripe_Token_Handler::wtst_get_site_option('delete', null, array('name' => 'wtst_refresh_token_calling'));
+                EH_Stripe_Token_Handler::wtst_get_site_option('delete', array('name' => 'wt_stripe_live_publishable_key'));
+                
+            }
+        }
+        if(as_next_scheduled_action('eh_stripe_refresh_oauth_token')){
+            as_unschedule_all_actions('eh_stripe_refresh_oauth_token');
+        }
+        
+        // Send email notification for forced disconnects
+        if ($force) {
+            // Get the admin email
+            $admin_email = get_option('admin_email');
+
+            // Set the email subject and message
+            $subject = 'Stripe Connection Lost';
+            $message = 'Please reconnect to Stripe. Due to some error, the Stripe connection is lost.';
+
+            // Send the email
+            wp_mail($admin_email, $subject, $message);
+        }
     }
     public static function eh_stripe_schedule_oauth_refresh() {
         if (!as_next_scheduled_action('eh_stripe_refresh_oauth_token')) {

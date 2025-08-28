@@ -116,14 +116,17 @@ class Eh_Stripe_Admin_Handler  {
 
 
         // adds saved changes message when form data is submitted
+        //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing
         if(isset($_GET['msg']) && 1 == $_GET['msg']){
-            echo  '<div class="notice notice-success"> <p>'.__( "Your settings have been saved.", "payment-gateway-stripe-and-woocommerce-integration" ).'</p> </div>';
+            echo  '<div class="notice notice-success"> <p>'.esc_html__( "Your settings have been saved.", "payment-gateway-stripe-and-woocommerce-integration" ).'</p> </div>';
         }
         
 
+        //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing
         if(isset($_REQUEST['oauth_error']) && !empty($_REQUEST['oauth_error'])){
-            $message = 'An error occurred while connecting to Stripe. <strong>'. esc_html($_REQUEST['oauth_error'] ).'.</strong>';
-            echo "<div class='notice notice-error is-dismissible' style='background-color: #ffd5d6;'><p>$message</p></div>";            
+            //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.MissingUnslash, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+            $message = 'An error occurred while connecting to Stripe. <strong>'. esc_html(sanitize_text_field(wp_unslash($_REQUEST['oauth_error'])) ).'.</strong>';
+            echo wp_kses_post("<div class='notice notice-error is-dismissible' style='background-color: #ffd5d6;'><p>$message</p></div>");            
         }
 
         //Banner to notify connect to Stripe app
@@ -132,12 +135,14 @@ class Eh_Stripe_Admin_Handler  {
             $mode = isset($eh_stripe['eh_stripe_mode']) ? $eh_stripe['eh_stripe_mode'] : 'live'; 
             $install_link = Eh_Stripe_Admin_Handler::wt_get_install_link($mode);
 
-
-            $message = sprintf(__('%1$sUrgent: Switch to OAuth for Secure Stripe Integration%2$sWe are enhancing security and requires you to switch from using API keys to OAuth 2.0 for connecting with Stripe account. OAuth provides better control and limits access to only the necessary data, protecting your business from unauthorized access. <p>Ensure to connect your Stripe account using the new authentication method before the year ends.</p> %3$sClick %4$s‘Connect Now’%5$s to update your integration today! Need help? Check out our %6$sintegration article%7$s. Please upgrade soon to avoid service disruptions.%8$sConnect Now%9$s', 'payment-gateway-stripe-and-woocommerce-integration'), '<p><h2>', '</h2>', '</p><p>', '<b>', '</b>', '<a href="https://www.webtoffee.com/switch-stripe-integration-oauth/" style="text-decoration: none;">', '</a>', '</p><p><a href="' . esc_url($install_link) .'" class="button button-primary">', '</a></p>');
+            /* translators: %1$s: Opening paragraph and h2 tags, %2$s: Closing h2 tag, %3$s: Opening paragraph tag, %4$s: Bold tag opening, %5$s: Bold tag closing, %6$s: Link opening, %7$s: Link closing, %8$s: Button opening, %9$s: Button closing */
+            $message = sprintf(esc_html__('%1$sUrgent: Switch to OAuth for Secure Stripe Integration%2$sWe are enhancing security and requires you to switch from using API keys to OAuth 2.0 for connecting with Stripe account. OAuth provides better control and limits access to only the necessary data, protecting your business from unauthorized access. %3$sEnsure to connect your Stripe account using the new authentication method before the year ends. %4$sClick %5$s"Connect Now"%6$s to update your integration today! Need help? Check out our %7$sintegration article%8$s. Please upgrade soon to avoid service disruptions.%9$sConnect Now%10$s', 'payment-gateway-stripe-and-woocommerce-integration'), '<p><h2>', '</h2>','<p>', '</p><p>', '<b>', '</b>', '<a href="https://www.webtoffee.com/switch-stripe-integration-oauth/" style="text-decoration: none;">', '</a>', '</p><p><a href="' . esc_url($install_link) .'" class="button button-primary">', '</a></p>');
             
-            $sofort_message = sprintf(__('%1$sUpdate: SOFORT Payments Discontinued%2$sStarting %3$sNovember 29, 2024,%4$s %5$sbusinesses will no longer be able to accept SOFORT payments%6$s as it is being consolidated into Klarna. To continue offering bank transfer payments, please switch to %3$sKlarna’s "Pay Now"%4$s option or other methods like %3$sSEPA Direct Debit%4$s. Any existing SEPA Direct Debit mandates will remain active.', 'payment-gateway-stripe-and-woocommerce-integration'), '<p><h2>', '</h2>', '<b>', '</b>','<a  style="text-decoration: none;" href="https://support.stripe.com/questions/sofort-is-being-consolidated-into-klarna-and-discontinued-as-a-standalone-payment-method">', '</a>', '</p><p><a href="' . esc_url($install_link) .'" class="button button-primary">', '</a></p>');
+            /* translators: %1$s: Opening paragraph and h2 tags, %2$s: Closing h2 tag, %3$s: Bold tag opening, %4$s: Bold tag closing, %5$s: Link opening, %6$s: Link closing, %7$s: Button opening, %8$s: Button closing */
+            $sofort_message = sprintf(esc_html__('%1$sUpdate: SOFORT Payments Discontinued%2$sStarting %3$sNovember 29, 2024,%4$s %5$sbusinesses will no longer be able to accept SOFORT payments%6$s as it is being consolidated into Klarna. To continue offering bank transfer payments, please switch to %3$sKlarna\'s "Pay Now"%4$s option or other methods like %3$sSEPA Direct Debit%4$s. Any existing SEPA Direct Debit mandates will remain active.', 'payment-gateway-stripe-and-woocommerce-integration'), '<p><h2>', '</h2>', '<b>', '</b>','<a  style="text-decoration: none;" href="https://support.stripe.com/questions/sofort-is-being-consolidated-into-klarna-and-discontinued-as-a-standalone-payment-method">', '</a>', '</p><p><a href="' . esc_url($install_link) .'" class="button button-primary">', '</a></p>');
             
-            if(isset($_GET['page']) &&  'wt_stripe_menu' === sanitize_text_field($_GET['page'])){
+            //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing
+            if(isset($_GET['page']) &&  'wt_stripe_menu' === sanitize_text_field(wp_unslash($_GET['page']))){
                 //echo wp_kses_post("<div class='notice notice-error' style='background-color: #ffd5d6;'><p>$message</p></div>");   
 
                 if (false === get_transient('wtst_dismiss_sofort_notice')) {        
@@ -214,20 +219,22 @@ class Eh_Stripe_Admin_Handler  {
             //if(self::wtst_oauth_compatible() || "yes" === get_transient("wtst_oauth_connect_later")){
                 ?><div class="wtst_wrap">
 
-                    <h2 style="width: 100%;"><?php _e('Stripe payment','payment-gateway-stripe-and-woocommerce-integration'); ?></h2><?php
+                    <h2 style="width: 100%;"><?php esc_html_e('Stripe payment','payment-gateway-stripe-and-woocommerce-integration'); ?></h2><?php
                     $webtoffee_logo='&nbsp;&nbsp;<img src="'.EH_STRIPE_MAIN_URL_PATH.'assets/img/wt_logo.png" style="" />&nbsp;';
 
                     ?><div class="wfte_branding">
-                        <div class="wfte_branding_label"><?php _e('Developed by', 'payment-gateway-stripe-and-woocommerce-integration'); print $webtoffee_logo;?>
+                        <div class="wfte_branding_label"><?php esc_html_e('Developed by', 'payment-gateway-stripe-and-woocommerce-integration'); echo wp_kses_post($webtoffee_logo);?>
                         </div>
                         <!-- <div style="width: 100%; padding: 5px;">
-                            <?php echo $webtoffee_logo; ?>
+                            <?php echo wp_kses_post($webtoffee_logo); ?>
                         </div> -->
                     </div>
 
                     <?php
+                    //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing
                     if( isset( $_GET[ 'tab' ] ) ) {
-                        $active_tab = $_GET[ 'tab' ];
+                        //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing
+                        $active_tab = sanitize_text_field(wp_unslash($_GET[ 'tab' ]));
                     } else{
                         $active_tab = 'general_settings';
                     }
@@ -235,20 +242,21 @@ class Eh_Stripe_Admin_Handler  {
                     $arr_local_gateways = array('local', 'alipay', 'sepa', 'klarna', 'afterpay', 'wechat', 'ideal', 'bancontact', 'eps', 'p24', 'bacs', 'becs', 'fpx', 'boleto', 'oxxo', 'grabpay', 'affirm');
                     ?>
                         <h2 class="nav-tab-wrapper eh-nav-tab">
-                            <a href="?page=wt_stripe_menu&tab=general_settings" class="nav-tab <?php echo $active_tab == 'general_settings' ? 'eh-nav-tab-active stripe' : 'stripe'; ?>"><?php  _e('General Settings','payment-gateway-stripe-and-woocommerce-integration'); ?></a>
-                            <a href="?page=wt_stripe_menu&tab=credit_card" class="nav-tab <?php echo $active_tab == 'credit_card' ? 'eh-nav-tab-active stripe' : 'stripe'; ?>"><?php  _e('Credit/Debit Cards','payment-gateway-stripe-and-woocommerce-integration'); ?></a>
-                            <a href="?page=wt_stripe_menu&tab=applepay" class="nav-tab <?php echo $active_tab == 'applepay' ? 'eh-nav-tab-active stripe' : 'stripe'; ?>"><?php  _e('Apple Pay','payment-gateway-stripe-and-woocommerce-integration'); ?></a>
-                            <a href="?page=wt_stripe_menu&tab=payment_request" class="nav-tab <?php echo $active_tab == 'payment_request' ? 'eh-nav-tab-active stripe' : 'stripe'; ?>"><?php  _e('G Pay/Payment Request Button','payment-gateway-stripe-and-woocommerce-integration'); ?></a>
-                             <a href="?page=wt_stripe_menu&tab=checkout" class="nav-tab <?php echo $active_tab == 'checkout' ? 'eh-nav-tab-active stripe' : 'stripe'; ?>"><?php  _e('Stripe Checkout','payment-gateway-stripe-and-woocommerce-integration'); ?></a>
-                            <a href="?page=wt_stripe_menu&tab=alipay" class="nav-tab <?php echo (in_array($active_tab, $arr_local_gateways)) ? 'eh-nav-tab-active stripe' : 'stripe'; ?>"><?php  _e('Local Gateways','payment-gateway-stripe-and-woocommerce-integration'); ?></a>
+                            <a href="?page=wt_stripe_menu&tab=general_settings" class="nav-tab <?php echo esc_attr($active_tab == 'general_settings' ? 'eh-nav-tab-active stripe' : 'stripe'); ?>"><?php  esc_html_e('General Settings','payment-gateway-stripe-and-woocommerce-integration'); ?></a>
+                            <a href="?page=wt_stripe_menu&tab=credit_card" class="nav-tab <?php echo esc_attr($active_tab == 'credit_card' ? 'eh-nav-tab-active stripe' : 'stripe'); ?>"><?php  esc_html_e('Credit/Debit Cards','payment-gateway-stripe-and-woocommerce-integration'); ?></a>
+                            <a href="?page=wt_stripe_menu&tab=applepay" class="nav-tab <?php echo esc_attr($active_tab == 'applepay' ? 'eh-nav-tab-active stripe' : 'stripe'); ?>"><?php  esc_html_e('Apple Pay','payment-gateway-stripe-and-woocommerce-integration'); ?></a>
+                            <a href="?page=wt_stripe_menu&tab=payment_request" class="nav-tab <?php echo esc_attr($active_tab == 'payment_request' ? 'eh-nav-tab-active stripe' : 'stripe'); ?>"><?php  esc_html_e('G Pay/Payment Request Button','payment-gateway-stripe-and-woocommerce-integration'); ?></a>
+                             <a href="?page=wt_stripe_menu&tab=checkout" class="nav-tab <?php echo esc_attr($active_tab == 'checkout' ? 'eh-nav-tab-active stripe' : 'stripe'); ?>"><?php  esc_html_e('Stripe Checkout','payment-gateway-stripe-and-woocommerce-integration'); ?></a>
+                            <a href="?page=wt_stripe_menu&tab=alipay" class="nav-tab <?php echo esc_attr((in_array($active_tab, $arr_local_gateways, true)) ? 'eh-nav-tab-active stripe' : 'stripe'); ?>"><?php  esc_html_e('Local Gateways','payment-gateway-stripe-and-woocommerce-integration'); ?></a>
 
-                          <a href="?page=wt_stripe_menu&tab=help_tab" class="nav-tab <?php echo $active_tab == 'help_tab' ? 'eh-nav-tab-active stripe' : 'stripe'; ?>"><?php  _e('Help Guide','payment-gateway-stripe-and-woocommerce-integration'); ?></a>
+                          <a href="?page=wt_stripe_menu&tab=help_tab" class="nav-tab <?php echo esc_attr($active_tab == 'help_tab' ? 'eh-nav-tab-active stripe' : 'stripe'); ?>"><?php  esc_html_e('Help Guide','payment-gateway-stripe-and-woocommerce-integration'); ?></a>
                         </h2>
                        
 
 
                         <?php
-                            if ( isset ( $_GET['tab'] ) ) $tab = $_GET['tab'];
+                        //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing
+                            if ( isset ( $_GET['tab'] ) ) $tab = sanitize_text_field(wp_unslash($_GET['tab']))  ;
                             else $tab = 'general_settings';
 
                             ?> <div class="eh_settings_left"><?php
@@ -268,14 +276,15 @@ class Eh_Stripe_Admin_Handler  {
                                                 
                                                 <div class="wtst-oauth-banner-img" style="background-image: url( <?php echo esc_url(EH_STRIPE_MAIN_URL_PATH.'assets/img/oauth-banner.svg'); ?>); "></div>
                                                 <div class="wtst-oauth-banner-container">
-                                                    <div><?php  echo esc_html_e("You haven’t connected your Stripe account yet. Connect now to start receiving payments", "payment-gateway-stripe-and-woocommerce-integration") ?></div>
+                                                    <div><?php  echo esc_html_e("You haven't connected your Stripe account yet. Connect now to start receiving payments", "payment-gateway-stripe-and-woocommerce-integration") ?></div>
                                                     <div><a target="_blank" class="button-primary wtst-oauth" href="<?php  echo esc_url($install_link); ?>"><?php esc_html_e("Connect to Stripe", "payment-gateway-stripe-and-woocommerce-integration") ?></a></div>
                                                 </div>
                                                
                                             </div> --> <?php
                                         }
                                         else{
-                                            $message = sprintf(__('%1$sUrgent: Switch to OAuth for Secure Stripe Integration%2$sWe are enhancing security and requires you to switch from using API keys to OAuth 2.0 for connecting with Stripe account. OAuth provides better control and limits access to only the necessary data, protecting your business from unauthorized access. <p>Ensure to connect your Stripe account using the new authentication method before the year ends.</p> %3$sClick %4$s‘Connect Now’%5$s to update your integration today! Need help? Check out our %6$sintegration article%7$s. Please upgrade soon to avoid service disruptions.%8$sConnect Now%9$s', 'payment-gateway-stripe-and-woocommerce-integration'), '<p><h2>', '</h2>', '</p><p>', '<b>', '</b>', '<a href="https://www.webtoffee.com/switch-stripe-integration-oauth/" style="text-decoration: none;">', '</a>', '</p><p><a href="' . esc_url($install_link) .'" class="button button-primary">', '</a></p>');
+                                            /* translators: %1$s: Opening paragraph and h2 tags, %2$s: Closing h2 tag, %3$s: Opening paragraph tag, %4$s: Bold tag opening, %5$s: Bold tag closing, %6$s: Link opening, %7$s: Link closing, %8$s: Button opening, %9$s: Button closing */
+                                            $message = sprintf(esc_html__('%1$sUrgent: Switch to OAuth for Secure Stripe Integration%2$sWe are enhancing security and requires you to switch from using API keys to OAuth 2.0 for connecting with Stripe account. OAuth provides better control and limits access to only the necessary data, protecting your business from unauthorized access. %3$sEnsure to connect your Stripe account using the new authentication method before the year ends.%4$sClick %5$s"Connect Now"%6$s to update your integration today! Need help? Check out our %7$sintegration article%8$s. Please upgrade soon to avoid service disruptions.%9$sConnect Now%10$s', 'payment-gateway-stripe-and-woocommerce-integration'), '<p><h2>', '</h2>', '<p>', '</p><p>', '<b>', '</b>', '<a href="https://www.webtoffee.com/switch-stripe-integration-oauth/" style="text-decoration: none;">', '</a>', '</p><p><a href="' . esc_url($install_link) .'" class="button button-primary">', '</a></p>');
                                             echo wp_kses_post("<div class='wtst-notice wtst-notice-error ' ><div style='padding:10px'>$message</div></div>");
                                         }
                                     }
@@ -285,15 +294,20 @@ class Eh_Stripe_Admin_Handler  {
                                         <?php
                                         WC_Admin_Settings::get_settings_pages(); 
                                         $obj = new EH_Stripe_General_Settings();
+                                        //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing
                                         if( ! empty( $_POST ) ) {
                                         
                                             $obj->process_admin_options();
-                                            wp_redirect($_SERVER['REQUEST_URI'].'&msg=1'); exit();
+                                            //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotValidated, WordPress.Security.ValidatedSanitizedInput.MissingUnslash
+                                            $redirect_url = isset($_SERVER['REQUEST_URI']) ? esc_url_raw(wp_unslash($_SERVER['REQUEST_URI'].'&msg=1')) : '';
+                                            wp_redirect($redirect_url);
+                                            exit;
                                         }
                                         $obj->admin_options();
 
-                                        //wp_enqueue_style( 'sweetalert2', 'https://cdn.jsdelivr.net/npm/sweetalert2@10', array(), '10' );
-                                        wp_enqueue_script( 'sweetalert2', 'https://cdn.jsdelivr.net/npm/sweetalert2@10', array( 'jquery' ), '10', true );                                        
+                                        // Use local SweetAlert2 instead of remote CDN
+                                        wp_enqueue_style( 'sweetalert2', EH_STRIPE_MAIN_URL_PATH . 'assets/css/sweetalert2.css', array(), EH_STRIPE_VERSION );
+                                        wp_enqueue_script( 'sweetalert2', EH_STRIPE_MAIN_URL_PATH . 'assets/js/sweetalert2.min.js', array( 'jquery' ), EH_STRIPE_VERSION, true );                                        
                                         wc_enqueue_js("
                                             $('#woocommerce_eh_stripe_pay_eh_stripe_mode').closest('tr').hide();
                                             $('.description').css({'font-style':'normal'});
@@ -337,7 +351,7 @@ class Eh_Stripe_Admin_Handler  {
                                         ?>
                                         <p class="submit">
                                             <?php if ( ! isset( $GLOBALS['hide_save_button'] ) ) : ?>
-                                                <input name="save" class="button-primary" type="submit" value="<?php _e( 'Save changes', 'payment-gateway-stripe-and-woocommerce-integration' ); ?>" />
+                                                <input name="save" class="button-primary" type="submit" value="<?php esc_attr_e( 'Save changes', 'payment-gateway-stripe-and-woocommerce-integration' ); ?>" />
                                             <?php endif; ?>
                                             
                                         </p>
@@ -360,11 +374,15 @@ class Eh_Stripe_Admin_Handler  {
                                             
                                             <?php
                                             WC_Admin_Settings::get_settings_pages(); 
+                                            //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing
                                             if( ! empty( $_POST ) ) {
                                             
                                                 $gateways = WC()->payment_gateways()->payment_gateways();
                                                 $gateways[ 'eh_stripe_pay']->process_admin_options();
-                                                wp_redirect($_SERVER['REQUEST_URI'].'&msg=1'); exit();
+                                                //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotValidated, WordPress.Security.ValidatedSanitizedInput.MissingUnslash
+                                                $redirect_url = isset($_SERVER['REQUEST_URI']) ? esc_url_raw(wp_unslash($_SERVER['REQUEST_URI'].'&msg=1')) : '';
+                                                wp_redirect($redirect_url);
+                                                exit;
                                             }
                                             
                                             $obj = new EH_Stripe_Payment();
@@ -380,7 +398,7 @@ class Eh_Stripe_Admin_Handler  {
                                             ?>
                                             <p class="submit">
                                                 <?php if ( ! isset( $GLOBALS['hide_save_button'] ) ) : ?>
-                                                    <input name="save" class="button-primary" type="submit" value="<?php _e( 'Save changes', 'payment-gateway-stripe-and-woocommerce-integration' ); ?>" />
+                                                    <input name="save" class="button-primary" type="submit" value="<?php esc_attr_e( 'Save changes', 'payment-gateway-stripe-and-woocommerce-integration' ); ?>" />
                                                 <?php endif; ?>
                                                 
                                             </p>
@@ -397,10 +415,14 @@ class Eh_Stripe_Admin_Handler  {
                                             <?php
                                             WC_Admin_Settings::get_settings_pages();
                                             $obj = new EH_Stripe_Applepay(); 
+                                            //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing
                                             if( ! empty( $_POST ) ) {
                                                
                                                 $obj->process_admin_options();
-                                                wp_redirect($_SERVER['REQUEST_URI'].'&msg=1'); exit();
+                                                //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotValidated, WordPress.Security.ValidatedSanitizedInput.MissingUnslash
+                                                $redirect_url = isset($_SERVER['REQUEST_URI']) ? esc_url_raw(wp_unslash($_SERVER['REQUEST_URI'].'&msg=1')) : '';
+                                                wp_redirect($redirect_url);
+                                                exit;
                                             }
                                             
                                             $obj->admin_options();
@@ -414,7 +436,7 @@ class Eh_Stripe_Admin_Handler  {
                                             ?>
                                             <p class="submit">
                                                 <?php if ( ! isset( $GLOBALS['hide_save_button'] ) ) : ?>
-                                                    <input name="save" class="button-primary" type="submit" value="<?php _e( 'Save changes', 'payment-gateway-stripe-and-woocommerce-integration' ); ?>" />
+                                                    <input name="save" class="button-primary" type="submit" value="<?php esc_attr_e( 'Save changes', 'payment-gateway-stripe-and-woocommerce-integration' ); ?>" />
                                                 <?php endif; ?>
                                                 
                                             </p>
@@ -432,10 +454,14 @@ class Eh_Stripe_Admin_Handler  {
                                             <?php
                                             WC_Admin_Settings::get_settings_pages();
                                             $obj = new EH_Stripe_Payment_Request(); 
+                                            //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing
                                             if( ! empty( $_POST ) ) {
                                                
                                                 $obj->process_admin_options();
-                                                wp_redirect($_SERVER['REQUEST_URI'].'&msg=1'); exit();
+                                                //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotValidated, WordPress.Security.ValidatedSanitizedInput.MissingUnslash
+                                                $redirect_url = isset($_SERVER['REQUEST_URI']) ? esc_url_raw(wp_unslash($_SERVER['REQUEST_URI'].'&msg=1')) : '';
+                                                wp_redirect($redirect_url);
+                                                exit;
                                             }
                                             
                                             $obj->admin_options();
@@ -449,7 +475,7 @@ class Eh_Stripe_Admin_Handler  {
                                             ?>
                                             <p class="submit">
                                                 <?php if ( ! isset( $GLOBALS['hide_save_button'] ) ) : ?>
-                                                    <input name="save" class="button-primary" type="submit" value="<?php _e( 'Save changes', 'payment-gateway-stripe-and-woocommerce-integration' ); ?>" />
+                                                    <input name="save" class="button-primary" type="submit" value="<?php esc_attr_e( 'Save changes', 'payment-gateway-stripe-and-woocommerce-integration' ); ?>" />
                                                 <?php endif; ?>
                                                 
                                             </p>
@@ -468,11 +494,15 @@ class Eh_Stripe_Admin_Handler  {
                                             
                                             <?php
                                             WC_Admin_Settings::get_settings_pages(); 
+                                            //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing
                                             if( ! empty( $_POST ) ) {
                                             
                                                 $gateways = WC()->payment_gateways()->payment_gateways();
                                                 $gateways[ 'eh_alipay_stripe']->process_admin_options();
-                                                wp_redirect($_SERVER['REQUEST_URI'].'&msg=1'); exit();
+                                                //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotValidated, WordPress.Security.ValidatedSanitizedInput.MissingUnslash
+                                                $redirect_url = isset($_SERVER['REQUEST_URI']) ? esc_url_raw(wp_unslash($_SERVER['REQUEST_URI'].'&msg=1')) : '';
+                                                wp_redirect($redirect_url);
+                                                exit;
                                             }
                                             
                                             $obj = new EH_Alipay_Stripe_Gateway();
@@ -489,7 +519,7 @@ class Eh_Stripe_Admin_Handler  {
                                             ?>
                                             <p class="submit">
                                                 <?php if ( ! isset( $GLOBALS['hide_save_button'] ) ) : ?>
-                                                    <input name="save" class="button-primary" type="submit" value="<?php _e( 'Save changes', 'payment-gateway-stripe-and-woocommerce-integration' ); ?>" />
+                                                    <input name="save" class="button-primary" type="submit" value="<?php esc_attr_e( 'Save changes', 'payment-gateway-stripe-and-woocommerce-integration' ); ?>" />
                                                 <?php endif; ?>
                                                 
                                             </p>
@@ -505,11 +535,15 @@ class Eh_Stripe_Admin_Handler  {
                                             
                                             <?php
                                             WC_Admin_Settings::get_settings_pages(); 
+                                            //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing
                                             if( ! empty( $_POST ) ) {
                                             
                                                 $gateways = WC()->payment_gateways()->payment_gateways();
                                                 $gateways[ 'eh_stripe_checkout']->process_admin_options();
-                                                wp_redirect($_SERVER['REQUEST_URI'].'&msg=1'); exit();
+                                                //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotValidated, WordPress.Security.ValidatedSanitizedInput.MissingUnslash
+                                                $redirect_url = isset($_SERVER['REQUEST_URI']) ? esc_url_raw(wp_unslash($_SERVER['REQUEST_URI'].'&msg=1')) : '';
+                                                wp_redirect($redirect_url);
+                                                exit;
                                             }
                                             $obj = new Eh_Stripe_Checkout();
                                             
@@ -528,7 +562,7 @@ class Eh_Stripe_Admin_Handler  {
                                             ?>
                                             <p class="submit">
                                                 <?php if ( ! isset( $GLOBALS['hide_save_button'] ) ) : ?>
-                                                    <input name="save" class="button-primary" type="submit" value="<?php _e( 'Save changes', 'payment-gateway-stripe-and-woocommerce-integration' ); ?>" />
+                                                    <input name="save" class="button-primary" type="submit" value="<?php esc_attr_e( 'Save changes', 'payment-gateway-stripe-and-woocommerce-integration' ); ?>" />
                                                 <?php endif; ?>
                                                 
                                             </p>
@@ -543,11 +577,15 @@ class Eh_Stripe_Admin_Handler  {
                                         
                                         <?php
                                         WC_Admin_Settings::get_settings_pages(); 
+                                        //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing
                                         if( ! empty( $_POST ) ) {
                                         
                                             $gateways = WC()->payment_gateways()->payment_gateways();
                                             $gateways[ 'eh_sepa_stripe']->process_admin_options();
-                                            wp_redirect($_SERVER['REQUEST_URI'].'&msg=1'); exit();
+                                            //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotValidated, WordPress.Security.ValidatedSanitizedInput.MissingUnslash
+                                            $redirect_url = isset($_SERVER['REQUEST_URI']) ? esc_url_raw(wp_unslash($_SERVER['REQUEST_URI'].'&msg=1')) : '';
+                                            wp_redirect($redirect_url);
+                                            exit;
                                         }
                                         
                                         $obj = new EH_Sepa_Stripe_Gateway();
@@ -564,7 +602,7 @@ class Eh_Stripe_Admin_Handler  {
                                         ?>
                                         <p class="submit">
                                             <?php if ( ! isset( $GLOBALS['hide_save_button'] ) ) : ?>
-                                                <input name="save" class="button-primary" type="submit" value="<?php _e( 'Save changes', 'payment-gateway-stripe-and-woocommerce-integration' ); ?>" />
+                                                <input name="save" class="button-primary" type="submit" value="<?php esc_attr_e( 'Save changes', 'payment-gateway-stripe-and-woocommerce-integration' ); ?>" />
                                             <?php endif; ?>
                                             
                                         </p>
@@ -580,11 +618,15 @@ class Eh_Stripe_Admin_Handler  {
                                         
                                         <?php
                                         WC_Admin_Settings::get_settings_pages(); 
+                                        //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing
                                         if( ! empty( $_POST ) ) {
                                         
                                             $gateways = WC()->payment_gateways()->payment_gateways();
                                             $gateways['eh_klarna_stripe']->process_admin_options();
-                                            wp_redirect($_SERVER['REQUEST_URI'].'&msg=1'); exit();
+                                            //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotValidated, WordPress.Security.ValidatedSanitizedInput.MissingUnslash
+                                            $redirect_url = isset($_SERVER['REQUEST_URI']) ? esc_url_raw(wp_unslash($_SERVER['REQUEST_URI'].'&msg=1')) : '';
+                                            wp_redirect($redirect_url);
+                                            exit;
                                         }
                                         
                                         $obj = new EH_Klarna_Gateway();
@@ -601,7 +643,7 @@ class Eh_Stripe_Admin_Handler  {
                                         ?>
                                         <p class="submit">
                                             <?php if ( ! isset( $GLOBALS['hide_save_button'] ) ) : ?>
-                                                <input name="save" class="button-primary" type="submit" value="<?php _e( 'Save changes', 'payment-gateway-stripe-and-woocommerce-integration' ); ?>" />
+                                                <input name="save" class="button-primary" type="submit" value="<?php esc_attr_e( 'Save changes', 'payment-gateway-stripe-and-woocommerce-integration' ); ?>" />
                                             <?php endif; ?>
                                             
                                         </p>
@@ -616,22 +658,22 @@ class Eh_Stripe_Admin_Handler  {
                                     
                                                      <div class="eh_sub_tab_container">		
                                                          <div class="eh_sub_tab_content" data-id="help-links" style="display:block;">
-                                                             <h3><?php _e('Help Links','payment-gateway-stripe-and-woocommerce-integration'); ?></h3>
+                                                             <h3><?php esc_html_e('Help Links','payment-gateway-stripe-and-woocommerce-integration'); ?></h3>
                                                              <ul class="eh-help-links">
                                                                  <li>
-                                                                     <img src="<?php echo EH_STRIPE_MAIN_URL_PATH;?>assets/img/documentation.png">
-                                                                     <h3><?php _e('Documentation','payment-gateway-stripe-and-woocommerce-integration'); ?></h3>
-                                                                     <p><?php _e('Refer to our documentation to set up and get started.','payment-gateway-stripe-and-woocommerce-integration'); ?></p>
+                                                                     <img src="<?php echo esc_url(EH_STRIPE_MAIN_URL_PATH);?>assets/img/documentation.png">
+                                                                     <h3><?php esc_html_e('Documentation','payment-gateway-stripe-and-woocommerce-integration'); ?></h3>
+                                                                     <p><?php esc_html_e('Refer to our documentation to set up and get started.','payment-gateway-stripe-and-woocommerce-integration'); ?></p>
                                                                      <a target="_blank" href="https://www.webtoffee.com/woocommerce-stripe-payment-gateway-plugin-user-guide/" class="button button-primary">
-                                                                         <?php _e('Documentation','payment-gateway-stripe-and-woocommerce-integration'); ?>        
+                                                                         <?php esc_html_e('Documentation','payment-gateway-stripe-and-woocommerce-integration'); ?>        
                                                                      </a>
                                                                  </li>
                                                                  <li>
-                                                                     <img src="<?php echo EH_STRIPE_MAIN_URL_PATH;?>assets/img/support.png">
-                                                                     <h3><?php _e('Support','payment-gateway-stripe-and-woocommerce-integration'); ?></h3>
-                                                                     <p><?php _e('We would love to help you on any queries or issues.','payment-gateway-stripe-and-woocommerce-integration'); ?></p>
+                                                                     <img src="<?php echo esc_url(EH_STRIPE_MAIN_URL_PATH);?>assets/img/support.png">
+                                                                     <h3><?php esc_html_e('Support','payment-gateway-stripe-and-woocommerce-integration'); ?></h3>
+                                                                     <p><?php esc_html_e('We would love to help you on any queries or issues.','payment-gateway-stripe-and-woocommerce-integration'); ?></p>
                                                                      <a target="_blank" href="https://wordpress.org/support/plugin/payment-gateway-stripe-and-woocommerce-integration/" class="button button-primary">
-                                                                         <?php _e('Contact us','payment-gateway-stripe-and-woocommerce-integration'); ?>
+                                                                         <?php esc_html_e('Contact us','payment-gateway-stripe-and-woocommerce-integration'); ?>
                                                                      </a>
                                                                  </li>               
                                                              </ul>
@@ -649,11 +691,15 @@ class Eh_Stripe_Admin_Handler  {
                                         
                                         <?php
                                         WC_Admin_Settings::get_settings_pages(); 
+                                        //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing
                                         if( ! empty( $_POST ) ) {
                                         
                                             $gateways = WC()->payment_gateways()->payment_gateways();
                                             $gateways['eh_afterpay_stripe']->process_admin_options();
-                                            wp_redirect($_SERVER['REQUEST_URI'].'&msg=1'); exit();
+                                            //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotValidated, WordPress.Security.ValidatedSanitizedInput.MissingUnslash
+                                            $redirect_url = isset($_SERVER['REQUEST_URI']) ? esc_url_raw(wp_unslash($_SERVER['REQUEST_URI'].'&msg=1')) : '';
+                                            wp_redirect($redirect_url);
+                                            exit;
                                         }
                                         
                                         $obj = new EH_Afterpay();
@@ -670,7 +716,7 @@ class Eh_Stripe_Admin_Handler  {
                                         ?>
                                         <p class="submit">
                                             <?php if ( ! isset( $GLOBALS['hide_save_button'] ) ) : ?>
-                                                <input name="save" class="button-primary" type="submit" value="<?php _e( 'Save changes', 'payment-gateway-stripe-and-woocommerce-integration' ); ?>" />
+                                                <input name="save" class="button-primary" type="submit" value="<?php esc_attr_e( 'Save changes', 'payment-gateway-stripe-and-woocommerce-integration' ); ?>" />
                                             <?php endif; ?>
                                             
                                         </p>
@@ -685,11 +731,15 @@ class Eh_Stripe_Admin_Handler  {
                                         
                                         <?php
                                         WC_Admin_Settings::get_settings_pages(); 
+                                        //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing
                                         if( ! empty( $_POST ) ) {
                                         
                                             $gateways = WC()->payment_gateways()->payment_gateways();
                                             $gateways['eh_wechat_stripe']->process_admin_options();
-                                            wp_redirect($_SERVER['REQUEST_URI'].'&msg=1'); exit();
+                                            //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotValidated, WordPress.Security.ValidatedSanitizedInput.MissingUnslash
+                                            $redirect_url = isset($_SERVER['REQUEST_URI']) ? esc_url_raw(wp_unslash($_SERVER['REQUEST_URI'].'&msg=1')) : '';
+                                            wp_redirect($redirect_url);
+                                            exit;
                                         }
                                         
                                         $obj = new EH_Wechat();
@@ -706,7 +756,7 @@ class Eh_Stripe_Admin_Handler  {
                                         ?>
                                         <p class="submit">
                                             <?php if ( ! isset( $GLOBALS['hide_save_button'] ) ) : ?>
-                                                <input name="save" class="button-primary" type="submit" value="<?php _e( 'Save changes', 'payment-gateway-stripe-and-woocommerce-integration' ); ?>" />
+                                                <input name="save" class="button-primary" type="submit" value="<?php esc_attr_e( 'Save changes', 'payment-gateway-stripe-and-woocommerce-integration' ); ?>" />
                                             <?php endif; ?>
                                             
                                         </p>
@@ -722,11 +772,15 @@ class Eh_Stripe_Admin_Handler  {
                                     
                                     <?php
                                     WC_Admin_Settings::get_settings_pages(); 
+                                    //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing
                                     if( ! empty( $_POST ) ) {
                                     
                                         $gateways = WC()->payment_gateways()->payment_gateways();
                                         $gateways['eh_ideal_stripe']->process_admin_options();
-                                        wp_redirect($_SERVER['REQUEST_URI'].'&msg=1'); 
+                                        //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotValidated, WordPress.Security.ValidatedSanitizedInput.MissingUnslash
+                                        $redirect_url = isset($_SERVER['REQUEST_URI']) ? esc_url_raw(wp_unslash($_SERVER['REQUEST_URI'].'&msg=1')) : '';
+                                        wp_redirect($redirect_url);
+                                        exit;
                                     }
                                     
                                     $obj = new EH_Ideal();
@@ -743,7 +797,7 @@ class Eh_Stripe_Admin_Handler  {
                                     ?>
                                     <p class="submit">
                                         <?php if ( ! isset( $GLOBALS['hide_save_button'] ) ) : ?>
-                                            <input name="save" class="button-primary" type="submit" value="<?php _e( 'Save changes', 'payment-gateway-stripe-and-woocommerce-integration' ); ?>" />
+                                            <input name="save" class="button-primary" type="submit" value="<?php esc_attr_e( 'Save changes', 'payment-gateway-stripe-and-woocommerce-integration' ); ?>" />
                                         <?php endif; ?>
                                         
                                     </p>
@@ -757,11 +811,15 @@ class Eh_Stripe_Admin_Handler  {
                                     
                                     <?php
                                     WC_Admin_Settings::get_settings_pages(); 
+                                    //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing
                                     if( ! empty( $_POST ) ) {
                                     
                                         $gateways = WC()->payment_gateways()->payment_gateways();
                                         $gateways['eh_bancontact_stripe']->process_admin_options();
-                                        wp_redirect($_SERVER['REQUEST_URI'].'&msg=1'); 
+                                        //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotValidated, WordPress.Security.ValidatedSanitizedInput.MissingUnslash
+                                        $redirect_url = isset($_SERVER['REQUEST_URI']) ? esc_url_raw(wp_unslash($_SERVER['REQUEST_URI'].'&msg=1')) : '';
+                                        wp_redirect($redirect_url);
+                                        exit;
                                     }
                                     
                                     $obj = new EH_Bancontact();
@@ -778,7 +836,7 @@ class Eh_Stripe_Admin_Handler  {
                                     ?>
                                     <p class="submit">
                                         <?php if ( ! isset( $GLOBALS['hide_save_button'] ) ) : ?>
-                                            <input name="save" class="button-primary" type="submit" value="<?php _e( 'Save changes', 'payment-gateway-stripe-and-woocommerce-integration' ); ?>" />
+                                            <input name="save" class="button-primary" type="submit" value="<?php esc_attr_e( 'Save changes', 'payment-gateway-stripe-and-woocommerce-integration' ); ?>" />
                                         <?php endif; ?>
                                         
                                     </p>
@@ -793,11 +851,15 @@ class Eh_Stripe_Admin_Handler  {
                                     
                                     <?php
                                     WC_Admin_Settings::get_settings_pages(); 
+                                    //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing
                                     if( ! empty( $_POST ) ) {
                                     
                                         $gateways = WC()->payment_gateways()->payment_gateways();
                                         $gateways['eh_eps_stripe']->process_admin_options();
-                                        wp_redirect($_SERVER['REQUEST_URI'].'&msg=1'); 
+                                        //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotValidated, WordPress.Security.ValidatedSanitizedInput.MissingUnslash
+                                        $redirect_url = isset($_SERVER['REQUEST_URI']) ? esc_url_raw(wp_unslash($_SERVER['REQUEST_URI'].'&msg=1')) : '';
+                                        wp_redirect($redirect_url);
+                                        exit;
                                     }
                                     
                                     $obj = new EH_EPS();
@@ -814,7 +876,7 @@ class Eh_Stripe_Admin_Handler  {
                                     ?>
                                     <p class="submit">
                                         <?php if ( ! isset( $GLOBALS['hide_save_button'] ) ) : ?>
-                                            <input name="save" class="button-primary" type="submit" value="<?php _e( 'Save changes', 'payment-gateway-stripe-and-woocommerce-integration' ); ?>" />
+                                            <input name="save" class="button-primary" type="submit" value="<?php esc_attr_e( 'Save changes', 'payment-gateway-stripe-and-woocommerce-integration' ); ?>" />
                                         <?php endif; ?>
                                         
                                     </p>
@@ -829,11 +891,15 @@ class Eh_Stripe_Admin_Handler  {
                                     
                                     <?php
                                     WC_Admin_Settings::get_settings_pages(); 
+                                    //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing
                                     if( ! empty( $_POST ) ) {
                                     
                                         $gateways = WC()->payment_gateways()->payment_gateways();
                                         $gateways['eh_p24_stripe']->process_admin_options();
-                                        wp_redirect($_SERVER['REQUEST_URI'].'&msg=1'); 
+                                        //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotValidated, WordPress.Security.ValidatedSanitizedInput.MissingUnslash
+                                        $redirect_url = isset($_SERVER['REQUEST_URI']) ? esc_url_raw(wp_unslash($_SERVER['REQUEST_URI'].'&msg=1')) : '';
+                                        wp_redirect($redirect_url);
+                                        exit;
                                     }
                                     
                                     $obj = new EH_P24();
@@ -850,7 +916,7 @@ class Eh_Stripe_Admin_Handler  {
                                     ?>
                                     <p class="submit">
                                         <?php if ( ! isset( $GLOBALS['hide_save_button'] ) ) : ?>
-                                            <input name="save" class="button-primary" type="submit" value="<?php _e( 'Save changes', 'payment-gateway-stripe-and-woocommerce-integration' ); ?>" />
+                                            <input name="save" class="button-primary" type="submit" value="<?php esc_attr_e( 'Save changes', 'payment-gateway-stripe-and-woocommerce-integration' ); ?>" />
                                         <?php endif; ?>
                                         
                                     </p>
@@ -866,11 +932,15 @@ class Eh_Stripe_Admin_Handler  {
                                     
                                     <?php
                                     WC_Admin_Settings::get_settings_pages(); 
+                                    //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing
                                     if( ! empty( $_POST ) ) {
                                     
                                         $gateways = WC()->payment_gateways()->payment_gateways();
                                         $gateways['eh_bacs']->process_admin_options();
-                                        wp_redirect($_SERVER['REQUEST_URI'].'&msg=1'); 
+                                        //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotValidated, WordPress.Security.ValidatedSanitizedInput.MissingUnslash
+                                        $redirect_url = isset($_SERVER['REQUEST_URI']) ? esc_url_raw(wp_unslash($_SERVER['REQUEST_URI'].'&msg=1')) : '';
+                                        wp_redirect($redirect_url);
+                                        exit;
                                     }
                                     
                                     $obj = new EH_Bacs();
@@ -887,7 +957,7 @@ class Eh_Stripe_Admin_Handler  {
                                     ?>
                                     <p class="submit">
                                         <?php if ( ! isset( $GLOBALS['hide_save_button'] ) ) : ?>
-                                            <input name="save" class="button-primary" type="submit" value="<?php _e( 'Save changes', 'payment-gateway-stripe-and-woocommerce-integration' ); ?>" />
+                                            <input name="save" class="button-primary" type="submit" value="<?php esc_attr_e( 'Save changes', 'payment-gateway-stripe-and-woocommerce-integration' ); ?>" />
                                         <?php endif; ?>
                                         
                                     </p>
@@ -902,11 +972,15 @@ class Eh_Stripe_Admin_Handler  {
                                     
                                     <?php
                                     WC_Admin_Settings::get_settings_pages(); 
+                                    //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing
                                     if( ! empty( $_POST ) ) {
                                     
                                         $gateways = WC()->payment_gateways()->payment_gateways();
                                         $gateways['eh_becs_stripe']->process_admin_options();
-                                        wp_redirect($_SERVER['REQUEST_URI'].'&msg=1'); 
+                                        //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotValidated, WordPress.Security.ValidatedSanitizedInput.MissingUnslash
+                                        $redirect_url = isset($_SERVER['REQUEST_URI']) ? esc_url_raw(wp_unslash($_SERVER['REQUEST_URI'].'&msg=1')) : '';
+                                        wp_redirect($redirect_url);
+                                        exit;
                                     }
                                     
                                     $obj = new EH_BECS();
@@ -923,7 +997,7 @@ class Eh_Stripe_Admin_Handler  {
                                     ?>
                                     <p class="submit">
                                         <?php if ( ! isset( $GLOBALS['hide_save_button'] ) ) : ?>
-                                            <input name="save" class="button-primary" type="submit" value="<?php _e( 'Save changes', 'payment-gateway-stripe-and-woocommerce-integration' ); ?>" />
+                                            <input name="save" class="button-primary" type="submit" value="<?php esc_attr_e( 'Save changes', 'payment-gateway-stripe-and-woocommerce-integration' ); ?>" />
                                         <?php endif; ?>
                                         
                                     </p>
@@ -938,11 +1012,15 @@ class Eh_Stripe_Admin_Handler  {
                                     
                                     <?php
                                     WC_Admin_Settings::get_settings_pages(); 
+                                    //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing
                                     if( ! empty( $_POST ) ) {
                                     
                                         $gateways = WC()->payment_gateways()->payment_gateways();
                                         $gateways['eh_fpx_stripe']->process_admin_options();
-                                        wp_redirect($_SERVER['REQUEST_URI'].'&msg=1'); 
+                                        //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotValidated, WordPress.Security.ValidatedSanitizedInput.MissingUnslash
+                                        $redirect_url = isset($_SERVER['REQUEST_URI']) ? esc_url_raw(wp_unslash($_SERVER['REQUEST_URI'].'&msg=1')) : '';
+                                        wp_redirect($redirect_url);
+                                        exit;
                                     }
                                     
                                     $obj = new EH_FPX();
@@ -959,7 +1037,7 @@ class Eh_Stripe_Admin_Handler  {
                                     ?>
                                     <p class="submit">
                                         <?php if ( ! isset( $GLOBALS['hide_save_button'] ) ) : ?>
-                                            <input name="save" class="button-primary" type="submit" value="<?php _e( 'Save changes', 'payment-gateway-stripe-and-woocommerce-integration' ); ?>" />
+                                            <input name="save" class="button-primary" type="submit" value="<?php esc_attr_e( 'Save changes', 'payment-gateway-stripe-and-woocommerce-integration' ); ?>" />
                                         <?php endif; ?>
                                         
                                     </p>
@@ -974,11 +1052,15 @@ class Eh_Stripe_Admin_Handler  {
                                     
                                     <?php
                                     WC_Admin_Settings::get_settings_pages(); 
+                                    //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing
                                     if( ! empty( $_POST ) ) {
                                     
                                         $gateways = WC()->payment_gateways()->payment_gateways();
                                         $gateways['eh_boleto_stripe']->process_admin_options();
-                                        wp_redirect($_SERVER['REQUEST_URI'].'&msg=1'); 
+                                        //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotValidated, WordPress.Security.ValidatedSanitizedInput.MissingUnslash
+                                        $redirect_url = isset($_SERVER['REQUEST_URI']) ? esc_url_raw(wp_unslash($_SERVER['REQUEST_URI'].'&msg=1')) : '';
+                                        wp_redirect($redirect_url);
+                                        exit;
                                     }
                                     
                                     $obj = new EH_Boleto();
@@ -995,7 +1077,7 @@ class Eh_Stripe_Admin_Handler  {
                                     ?>
                                     <p class="submit">
                                         <?php if ( ! isset( $GLOBALS['hide_save_button'] ) ) : ?>
-                                            <input name="save" class="button-primary" type="submit" value="<?php _e( 'Save changes', 'payment-gateway-stripe-and-woocommerce-integration' ); ?>" />
+                                            <input name="save" class="button-primary" type="submit" value="<?php esc_attr_e( 'Save changes', 'payment-gateway-stripe-and-woocommerce-integration' ); ?>" />
                                         <?php endif; ?>
                                         
                                     </p>
@@ -1010,11 +1092,15 @@ class Eh_Stripe_Admin_Handler  {
                                     
                                     <?php
                                     WC_Admin_Settings::get_settings_pages(); 
+                                    //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing
                                     if( ! empty( $_POST ) ) {
                                     
                                         $gateways = WC()->payment_gateways()->payment_gateways();
                                         $gateways['eh_oxxo_stripe']->process_admin_options();
-                                        wp_redirect($_SERVER['REQUEST_URI'].'&msg=1'); 
+                                        //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotValidated, WordPress.Security.ValidatedSanitizedInput.MissingUnslash
+                                        $redirect_url = isset($_SERVER['REQUEST_URI']) ? esc_url_raw(wp_unslash($_SERVER['REQUEST_URI'].'&msg=1')) : '';
+                                        wp_redirect($redirect_url);
+                                        exit;
                                     }
                                     
                                     $obj = new EH_Oxxo();
@@ -1031,7 +1117,7 @@ class Eh_Stripe_Admin_Handler  {
                                     ?>
                                     <p class="submit">
                                         <?php if ( ! isset( $GLOBALS['hide_save_button'] ) ) : ?>
-                                            <input name="save" class="button-primary" type="submit" value="<?php _e( 'Save changes', 'payment-gateway-stripe-and-woocommerce-integration' ); ?>" />
+                                            <input name="save" class="button-primary" type="submit" value="<?php esc_attr_e( 'Save changes', 'payment-gateway-stripe-and-woocommerce-integration' ); ?>" />
                                         <?php endif; ?>
                                         
                                     </p>
@@ -1046,11 +1132,15 @@ class Eh_Stripe_Admin_Handler  {
                                     
                                     <?php
                                     WC_Admin_Settings::get_settings_pages(); 
+                                    //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing
                                     if( ! empty( $_POST ) ) {
                                     
                                         $gateways = WC()->payment_gateways()->payment_gateways();
                                         $gateways['eh_grabpay_stripe']->process_admin_options();
-                                        wp_redirect($_SERVER['REQUEST_URI'].'&msg=1'); 
+                                        //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing,WordPress.Security.ValidatedSanitizedInput.InputNotValidated
+                                        $redirect_url = isset($_SERVER['REQUEST_URI']) ? esc_url_raw(wp_unslash($_SERVER['REQUEST_URI'].'&msg=1')) : '';
+                                        wp_redirect($redirect_url);
+                                        exit;
                                     }
                                     
                                     $obj = new EH_Grabpay();
@@ -1067,7 +1157,7 @@ class Eh_Stripe_Admin_Handler  {
                                     ?>
                                     <p class="submit">
                                         <?php if ( ! isset( $GLOBALS['hide_save_button'] ) ) : ?>
-                                            <input name="save" class="button-primary" type="submit" value="<?php _e( 'Save changes', 'payment-gateway-stripe-and-woocommerce-integration' ); ?>" />
+                                            <input name="save" class="button-primary" type="submit" value="<?php esc_attr_e( 'Save changes', 'payment-gateway-stripe-and-woocommerce-integration' ); ?>" />
                                         <?php endif; ?>
                                         
                                     </p>
@@ -1103,7 +1193,7 @@ class Eh_Stripe_Admin_Handler  {
                                     ?>
                                     <p class="submit">
                                         <?php if ( ! isset( $GLOBALS['hide_save_button'] ) ) : ?>
-                                            <input name="save" class="button-primary" type="submit" value="<?php _e( 'Save changes', 'payment-gateway-stripe-and-woocommerce-integration' ); ?>" />
+                                            <input name="save" class="button-primary" type="submit" value="<?php esc_attr_e( 'Save changes', 'payment-gateway-stripe-and-woocommerce-integration' ); ?>" />
                                         <?php endif; ?>
                                         
                                     </p>
@@ -1118,11 +1208,15 @@ class Eh_Stripe_Admin_Handler  {
                                     
                                     <?php
                                     WC_Admin_Settings::get_settings_pages(); 
+                                    //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing
                                     if( ! empty( $_POST ) ) {
                                     
                                         $gateways = WC()->payment_gateways()->payment_gateways();
                                         $gateways['eh_affirm_stripe']->process_admin_options();
-                                        wp_redirect($_SERVER['REQUEST_URI'].'&msg=1'); 
+                                        //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotValidated
+                                        $redirect_url = isset($_SERVER['REQUEST_URI']) ? esc_url_raw(wp_unslash($_SERVER['REQUEST_URI'].'&msg=1')) : '';
+                                        wp_redirect($redirect_url);
+                                        exit;
                                     }
                                     
                                     $obj = new EH_Affirm();
@@ -1139,7 +1233,7 @@ class Eh_Stripe_Admin_Handler  {
                                     ?>
                                     <p class="submit">
                                         <?php if ( ! isset( $GLOBALS['hide_save_button'] ) ) : ?>
-                                            <input name="save" class="button-primary" type="submit" value="<?php _e( 'Save changes', 'payment-gateway-stripe-and-woocommerce-integration' ); ?>" />
+                                            <input name="save" class="button-primary" type="submit" value="<?php esc_attr_e( 'Save changes', 'payment-gateway-stripe-and-woocommerce-integration' ); ?>" />
                                         <?php endif; ?>
                                         
                                     </p>
@@ -1176,34 +1270,36 @@ class Eh_Stripe_Admin_Handler  {
     // Display local gateways
     public function eh_local_gateways(){
 
+        //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing
         if (isset($_REQUEST['tab'])) {
-           $clicked_tab = $_REQUEST['tab'];
+            //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing
+           $clicked_tab = sanitize_text_field(wp_unslash($_REQUEST['tab']));
         }
         else{
             $clicked_tab = 'alipay';
         }
         ?><ul class="eh-advanced-settings-nav local-gateways">
-                <li id="eh-li-local"><a  <?php ($clicked_tab == 'alipay') ? print('style="color:#9c9696"') : '' ?> id="eh-alipay-link" class="nav-link" href="?page=wt_stripe_menu&tab=alipay"><?php _e('Alipay', 'payment-gateway-stripe-and-woocommerce-integration') ?></a>|</li>
+                <li id="eh-li-local"><a  <?php ($clicked_tab == 'alipay') ? print('style="color:#9c9696"') : '' ?> id="eh-alipay-link" class="nav-link" href="?page=wt_stripe_menu&tab=alipay"><?php esc_html_e('Alipay', 'payment-gateway-stripe-and-woocommerce-integration') ?></a>|</li>
                     
-                <li id="eh-li-local"><a <?php ($clicked_tab == 'sepa') ? print('style="color:#9c9696"') : '' ?>   id="eh-sepa-link" class="nav-link"  href="?page=wt_stripe_menu&tab=sepa"><?php _e('SEPA', 'payment-gateway-stripe-and-woocommerce-integration') ?></a>|</li> 
+                <li id="eh-li-local"><a <?php ($clicked_tab == 'sepa') ? print('style="color:#9c9696"') : '' ?>   id="eh-sepa-link" class="nav-link"  href="?page=wt_stripe_menu&tab=sepa"><?php esc_html_e('SEPA', 'payment-gateway-stripe-and-woocommerce-integration') ?></a>|</li> 
 
-                <li id="eh-li-local"><a <?php ($clicked_tab == 'klarna') ? print('style="color:#9c9696"') : '' ?>   id="eh-klarna-link" class="nav-link"  href="?page=wt_stripe_menu&tab=klarna"><?php _e('Klarna', 'payment-gateway-stripe-and-woocommerce-integration') ?></a>|</li>
+                <li id="eh-li-local"><a <?php ($clicked_tab == 'klarna') ? print('style="color:#9c9696"') : '' ?>   id="eh-klarna-link" class="nav-link"  href="?page=wt_stripe_menu&tab=klarna"><?php esc_html_e('Klarna', 'payment-gateway-stripe-and-woocommerce-integration') ?></a>|</li>
 
-                <li id="eh-li-local"><a <?php ($clicked_tab == 'afterpay') ? print('style="color:#9c9696"') : '' ?>   id="eh-ach-link" class="nav-link"  href="?page=wt_stripe_menu&tab=afterpay"><?php _e('Afterpay', 'payment-gateway-stripe-and-woocommerce-integration') ?></a>|</li>
-                <li id="eh-li-local"><a <?php ($clicked_tab == 'wechat') ? print('style="color:#9c9696"') : '' ?>   id="eh-ach-link" class="nav-link"  href="?page=wt_stripe_menu&tab=wechat"><?php _e('WeChat', 'payment-gateway-stripe-and-woocommerce-integration') ?></a>|</li>
-                <li id="eh-li-local"><a <?php ($clicked_tab == 'ideal') ? print('style="color:#9c9696"') : '' ?>   id="eh-ideal-link" class="nav-link"  href="?page=wt_stripe_menu&tab=ideal"><?php _e('iDEAL', 'payment-gateway-stripe-and-woocommerce-integration') ?></a>|</li>
-                <li id="eh-li-local"><a <?php ($clicked_tab == 'bancontact') ? print('style="color:#9c9696"') : '' ?>   id="eh-bancontact-link" class="nav-link"  href="?page=wt_stripe_menu&tab=bancontact"><?php _e('Bancontact', 'payment-gateway-stripe-and-woocommerce-integration') ?></a>|</li>
-                <li id="eh-li-local"><a <?php ($clicked_tab == 'eps') ? print('style="color:#9c9696"') : '' ?>   id="eh-eps-link" class="nav-link"  href="?page=wt_stripe_menu&tab=eps"><?php _e('EPS', 'payment-gateway-stripe-and-woocommerce-integration') ?></a>|</li>
-                <li id="eh-li-local"><a <?php ($clicked_tab == 'p24') ? print('style="color:#9c9696"') : '' ?>   id="eh-p24-link" class="nav-link"  href="?page=wt_stripe_menu&tab=p24"><?php _e('Przelewy24', 'payment-gateway-stripe-and-woocommerce-integration') ?></a>|</li>
+                <li id="eh-li-local"><a <?php ($clicked_tab == 'afterpay') ? print('style="color:#9c9696"') : '' ?>   id="eh-ach-link" class="nav-link"  href="?page=wt_stripe_menu&tab=afterpay"><?php esc_html_e('Afterpay', 'payment-gateway-stripe-and-woocommerce-integration') ?></a>|</li>
+                <li id="eh-li-local"><a <?php ($clicked_tab == 'wechat') ? print('style="color:#9c9696"') : '' ?>   id="eh-ach-link" class="nav-link"  href="?page=wt_stripe_menu&tab=wechat"><?php esc_html_e('WeChat', 'payment-gateway-stripe-and-woocommerce-integration') ?></a>|</li>
+                <li id="eh-li-local"><a <?php ($clicked_tab == 'ideal') ? print('style="color:#9c9696"') : '' ?>   id="eh-ideal-link" class="nav-link"  href="?page=wt_stripe_menu&tab=ideal"><?php esc_html_e('iDEAL', 'payment-gateway-stripe-and-woocommerce-integration') ?></a>|</li>
+                <li id="eh-li-local"><a <?php ($clicked_tab == 'bancontact') ? print('style="color:#9c9696"') : '' ?>   id="eh-bancontact-link" class="nav-link"  href="?page=wt_stripe_menu&tab=bancontact"><?php esc_html_e('Bancontact', 'payment-gateway-stripe-and-woocommerce-integration') ?></a>|</li>
+                <li id="eh-li-local"><a <?php ($clicked_tab == 'eps') ? print('style="color:#9c9696"') : '' ?>   id="eh-eps-link" class="nav-link"  href="?page=wt_stripe_menu&tab=eps"><?php esc_html_e('EPS', 'payment-gateway-stripe-and-woocommerce-integration') ?></a>|</li>
+                <li id="eh-li-local"><a <?php ($clicked_tab == 'p24') ? print('style="color:#9c9696"') : '' ?>   id="eh-p24-link" class="nav-link"  href="?page=wt_stripe_menu&tab=p24"><?php esc_html_e('Przelewy24', 'payment-gateway-stripe-and-woocommerce-integration') ?></a>|</li>
                 
-                <li id="eh-li-local"><a <?php ($clicked_tab == 'bacs') ? print('style="color:#9c9696"') : '' ?>   id="eh-bacs-link" class="nav-link"  href="?page=wt_stripe_menu&tab=bacs"><?php _e('Bacs', 'payment-gateway-stripe-and-woocommerce-integration') ?></a>|</li>
-                <li id="eh-li-local"><a <?php ($clicked_tab == 'becs') ? print('style="color:#9c9696"') : '' ?>   id="eh-becs-link" class="nav-link"  href="?page=wt_stripe_menu&tab=becs"><?php _e('BECS', 'payment-gateway-stripe-and-woocommerce-integration') ?></a>|</li>
-                <li id="eh-li-local"><a <?php ($clicked_tab == 'fpx') ? print('style="color:#9c9696"') : '' ?>   id="eh-fpx-link" class="nav-link"  href="?page=wt_stripe_menu&tab=fpx"><?php _e('FPX', 'payment-gateway-stripe-and-woocommerce-integration') ?></a>|</li>
-                <li id="eh-li-local"><a <?php ($clicked_tab == 'boleto') ? print('style="color:#9c9696"') : '' ?>   id="eh-boleto-link" class="nav-link"  href="?page=wt_stripe_menu&tab=boleto"><?php _e('Boleto', 'payment-gateway-stripe-and-woocommerce-integration') ?></a>|</li>
-                <li id="eh-li-local"><a <?php ($clicked_tab == 'oxxo') ? print('style="color:#9c9696"') : '' ?>   id="eh-oxxo-link" class="nav-link"  href="?page=wt_stripe_menu&tab=oxxo"><?php _e('OXXO', 'payment-gateway-stripe-and-woocommerce-integration') ?></a>|</li>
-                <li id="eh-li-local"><a <?php ($clicked_tab == 'grabpay') ? print('style="color:#9c9696"') : '' ?>   id="eh-grabpay-link" class="nav-link"  href="?page=wt_stripe_menu&tab=grabpay"><?php _e('GrabPay', 'payment-gateway-stripe-and-woocommerce-integration') ?></a>|</li>
+                <li id="eh-li-local"><a <?php ($clicked_tab == 'bacs') ? print('style="color:#9c9696"') : '' ?>   id="eh-bacs-link" class="nav-link"  href="?page=wt_stripe_menu&tab=bacs"><?php esc_html_e('Bacs', 'payment-gateway-stripe-and-woocommerce-integration') ?></a>|</li>
+                <li id="eh-li-local"><a <?php ($clicked_tab == 'becs') ? print('style="color:#9c9696"') : '' ?>   id="eh-becs-link" class="nav-link"  href="?page=wt_stripe_menu&tab=becs"><?php esc_html_e('BECS', 'payment-gateway-stripe-and-woocommerce-integration') ?></a>|</li>
+                <li id="eh-li-local"><a <?php ($clicked_tab == 'fpx') ? print('style="color:#9c9696"') : '' ?>   id="eh-fpx-link" class="nav-link"  href="?page=wt_stripe_menu&tab=fpx"><?php esc_html_e('FPX', 'payment-gateway-stripe-and-woocommerce-integration') ?></a>|</li>
+                <li id="eh-li-local"><a <?php ($clicked_tab == 'boleto') ? print('style="color:#9c9696"') : '' ?>   id="eh-boleto-link" class="nav-link"  href="?page=wt_stripe_menu&tab=boleto"><?php esc_html_e('Boleto', 'payment-gateway-stripe-and-woocommerce-integration') ?></a>|</li>
+                <li id="eh-li-local"><a <?php ($clicked_tab == 'oxxo') ? print('style="color:#9c9696"') : '' ?>   id="eh-oxxo-link" class="nav-link"  href="?page=wt_stripe_menu&tab=oxxo"><?php esc_html_e('OXXO', 'payment-gateway-stripe-and-woocommerce-integration') ?></a>|</li>
+                <li id="eh-li-local"><a <?php ($clicked_tab == 'grabpay') ? print('style="color:#9c9696"') : '' ?>   id="eh-grabpay-link" class="nav-link"  href="?page=wt_stripe_menu&tab=grabpay"><?php esc_html_e('GrabPay', 'payment-gateway-stripe-and-woocommerce-integration') ?></a>|</li>
                 <!-- <li id="eh-li-local"><a <?php ($clicked_tab == 'multibanco') ? print('style="color:#9c9696"') : '' ?>   id="eh-multibanco-link" class="nav-link"  href="?page=wt_stripe_menu&tab=multibanco"><?php //_e('Multibanco', 'payment-gateway-stripe-and-woocommerce-integration') ?></a>|</li>   -->      
-                <li id="eh-li-local"><a <?php ('affirm' == $clicked_tab) ? print('style="color:#9c9696"') : '' ?>   id="eh-affirm-link" class="nav-link"  href="?page=wt_stripe_menu&tab=affirm "><?php _e('Affirm', 'payment-gateway-stripe-and-woocommerce-integration') ?></a></li>        
+                <li id="eh-li-local"><a <?php ('affirm' == $clicked_tab) ? print('style="color:#9c9696"') : '' ?>   id="eh-affirm-link" class="nav-link"  href="?page=wt_stripe_menu&tab=affirm "><?php esc_html_e('Affirm', 'payment-gateway-stripe-and-woocommerce-integration') ?></a></li>        
             </ul><?php
 
     } 
@@ -1256,7 +1352,7 @@ class Eh_Stripe_Admin_Handler  {
         }
         
 
-        $state = base64_encode(json_encode(array(
+        $state = base64_encode(wp_json_encode(array(
             'site' => $site_url,
             'nonce' => $nonce,
         )));
@@ -1274,11 +1370,13 @@ class Eh_Stripe_Admin_Handler  {
 
     //Update the info to detect whether the user click connect later button
     public function wtst_oauth_connect_later()
-    {
-       if(wp_verify_nonce($_REQUEST['_wpnonce'], "eh_stripe_oauth_connect")){
-            if(isset($_REQUEST['oauth_connect_later']) && "yes" === sanitize_text_field($_REQUEST['oauth_connect_later'])){
+    {   
+        //phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotValidated	
+        if(wp_verify_nonce(sanitize_text_field(wp_unslash($_REQUEST['_wpnonce'])), 'eh_stripe_oauth_connect')){
+            //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing
+            if(isset($_REQUEST['oauth_connect_later']) && 'yes' === sanitize_text_field(wp_unslash($_REQUEST['oauth_connect_later']))){
                 set_transient("wtst_oauth_connect_later", "yes");
-                print 'success';
+                echo esc_html('success', 'payment-gateway-stripe-and-woocommerce-integration');
                 exit;
             }
        }
@@ -1321,7 +1419,8 @@ class Eh_Stripe_Admin_Handler  {
      * */    
     public function wtst_dismiss_oauth_notice()
     {
-        if(isset($_REQUEST['action']) && 'wtst_dismiss_oauth_notice' === sanitize_text_field($_REQUEST['action'])){
+        //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing
+        if(isset($_REQUEST['action']) && 'wtst_dismiss_oauth_notice' === sanitize_text_field(wp_unslash($_REQUEST['action']))){
             set_transient("wtst_dismiss_oauth_notice", "yes", 2 * DAY_IN_SECONDS);
             $dismissible_count = get_transient("wtst_oauth_notice_dismissable_count");
             $dismissible_count = (int) (false !== $dismissible_count) ? ($dismissible_count + 1) : 1;
@@ -1336,7 +1435,8 @@ class Eh_Stripe_Admin_Handler  {
      * */
     public function wtst_dismiss_sofort_notice()
     {
-        if(isset($_REQUEST['action']) && 'wtst_dismiss_sofort_notice' === sanitize_text_field($_REQUEST['action'])){
+        //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing
+        if(isset($_REQUEST['action']) && 'wtst_dismiss_sofort_notice' === sanitize_text_field(wp_unslash($_REQUEST['action']))){
             set_transient("wtst_dismiss_sofort_notice", "yes");
 
         }
