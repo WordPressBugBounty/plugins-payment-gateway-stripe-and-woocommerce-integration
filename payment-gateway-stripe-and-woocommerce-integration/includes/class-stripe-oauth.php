@@ -23,7 +23,7 @@ class EH_Stripe_Oauth {
 
     /**
      * 
-     * Function to retrieve tokens send from Stripe to WebToffee server and save tokens to db
+     * Function to retrieve tokens send from Stripe to ThemeHigh server and save tokens to db
      * @since 4.0.0
      */ 
     public function wt_stripe_oauth_update()
@@ -43,6 +43,8 @@ class EH_Stripe_Oauth {
                     $refresh_token = (isset($decoded['refresh_token']) ? sanitize_text_field($decoded['refresh_token'])  : '');
                     $account_id = (isset($decoded['account_id']) ? sanitize_text_field($decoded['account_id'])  : '');
                     $stripe_publishable_key = (isset($decoded['stripe_publishable_key']) ? sanitize_text_field($decoded['stripe_publishable_key'])  : '');
+                    //Check connection platform
+                    $app_author = (isset($decoded['author']) && isset($decoded['author']) ) ? sanitize_text_field($decoded['author']) : null;
     
                     $arr_oauth_tokens = array(
                         'access_token' => $access_token,
@@ -54,33 +56,64 @@ class EH_Stripe_Oauth {
     
                     $stripe_settings = get_option("woocommerce_eh_stripe_pay_settings");
                     $mode = (isset($stripe_settings["eh_stripe_mode"]) ?  $stripe_settings["eh_stripe_mode"] : 'live');
+
+                    $test_mode = get_option("woocommerce_eh_stripe_test_mode_type");
+                    $test_mode = ($test_mode === 'sandbox' ) ? 'sandbox' : 'test';
                     
                     if('test' === $mode){
-                        EH_Stripe_Token_Handler::wtst_get_site_option('update', array(
-                            'name' => 'wt_stripe_account_id_test',
-                            'value' => $account_id
-                        ));
-                        EH_Stripe_Token_Handler::wtst_get_site_option('update', array(
-                            'name' => 'wt_stripe_access_token_test',
-                            'value' => base64_encode($access_token)
-                        ));
-                        EH_Stripe_Token_Handler::wtst_get_site_option('update', array(
-                            'name' => 'wt_stripe_refresh_token_test',
-                            'value' => base64_encode($refresh_token)
-                        ));
-                        EH_Stripe_Token_Handler::wtst_get_site_option('update', array(
-                            'name' => 'wt_stripe_test_publishable_key',
-                            'value' => $stripe_publishable_key
-                        ));
-                        EH_Stripe_Token_Handler::wtst_get_site_option('update', array(
-                            'name' => 'wtst_oauth_expriy_test',
-                            'value' => time()
-                        ));
-                        EH_Stripe_Token_Handler::wtst_get_site_option('update', array(
-                            'name' => 'wt_stripe_oauth_connected_test',
-                            'value' => 'yes'
-                        ));
-    
+                        if($test_mode === 'sandbox'){
+                            EH_Stripe_Token_Handler::wtst_get_site_option('update', array(
+                                'name' => 'wt_stripe_account_id_sandbox',
+                                'value' => $account_id
+                            ));
+                            EH_Stripe_Token_Handler::wtst_get_site_option('update', array(
+                                'name' => 'wt_stripe_access_token_sandbox',
+                                'value' => base64_encode($access_token)
+                            ));
+                            EH_Stripe_Token_Handler::wtst_get_site_option('update', array(
+                                'name' => 'wt_stripe_refresh_token_sandbox',
+                                'value' => base64_encode($refresh_token)
+                            ));
+                            EH_Stripe_Token_Handler::wtst_get_site_option('update', array(
+                                'name' => 'wt_stripe_sandbox_publishable_key',
+                                'value' => $stripe_publishable_key
+                            ));
+                            EH_Stripe_Token_Handler::wtst_get_site_option('update', array(
+                                'name' => 'wtst_oauth_expriy_sandbox',
+                                'value' => time()
+                            ));
+                            EH_Stripe_Token_Handler::wtst_get_site_option('update', array(
+                                'name' => 'wt_stripe_oauth_connected_sandbox',
+                                'value' => 'yes'
+                            ));
+
+                        }else{
+
+                            EH_Stripe_Token_Handler::wtst_get_site_option('update', array(
+                                'name' => 'wt_stripe_account_id_test',
+                                'value' => $account_id
+                            ));
+                            EH_Stripe_Token_Handler::wtst_get_site_option('update', array(
+                                'name' => 'wt_stripe_access_token_test',
+                                'value' => base64_encode($access_token)
+                            ));
+                            EH_Stripe_Token_Handler::wtst_get_site_option('update', array(
+                                'name' => 'wt_stripe_refresh_token_test',
+                                'value' => base64_encode($refresh_token)
+                            ));
+                            EH_Stripe_Token_Handler::wtst_get_site_option('update', array(
+                                'name' => 'wt_stripe_test_publishable_key',
+                                'value' => $stripe_publishable_key
+                            ));
+                            EH_Stripe_Token_Handler::wtst_get_site_option('update', array(
+                                'name' => 'wtst_oauth_expriy_test',
+                                'value' => time()
+                            ));
+                            EH_Stripe_Token_Handler::wtst_get_site_option('update', array(
+                                'name' => 'wt_stripe_oauth_connected_test',
+                                'value' => 'yes'
+                            ));
+                        }
                         $stripe_settings['eh_stripe_mode'] = 'test';
                         update_option("woocommerce_eh_stripe_pay_settings", $stripe_settings);
                     }
@@ -117,6 +150,8 @@ class EH_Stripe_Oauth {
                         $oauth_status = 'success';
                         EH_Stripe_Oauth::eh_stripe_schedule_oauth_refresh();
                     }
+
+                    update_option('eh_stripe_connected_app_author', $app_author);
                     
                 }else{
                     EH_Stripe_Log::log_update('oauth', 'Invalid nonce.','Stripe OAuth invalid nonce');
@@ -179,19 +214,34 @@ class EH_Stripe_Oauth {
         //phpcs:ignore WordPress.Security.NonceVerification.Recommended
         $mode = (isset($_REQUEST['mode']) ? sanitize_text_field( wp_unslash($_REQUEST['mode']) ): $mode);
         if('test' === $mode){ 
-            //phpcs:ignore WordPress.Security.NonceVerification.Recommended
-            if(isset($_REQUEST['expire']) && 'access_token' === sanitize_text_field(wp_unslash($_REQUEST['expire'])) ){ 
-                EH_Stripe_Token_Handler::wtst_get_site_option('delete', array('name' => 'wtst_oauth_expriy_test')); 
-                EH_Stripe_Token_Handler::wtst_get_site_option('delete', null, array('name' => 'wtst_refresh_token_calling'));                   
-            }
-            else{  
-                EH_Stripe_Token_Handler::wtst_get_site_option('delete', array('name' => 'wt_stripe_account_id_test'));
-                EH_Stripe_Token_Handler::wtst_get_site_option('delete', array('name' => 'wt_stripe_access_token_test')); 
-                EH_Stripe_Token_Handler::wtst_get_site_option('delete', array('name' => 'wt_stripe_refresh_token_test'));
-                EH_Stripe_Token_Handler::wtst_get_site_option('delete', array('name' => 'wt_stripe_oauth_connected_test'));
-                EH_Stripe_Token_Handler::wtst_get_site_option('delete', array('name' => 'wtst_oauth_expriy_test'));
-                EH_Stripe_Token_Handler::wtst_get_site_option('delete', null, array('name' => 'wtst_refresh_token_calling'));   
-                EH_Stripe_Token_Handler::wtst_get_site_option('delete', array('name' => 'wt_stripe_test_publishable_key'));
+            $test_mode = EH_Stripe_Token_Handler::get_stripe_test_mode_type();
+            if($test_mode === 'sandbox'){
+                if(isset($_REQUEST['expire']) && 'access_token' === sanitize_text_field($_REQUEST['expire']) ){ 
+                    EH_Stripe_Token_Handler::wtst_get_site_option('delete', array('name' => 'wtst_oauth_expriy_sandbox')); 
+                    EH_Stripe_Token_Handler::wtst_get_site_option('delete', null, array('name' => 'wtst_refresh_token_calling'));                   
+                }else{
+                    EH_Stripe_Token_Handler::wtst_get_site_option('delete', array('name' => 'wt_stripe_account_id_sandbox'));
+                    EH_Stripe_Token_Handler::wtst_get_site_option('delete', array('name' => 'wt_stripe_access_token_sandbox'));
+                    EH_Stripe_Token_Handler::wtst_get_site_option('delete', array('name' => 'wt_stripe_refresh_token_sandbox'));
+                    EH_Stripe_Token_Handler::wtst_get_site_option('delete', array('name' => 'wt_stripe_sandbox_publishable_key'));
+                    EH_Stripe_Token_Handler::wtst_get_site_option('delete', array('name' => 'wt_stripe_oauth_connected_sandbox'));
+            
+                }
+            }else{
+                //phpcs:ignore WordPress.Security.NonceVerification.Recommended
+                if(isset($_REQUEST['expire']) && 'access_token' === sanitize_text_field(wp_unslash($_REQUEST['expire'])) ){ 
+                    EH_Stripe_Token_Handler::wtst_get_site_option('delete', array('name' => 'wtst_oauth_expriy_test')); 
+                    EH_Stripe_Token_Handler::wtst_get_site_option('delete', null, array('name' => 'wtst_refresh_token_calling'));                   
+                }
+                else{  
+                    EH_Stripe_Token_Handler::wtst_get_site_option('delete', array('name' => 'wt_stripe_account_id_test'));
+                    EH_Stripe_Token_Handler::wtst_get_site_option('delete', array('name' => 'wt_stripe_access_token_test')); 
+                    EH_Stripe_Token_Handler::wtst_get_site_option('delete', array('name' => 'wt_stripe_refresh_token_test'));
+                    EH_Stripe_Token_Handler::wtst_get_site_option('delete', array('name' => 'wt_stripe_oauth_connected_test'));
+                    EH_Stripe_Token_Handler::wtst_get_site_option('delete', array('name' => 'wtst_oauth_expriy_test'));
+                    EH_Stripe_Token_Handler::wtst_get_site_option('delete', null, array('name' => 'wtst_refresh_token_calling'));   
+                    EH_Stripe_Token_Handler::wtst_get_site_option('delete', array('name' => 'wt_stripe_test_publishable_key'));
+                }
             }
 
         }
@@ -238,7 +288,9 @@ class EH_Stripe_Oauth {
     public function check_and_remove_scheduled_actions() {
         // Check if the connection is disabled
         $settings = get_option("woocommerce_eh_stripe_pay_settings");
-        $mode = isset($settings['eh_stripe_mode']) ? $settings['eh_stripe_mode'] : 'live'; 
+        $mode = isset($settings['eh_stripe_mode']) ? $settings['eh_stripe_mode'] : 'live';
+        $test_mode = EH_Stripe_Token_Handler::get_stripe_test_mode_type();
+        $mode = ($settings['eh_stripe_mode']==='test' && $test_mode === 'sandbox') ? 'sandbox' : $mode; 
         $connection_key = 'wt_stripe_oauth_connected_' . $mode;
 
         // Check if the connection is established

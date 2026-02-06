@@ -116,7 +116,7 @@ class EH_BECS extends WC_Payment_Gateway {
             'eh_becs_webhook_desc' => array(
                 'type' => 'title',
                 /* translators: %1$s: Opening HTML div and paragraph tags, %2$s: Documentation link opening, %3$s: Documentation link closing, %4$s: Closing HTML paragraph and div tags */
-                'description' => sprintf(__('%1$sTo accept payments via BECS payment method, you must configure the webhook endpoint and subscribe to relevant events. %2$sClick here%3$s to know more%4$s', 'payment-gateway-stripe-and-woocommerce-integration'), '<div class="wt_info_div"><p>', '<a target="_blank" href="https://www.webtoffee.com/setting-up-webhooks-and-supported-webhooks/">', '</a>', '</p></div>'),
+                'description' => sprintf(__('%1$sTo accept payments via BECS payment method, you must configure the webhook endpoint and subscribe to relevant events. %2$sClick here%3$s to know more%4$s', 'payment-gateway-stripe-and-woocommerce-integration'), '<div class="wt_info_div"><p>', '<a target="_blank" href="https://www.themehigh.com/docs/configuring-webhook-endpoints-to-receive-woocommerce-order-status-updates/">', '</a>', '</p></div>'),
             ),             
         );   
     }

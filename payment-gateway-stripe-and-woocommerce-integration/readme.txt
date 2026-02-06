@@ -1,22 +1,22 @@
-=== Payment Gateway for Stripe and for WooCommerce  ===
-Contributors: webtoffee
-Donate link: https://www.webtoffee.com/plugins/
+=== Payment Gateway of Stripe for WooCommerce ===
+Contributors: themehigh
+Donate link: https://www.themehigh.com/product/woocommerce-stripe-payment-gateway/
 Tags: stripe checkout, credit card, google pay, apple pay, stripe payments
 Requires at least: 5.6
-Tested up to: 6.8
+Tested up to: 6.9
 Requires PHP: 5.6
-Stable tag: 5.0.6
+Stable tag: 5.0.7
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
-Easily accept Stripe payments on your WooCommerce store — including credit cards, Apple Pay, Google Pay, and more. Get started with Stripe Checkout and the Stripe payment gateway in just a few minutes.
+Integrate Stripe Payment Gateway in WooCommerce and accept cards, Google Pay, Apple Pay, Klarna, Alipay, and more with seamless, secure checkout.
 
 == Description ==
 This WooCommerce Stripe Payment Plugin adds Stripe Payment Gateway to your WooCommerce store. Accept Stripe payments via credit  card, debit card, Google Pay, Apple Pay and more with the Stripe payment gateway integration.
 
 ### Introduction ###
 
-Payment Gateway for Stripe and for WooCommerce enables your store to accept a wide range of payment methods, including credit cards and debit cards (Visa, Mastercard, American Express, Discover, JCB, Diners Club), along with region-specific and digital wallets like Alipay, Apple Pay, Google Pay, Klarna, SEPA, Afterpay, iDEAL, and WeChat Pay — all through the Payment Gateway for Stripe and for WooCommerce plugin.
+Payment Gateway of Stripe for WooCommerce nables your store to accept a wide range of payment methods, including credit cards and debit cards (Visa, Mastercard, American Express, Discover, JCB, Diners Club), along with region-specific and digital wallets like Alipay, Apple Pay, Google Pay, Klarna, SEPA, Afterpay, iDEAL, and WeChat Pay — all through the Payment Gateway for Stripe and for WooCommerce plugin.
 
 With this WooCommerce Stripe plugin, you can activate Stripe checkout on your store site and make Stripe payments with their credit or debit cards at the checkout. This ensures a smooth and secure payment experience for your users. 
 
@@ -71,7 +71,7 @@ The Stripe payment gateway plugin allows you to easily set up Stripe checkout in
 
 The Stripe checkout page is well optimized for conversion with less loading time, address auto-complete, real-time card validation, descriptive error messages, responsive checkout, [and more](https://stripe.com/in/payments/checkout). 
 
-To learn how to install the plugin, navigate to the Installation tab. For detailed guidance on the installation and setup of the plugin, refer to the [plugin documentation](https://www.webtoffee.com/woocommerce-stripe-payment-gateway-plugin-user-guide/).
+To learn how to install the plugin, navigate to the Installation tab. For detailed guidance on the installation and setup of the plugin, refer to the [plugin documentation](https://www.themehigh.com/docs/category/stripe-payment-gateway/).
 
 
 ### Major Features of the Payment Gateway for Stripe and for WooCommerce ###
@@ -94,7 +94,7 @@ Stripe is available in [47+ countries](https://stripe.com/global)
 
 ## Payment Gateway for Stripe and for WooCommerce - Premium Features##
 
- *  Supports [WooCommerce Subscriptions](https://woocommerce.com/products/woocommerce-subscriptions/) and [Subscriptions for WooCommerce by WebToffee](https://www.webtoffee.com/product/woocommerce-subscriptions/). 
+ *  Supports [WooCommerce Subscriptions](https://woocommerce.com/products/woocommerce-subscriptions/) and [Subscriptions for WooCommerce by ThemeHigh](https://www.themehigh.com/product/subscriptions-for-woocommerce/). 
  *  Link payment method
  *  Multiple payment methods in Stripe checkout
  *  Timely compatibility updates and bug fixes.
@@ -105,7 +105,7 @@ The following video explains how to set up Stripe checkout in WooCommerce
 [youtube https://www.youtube.com/watch?v=ZOROWwknLmA&ab_channel=WebToffee]
 
 
-For complete list of features and details, please visit <a rel="nofollow" href="https://www.webtoffee.com/product/woocommerce-stripe-payment-gateway/">Stripe Payment Gateway for WooCommerce</a>
+For complete list of features and details, please visit <a rel="nofollow" href="https://www.themehigh.com/product/woocommerce-stripe-payment-gateway/">Stripe Payment Gateway for WooCommerce</a>
 
 ### About Stripe ###
 Stripe is an online payment gateway, operating in over 46 countries, that allows both individuals and businesses to accept payments over the Internet. 
@@ -202,12 +202,12 @@ This plugin connects to external services to provide payment processing function
 * **Purpose**: Secure payment form rendering and client-side validation
 * **Privacy Policy**: [Stripe Privacy Policy](https://stripe.com/privacy)
 
-**WebToffee Service**: The plugin integrates with WebToffee's external service for OAuth token management and automatic token refresh functionality.
+**ThemeHigh Service**: The plugin integrates with ThemeHigh's external service for OAuth token management and automatic token refresh functionality.
 
-* **Service Provider**: WebToffee, Inc.
+* **Service Provider**: ThemeHigh, Inc.
 * **Data Sent**: OAuth tokens, connection status, and service health data
 * **Purpose**: External service integration for Stripe OAuth management and token refresh
-* **Privacy Policy**: [WebToffee Privacy Policy](https://www.webtoffee.com/privacy-policy/)
+* **Privacy Policy**: [ThemeHigh Privacy Policy](https://www.themehigh.com/privacy-policy/)
 
 
 
@@ -230,7 +230,7 @@ To install the plugin, follow the below steps:
 Step 1: Log in to your WordPress dashboard. 
 Step 2: Navigate to Plugins and select Add New. 
 Step 3: In the search bar, type “Payment Gateway for Stripe and for WooCommerce” and click Search Plugins. 
-Step 4: Once you find the Stripe Payment plugin by WebToffee, click on “Install Now”.
+Step 4: Once you find the Stripe Payment plugin by ThemeHigh, click on “Install Now”.
 Step 5: After installation, click “Activate” to activate the plugin. 
 
 = Countries Supported by Stripe =
@@ -286,6 +286,12 @@ Payment Gateway for Stripe and for WooCommerce acts as a secure bridge between y
 24. Stripe General Settings
 
 == Changelog ==
+= 5.0.7 =
+* [Ownership] – Plugin acquired by ThemeHigh.
+* [Enhancement] - Updated OAuth with Themehigh Stripe app
+* [Enhancement] - Sandbox mode (test mode) support added for Stripe payments.
+* [Compatibility] - WordPress 6.9
+* [Compatibility] - WooCommerce 10.4
 
 = 5.0.6 2025-08-28 =
 * [Enhancement] - Code optimization

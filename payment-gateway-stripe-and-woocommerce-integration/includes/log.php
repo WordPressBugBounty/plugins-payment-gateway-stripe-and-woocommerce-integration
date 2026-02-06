@@ -8,12 +8,12 @@ class EH_Stripe_Log
 {
     public static function init_live_log()
     {
-        $content="<------------------- WebToffee Stripe Payment Live Log File ( ".EH_STRIPE_VERSION." ) ------------------->\n";
+        $content="<------------------- ThemeHigh Stripe Payment Live Log File ( ".EH_STRIPE_VERSION." ) ------------------->\n";
         return $content;
     }
     public static function init_dead_log()
     {
-        $content="<------------------- WebToffee Stripe Payment Dead Log File ( ".EH_STRIPE_VERSION." ) ------------------->\n";
+        $content="<------------------- ThemeHigh Stripe Payment Dead Log File ( ".EH_STRIPE_VERSION." ) ------------------->\n";
         return $content;
     }
     public static function log_update($type,$msg,$title)
@@ -24,7 +24,7 @@ class EH_Stripe_Log
             if(WC()->version >= '2.7.0')
             {
                 $log = wc_get_logger();
-                $head="<------------------- WebToffee Stripe Payment ( ".$title." ) ------------------->\n";
+                $head="<------------------- ThemeHigh Stripe Payment ( ".$title." ) ------------------->\n";
                 switch ($type)
                 {
                     case 'live':
@@ -51,7 +51,7 @@ class EH_Stripe_Log
             else
             {
                 $log=new WC_Logger();
-                $head="<------------------- WebToffee Stripe Payment ( ".$title." ) ------------------->\n";
+                $head="<------------------- ThemeHigh Stripe Payment ( ".$title." ) ------------------->\n";
                 switch ($type)
                 {
                     case 'live':

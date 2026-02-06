@@ -1,14 +1,14 @@
 <?php
 /*
- * Plugin Name: Payment Gateway for Stripe and for WooCommerce
+ * Plugin Name: Payment Gateway of Stripe for WooCommerce
  * Requires Plugins: woocommerce
  * Plugin URI: https://wordpress.org/plugins/payment-gateway-stripe-and-woocommerce-integration/
  * Description: Accept payments from your WooCommerce store via Credit/Debit Cards, Stripe Checkout, Apple Pay, Google Pay, Alipay, SEPA Pay, Klarna, Afterpay, WeChat Pay, iDEAL, Bancontact, EPS, P24, Bacs Debit, BECS Debit, FPX, Boleto, OXXO, GrabPay, Multibanco and Affirm using Stripe.
- * Author: WebToffee
- * Author URI: https://www.webtoffee.com/product/woocommerce-stripe-payment-gateway/
- * Version: 5.0.6
- * WC requires at least: 3.0
- * WC tested up to: 10.0.2
+ * Author: ThemeHigh
+ * Author URI: https://www.themehigh.com
+ * Version: 5.0.7
+ * WC requires at least: 7.0
+ * WC tested up to: 10.4
  * License: GPLv3
  * License URI: https://www.gnu.org/licenses/gpl-3.0.html
  * Text Domain: payment-gateway-stripe-and-woocommerce-integration
@@ -26,7 +26,7 @@ if (!defined('EH_STRIPE_MAIN_PATH')) {
     define('EH_STRIPE_MAIN_PATH', plugin_dir_path(__FILE__));
 }
 if (!defined('EH_STRIPE_VERSION')) {
-    define('EH_STRIPE_VERSION', '5.0.6');
+    define('EH_STRIPE_VERSION', '5.0.7');
 }
 if (!defined('EH_STRIPE_MAIN_FILE')) {
     define('EH_STRIPE_MAIN_FILE', __FILE__);
@@ -39,6 +39,10 @@ if (!defined('EH_STRIPE_PLUGIN_NAME')) {
 }
 if (!defined('EH_STRIPE_OAUTH_WT_URL')) {
     define ( 'EH_STRIPE_OAUTH_WT_URL', 'https://verify-stripe.webtoffee.com/wp-json/wt-stripe/v1/' );
+}
+if (!defined('EH_STRIPE_OAUTH_TH_URL')) {
+    //themehigh updated url
+    define ( 'EH_STRIPE_OAUTH_TH_URL', 'https://verify-stripe.themehigh.com/wp-json/wt-stripe/v1/' );
 }
 
 if (!class_exists('Stripe\Stripe')) { //fix for SFRWDF-184
@@ -79,7 +83,7 @@ if(is_plugin_active('eh-stripe-payment-gateway/stripe-payment-gateway.php')){
            
             add_filter('plugin_action_links_' . plugin_basename(__FILE__), 'eh_stripe_plugin_action_links');
             eh_stripe_init();
-            add_filter( "wt_promotion_banner_screens", "wt_promotion_banner_screens" );
+            // add_filter( "wt_promotion_banner_screens", "wt_promotion_banner_screens" );
         } else{
 
             deactivate_plugins( plugin_basename(__FILE__) );
@@ -100,7 +104,7 @@ if(is_plugin_active('eh-stripe-payment-gateway/stripe-payment-gateway.php')){
                         "Plugin activated.",
                         "Selected plugins activated."
                     );
-                    $new = "<span style='color:red'>Stripe Payment for Woocommerce ( BASIC ) (WebToffee)-</span> Plugin Needs WooCommerce to Work.";
+                    $new = "<span style='color:red'>Stripe Payment for Woocommerce ( BASIC ) (ThemeHigh)-</span> Plugin Needs WooCommerce to Work.";
                     if (in_array($untranslated_text, $old, true)) {
                         $translated_text = $new;
                     }
@@ -112,9 +116,9 @@ if(is_plugin_active('eh-stripe-payment-gateway/stripe-payment-gateway.php')){
         $setting_link = admin_url('admin.php?page=wt_stripe_menu');
         $plugin_links = array(
             '<a href="' . $setting_link . '">' . __('Settings', 'payment-gateway-stripe-and-woocommerce-integration') . '</a>',
-            '<a href="https://www.webtoffee.com/woocommerce-stripe-payment-gateway-plugin-user-guide/" target="_blank">' . __('Documentation', 'payment-gateway-stripe-and-woocommerce-integration') . '</a>',
-            '<a href="https://www.webtoffee.com/product/woocommerce-stripe-payment-gateway/?utm_source=free_plugin_sidebar&utm_medium=Stripe_basic&utm_campaign=Stripe&utm_content='.EH_STRIPE_VERSION.'" target="_blank" style="color:#3db634;">' . __('Premium Upgrade', 'payment-gateway-stripe-and-woocommerce-integration') . '</a>',
-            '<a href="https://wordpress.org/support/plugin/payment-gateway-stripe-and-woocommerce-integration/" target="_blank">' . __('Support', 'payment-gateway-stripe-and-woocommerce-integration') . '</a>',
+            '<a href="https://www.themehigh.com/docs/category/stripe-payment-gateway/" target="_blank">' . __('Documentation', 'payment-gateway-stripe-and-woocommerce-integration') . '</a>',
+            '<a href="https://www.themehigh.com/product/woocommerce-stripe-payment-gateway/" target="_blank" style="color:#3db634;">' . __('Premium Upgrade', 'payment-gateway-stripe-and-woocommerce-integration') . '</a>',
+            '<a href="https://www.themehigh.com/docs/support/" target="_blank">' . __('Support', 'payment-gateway-stripe-and-woocommerce-integration') . '</a>',
             // '<a href="https://wordpress.org/support/plugin/payment-gateway-stripe-and-woocommerce-integration/reviews/" target="_blank">' . __('Review', 'payment-gateway-stripe-and-woocommerce-integration') . '</a>',     
                     
         );
@@ -208,7 +212,7 @@ if(is_plugin_active('eh-stripe-payment-gateway/stripe-payment-gateway.php')){
                 include_once(EH_STRIPE_MAIN_PATH . "includes/class-stripe-multibanco.php");
                 include_once(EH_STRIPE_MAIN_PATH . "includes/class-stripe-affirm.php");
     
-                include_once(EH_STRIPE_MAIN_PATH . 'includes/admin/class-wt-promotion-banner.php');
+                // include_once(EH_STRIPE_MAIN_PATH . 'includes/admin/class-wt-promotion-banner.php');
     
     
         }
@@ -218,7 +222,7 @@ if(is_plugin_active('eh-stripe-payment-gateway/stripe-payment-gateway.php')){
         /**
          * Includes the Black Friday and Cyber Monday CTA banners for 2024
          */ 
-        require_once EH_STRIPE_MAIN_PATH . 'includes/admin/banner/class-wtst-bfcm-twenty-twenty-four.php';        
+        // require_once EH_STRIPE_MAIN_PATH . 'includes/admin/banner/class-wtst-bfcm-twenty-twenty-four.php';        
         new Eh_Stripe_Admin_Handler();  
 
     }

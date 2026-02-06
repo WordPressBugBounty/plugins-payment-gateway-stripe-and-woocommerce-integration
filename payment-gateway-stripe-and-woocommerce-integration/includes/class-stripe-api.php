@@ -67,7 +67,7 @@ class EH_Stripe_Payment extends WC_Payment_Gateway {
 
 
         /* translators: %s: Documentation link text */
-        $this->method_description = sprintf(__("Accepts Stripe payments via credit or debit card. <p><a target='_blank' href='https://www.webtoffee.com/woocommerce-stripe-payment-gateway-plugin-user-guide/#credit_debit'>%s</a></p>", 'payment-gateway-stripe-and-woocommerce-integration'), esc_html__("Read documentation", 'payment-gateway-stripe-and-woocommerce-integration'));
+        $this->method_description = sprintf(__("Accepts Stripe payments via credit or debit card. <p><a target='_blank' href='https://www.themehigh.com/docs/stripe-payment-plugin-for-woocommerce-free/#credit_debit_cards'>%s</a></p>", 'payment-gateway-stripe-and-woocommerce-integration'), esc_html__("Read documentation", 'payment-gateway-stripe-and-woocommerce-integration'));
 
         if ('test' === $this->eh_stripe_mode) {
             /* translators: %1$s: Test mode text, %2$s: Link text for test card details, %3$s: Test card details URL */
@@ -121,6 +121,14 @@ class EH_Stripe_Payment extends WC_Payment_Gateway {
      * @since 3.4.2
      */
     public function process_admin_options(){
+
+        //save test mode types
+        if (isset($_POST['woocommerce_eh_stripe_test_mode_type_hidden'])) {
+            $mode = sanitize_text_field($_POST['woocommerce_eh_stripe_test_mode_type_hidden']);
+            if (in_array($mode, ['test', 'sandbox'], true)) {
+                update_option('woocommerce_eh_stripe_test_mode_type', $mode);
+            }
+        }
 
         parent::process_admin_options();
 
@@ -857,7 +865,8 @@ class EH_Stripe_Payment extends WC_Payment_Gateway {
                 $token = $wc_token->get_token();
                 $card_brand = $wc_token->get_card_type();
                 $payment_method = $token;
-                 $customer = get_user_meta($logged_in_userid, '_stripe_customer_id', true);
+                //$customer = get_user_meta($logged_in_userid, '_stripe_customer_id', true);
+                $customer = EH_Stripe_Payment::validate_and_clean_customer_id($logged_in_userid);
                 if (!$payment_method || !$customer) {
                     throw new Exception(__("Invalid card. Please select another card or input a new card number", 'payment-gateway-stripe-and-woocommerce-integration'));
                  } 
@@ -880,7 +889,8 @@ class EH_Stripe_Payment extends WC_Payment_Gateway {
                 if ($this->should_save_this_card()) { 
                 
                    //check customer token is exist for the logged in user
-                    $customer = get_user_meta($logged_in_userid, '_stripe_customer_id', true);
+                    //$customer = get_user_meta($logged_in_userid, '_stripe_customer_id', true);
+                    $customer = EH_Stripe_Payment::validate_and_clean_customer_id($logged_in_userid);
                 }
 
                  //create stripe customer 
@@ -1036,7 +1046,8 @@ class EH_Stripe_Payment extends WC_Payment_Gateway {
 
             $logged_in_userid = get_current_user_id();
            //check customer token is exist for the logged in user
-            $customer = get_user_meta($logged_in_userid, '_stripe_customer_id', true);
+            //$customer = get_user_meta($logged_in_userid, '_stripe_customer_id', true);
+            $customer = EH_Stripe_Payment::validate_and_clean_customer_id($logged_in_userid);
 
              //create stripe customer 
             if (empty($customer)) { 
@@ -1586,6 +1597,41 @@ class EH_Stripe_Payment extends WC_Payment_Gateway {
         }else{
             return false;
         }
-    }     
+    }
+    
+    // public function save_custom_settings_for_test_mode() {
+        
+    //     if (isset($_POST['woocommerce_eh_stripe_test_mode_type_hidden'])) {
+    //         $mode = sanitize_text_field($_POST['woocommerce_eh_stripe_test_mode_type_hidden']);
+    //         if (in_array($mode, ['test', 'sandbox'], true)) {
+    //             update_option('woocommerce_eh_stripe_test_mode_type', $mode);
+    //         }
+    //     }
+    // }
+    
+     /**
+     * Themehigh added
+     * Validate Customer
+     * @since 5.0.0
+     * @param string $customer_id
+     * 
+     */
+
+    public static function validate_and_clean_customer_id($user_id) {
+        $customer_id = get_user_meta($user_id, '_stripe_customer_id', true);
+        
+        if (empty($customer_id)) {
+            return '';
+        }
+        
+        try {
+            \Stripe\Customer::retrieve($customer_id);
+            return $customer_id;
+        } catch (\Stripe\Exception\InvalidRequestException $e) {
+            // Customer doesn't exist, remove invalid ID
+            delete_user_meta($user_id, '_stripe_customer_id');
+            return '';
+        }
+    }
   
 }

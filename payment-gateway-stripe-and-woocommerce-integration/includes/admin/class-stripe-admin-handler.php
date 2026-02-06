@@ -29,6 +29,9 @@ class Eh_Stripe_Admin_Handler  {
             add_action('after_plugin_row_payment-gateway-stripe-and-woocommerce-integration/payment-gateway-stripe-and-woocommerce-integration.php', array($this, 'wt_oauth_upgrade_notice'), 10, 3);
     
             add_action('in_plugin_update_message-payment-gateway-stripe-and-woocommerce-integration/payment-gateway-stripe-and-woocommerce-integration.php', array($this, 'wt_stripe_upgrade_notice'), 10, 2);
+
+            /* * Themehigh added */
+            add_action('init', array($this, 'redirect_to_stripe_settings'));
     
         });
       
@@ -63,8 +66,8 @@ class Eh_Stripe_Admin_Handler  {
     function register_stripe_menu_page() {
         
         add_menu_page(
-            __( 'WebToffee Stripe','payment-gateway-stripe-and-woocommerce-integration' ), 
-            __( 'WebToffee Stripe','payment-gateway-stripe-and-woocommerce-integration' ), 
+            __( 'ThemeHigh Stripe','payment-gateway-stripe-and-woocommerce-integration' ), 
+            __( 'ThemeHigh Stripe','payment-gateway-stripe-and-woocommerce-integration' ), 
             'manage_options', 
             'wt_stripe_menu',
             null,
@@ -136,7 +139,7 @@ class Eh_Stripe_Admin_Handler  {
             $install_link = Eh_Stripe_Admin_Handler::wt_get_install_link($mode);
 
             /* translators: %1$s: Opening paragraph and h2 tags, %2$s: Closing h2 tag, %3$s: Opening paragraph tag, %4$s: Bold tag opening, %5$s: Bold tag closing, %6$s: Link opening, %7$s: Link closing, %8$s: Button opening, %9$s: Button closing */
-            $message = sprintf(esc_html__('%1$sUrgent: Switch to OAuth for Secure Stripe Integration%2$sWe are enhancing security and requires you to switch from using API keys to OAuth 2.0 for connecting with Stripe account. OAuth provides better control and limits access to only the necessary data, protecting your business from unauthorized access. %3$sEnsure to connect your Stripe account using the new authentication method before the year ends. %4$sClick %5$s"Connect Now"%6$s to update your integration today! Need help? Check out our %7$sintegration article%8$s. Please upgrade soon to avoid service disruptions.%9$sConnect Now%10$s', 'payment-gateway-stripe-and-woocommerce-integration'), '<p><h2>', '</h2>','<p>', '</p><p>', '<b>', '</b>', '<a href="https://www.webtoffee.com/switch-stripe-integration-oauth/" style="text-decoration: none;">', '</a>', '</p><p><a href="' . esc_url($install_link) .'" class="button button-primary">', '</a></p>');
+            $message = sprintf(esc_html__('%1$sUrgent: Switch to OAuth for Secure Stripe Integration%2$sWe are enhancing security and requires you to switch from using API keys to OAuth 2.0 for connecting with Stripe account. OAuth provides better control and limits access to only the necessary data, protecting your business from unauthorized access. %3$sEnsure to connect your Stripe account using the new authentication method before the year ends. %4$sClick %5$s"Connect Now"%6$s to update your integration today! Need help? Check out our %7$sintegration article%8$s. Please upgrade soon to avoid service disruptions.%9$sConnect Now%10$s', 'payment-gateway-stripe-and-woocommerce-integration'), '<p><h2>', '</h2>','<p>', '</p><p>', '<b>', '</b>', '<a href="https://www.themehigh.com/docs/upgrade-your-stripe-integration-to-oauth-2-0-for-enhanced-security-2/" style="text-decoration: none;">', '</a>', '</p><p><a href="' . esc_url($install_link) .'" class="button button-primary">', '</a></p>');
             
             /* translators: %1$s: Opening paragraph and h2 tags, %2$s: Closing h2 tag, %3$s: Bold tag opening, %4$s: Bold tag closing, %5$s: Link opening, %6$s: Link closing, %7$s: Button opening, %8$s: Button closing */
             $sofort_message = sprintf(esc_html__('%1$sUpdate: SOFORT Payments Discontinued%2$sStarting %3$sNovember 29, 2024,%4$s %5$sbusinesses will no longer be able to accept SOFORT payments%6$s as it is being consolidated into Klarna. To continue offering bank transfer payments, please switch to %3$sKlarna\'s "Pay Now"%4$s option or other methods like %3$sSEPA Direct Debit%4$s. Any existing SEPA Direct Debit mandates will remain active.', 'payment-gateway-stripe-and-woocommerce-integration'), '<p><h2>', '</h2>', '<b>', '</b>','<a  style="text-decoration: none;" href="https://support.stripe.com/questions/sofort-is-being-consolidated-into-klarna-and-discontinued-as-a-standalone-payment-method">', '</a>', '</p><p><a href="' . esc_url($install_link) .'" class="button button-primary">', '</a></p>');
@@ -202,7 +205,7 @@ class Eh_Stripe_Admin_Handler  {
         $stripe_params['disconnect_primary_btn_title'] = __("Disconnect", "payment-gateway-stripe-and-woocommerce-integration");
         $stripe_params['disconnect_secondary_btn_title'] = __("Cancel", "payment-gateway-stripe-and-woocommerce-integration");
         $stripe_params['disconnect_title'] = __("Are you sure?", "payment-gateway-stripe-and-woocommerce-integration");
-        $stripe_params['disconnect_text'] = __("Disconnecting your Stripe account from WebToffee stops payments. To fully remove the WebToffee app, head to 'Installed apps' in your Stripe dashboard.", "payment-gateway-stripe-and-woocommerce-integration");
+        $stripe_params['disconnect_text'] = __("Disconnecting your Stripe account from ThemeHigh stops payments. To fully remove the ThemeHigh app, head to 'Installed apps' in your Stripe dashboard.", "payment-gateway-stripe-and-woocommerce-integration");
         wp_localize_script('eh_stripe_oauth', 'eh_stripe_oauth_val',  $stripe_params);
 
         $stripe_settings = get_option( 'woocommerce_eh_stripe_pay_settings' );
@@ -222,13 +225,15 @@ class Eh_Stripe_Admin_Handler  {
                     <h2 style="width: 100%;"><?php esc_html_e('Stripe payment','payment-gateway-stripe-and-woocommerce-integration'); ?></h2><?php
                     $webtoffee_logo='&nbsp;&nbsp;<img src="'.EH_STRIPE_MAIN_URL_PATH.'assets/img/wt_logo.png" style="" />&nbsp;';
 
-                    ?><div class="wfte_branding">
+                    ?>
+                    <?php /*
+                    <div class="wfte_branding">
                         <div class="wfte_branding_label"><?php esc_html_e('Developed by', 'payment-gateway-stripe-and-woocommerce-integration'); echo wp_kses_post($webtoffee_logo);?>
                         </div>
                         <!-- <div style="width: 100%; padding: 5px;">
-                            <?php echo wp_kses_post($webtoffee_logo); ?>
+                            <?php //echo wp_kses_post($webtoffee_logo); ?>
                         </div> -->
-                    </div>
+                    </div> */ ?>
 
                     <?php
                     //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing
@@ -284,7 +289,7 @@ class Eh_Stripe_Admin_Handler  {
                                         }
                                         else{
                                             /* translators: %1$s: Opening paragraph and h2 tags, %2$s: Closing h2 tag, %3$s: Opening paragraph tag, %4$s: Bold tag opening, %5$s: Bold tag closing, %6$s: Link opening, %7$s: Link closing, %8$s: Button opening, %9$s: Button closing */
-                                            $message = sprintf(esc_html__('%1$sUrgent: Switch to OAuth for Secure Stripe Integration%2$sWe are enhancing security and requires you to switch from using API keys to OAuth 2.0 for connecting with Stripe account. OAuth provides better control and limits access to only the necessary data, protecting your business from unauthorized access. %3$sEnsure to connect your Stripe account using the new authentication method before the year ends.%4$sClick %5$s"Connect Now"%6$s to update your integration today! Need help? Check out our %7$sintegration article%8$s. Please upgrade soon to avoid service disruptions.%9$sConnect Now%10$s', 'payment-gateway-stripe-and-woocommerce-integration'), '<p><h2>', '</h2>', '<p>', '</p><p>', '<b>', '</b>', '<a href="https://www.webtoffee.com/switch-stripe-integration-oauth/" style="text-decoration: none;">', '</a>', '</p><p><a href="' . esc_url($install_link) .'" class="button button-primary">', '</a></p>');
+                                            $message = sprintf(esc_html__('%1$sUrgent: Switch to OAuth for Secure Stripe Integration%2$sWe are enhancing security and requires you to switch from using API keys to OAuth 2.0 for connecting with Stripe account. OAuth provides better control and limits access to only the necessary data, protecting your business from unauthorized access. %3$sEnsure to connect your Stripe account using the new authentication method before the year ends.%4$sClick %5$s"Connect Now"%6$s to update your integration today! Need help? Check out our %7$sintegration article%8$s. Please upgrade soon to avoid service disruptions.%9$sConnect Now%10$s', 'payment-gateway-stripe-and-woocommerce-integration'), '<p><h2>', '</h2>', '<p>', '</p><p>', '<b>', '</b>', '<a href="https://www.themehigh.com/docs/upgrade-your-stripe-integration-to-oauth-2-0-for-enhanced-security-2/" style="text-decoration: none;">', '</a>', '</p><p><a href="' . esc_url($install_link) .'" class="button button-primary">', '</a></p>');
                                             echo wp_kses_post("<div class='wtst-notice wtst-notice-error ' ><div style='padding:10px'>$message</div></div>");
                                         }
                                     }
@@ -345,6 +350,20 @@ class Eh_Stripe_Admin_Handler  {
                                                 jQuery('#eh_live_mode').show();                                               
                                             }
 
+                                             //themehigh added
+                                            jQuery(document).ready(function ($) {
+                                                $('#th_test_mode_type').on('click', function (e) {
+                                                    e.preventDefault();
+                                                    $('#woocommerce_eh_stripe_test_mode_type_hidden').val('sandbox');
+                                                    $('form').submit(); // Automatically saves and reloads
+                                                });
+
+                                                $('#th_sandbox_mode_type').on('click', function (e) {
+                                                    e.preventDefault();
+                                                    $('#woocommerce_eh_stripe_test_mode_type_hidden').val('test');
+                                                    $('form').submit(); // Automatically saves and reloads
+                                                });
+                                            });
                                            
                                         ");
 
@@ -664,7 +683,7 @@ class Eh_Stripe_Admin_Handler  {
                                                                      <img src="<?php echo esc_url(EH_STRIPE_MAIN_URL_PATH);?>assets/img/documentation.png">
                                                                      <h3><?php esc_html_e('Documentation','payment-gateway-stripe-and-woocommerce-integration'); ?></h3>
                                                                      <p><?php esc_html_e('Refer to our documentation to set up and get started.','payment-gateway-stripe-and-woocommerce-integration'); ?></p>
-                                                                     <a target="_blank" href="https://www.webtoffee.com/woocommerce-stripe-payment-gateway-plugin-user-guide/" class="button button-primary">
+                                                                     <a target="_blank" href="https://www.themehigh.com/docs/stripe-payment-plugin-for-woocommerce-free/" class="button button-primary">
                                                                          <?php esc_html_e('Documentation','payment-gateway-stripe-and-woocommerce-integration'); ?>        
                                                                      </a>
                                                                  </li>
@@ -672,7 +691,7 @@ class Eh_Stripe_Admin_Handler  {
                                                                      <img src="<?php echo esc_url(EH_STRIPE_MAIN_URL_PATH);?>assets/img/support.png">
                                                                      <h3><?php esc_html_e('Support','payment-gateway-stripe-and-woocommerce-integration'); ?></h3>
                                                                      <p><?php esc_html_e('We would love to help you on any queries or issues.','payment-gateway-stripe-and-woocommerce-integration'); ?></p>
-                                                                     <a target="_blank" href="https://wordpress.org/support/plugin/payment-gateway-stripe-and-woocommerce-integration/" class="button button-primary">
+                                                                     <a target="_blank" href="https://www.themehigh.com/docs/support/" class="button button-primary">
                                                                          <?php esc_html_e('Contact us','payment-gateway-stripe-and-woocommerce-integration'); ?>
                                                                      </a>
                                                                  </li>               
@@ -1312,9 +1331,17 @@ class Eh_Stripe_Admin_Handler  {
             $settings = get_option("woocommerce_eh_stripe_pay_settings");
             $mode = isset($settings['eh_stripe_mode']) ? $settings['eh_stripe_mode'] : 'live';            
         }
+        //$option = ('test' === $mode) ? 'wt_stripe_oauth_connected_test' : 'wt_stripe_oauth_connected_live';
+        if ( 'test' === $mode ) {
 
-        $option = ('test' === $mode) ? 'wt_stripe_oauth_connected_test' : 'wt_stripe_oauth_connected_live';
-       
+            $test_mode_type = EH_Stripe_Token_Handler::get_stripe_test_mode_type();
+            $option = ( 'sandbox' === $test_mode_type )
+                ? 'wt_stripe_oauth_connected_sandbox'
+                : 'wt_stripe_oauth_connected_test';
+        } else {
+            $option = 'wt_stripe_oauth_connected_live';
+        }
+
         if("yes" === EH_Stripe_Token_Handler::wtst_get_site_option('get', array('name' => $option))){
             return true;
         }
@@ -1323,19 +1350,31 @@ class Eh_Stripe_Admin_Handler  {
         }
     }
 
-    static function wt_get_install_link($mode)
+    static function wt_get_install_link($mode, $test_mode_type = false)
     {
+        if ( is_admin() ) {
+            if ( isset( $_REQUEST['oauth_error'] ) || isset( $_REQUEST['oauth_status'] ) ) {
+
+            unset(
+                $_GET['oauth_error'],
+                $_GET['oauth_status'],
+                $_REQUEST['oauth_error'],
+                $_REQUEST['oauth_status']
+            );
+        }
+        }
         //Stripe oAuth customer site URL
-        $site_url = add_query_arg( array( 'wc-api'=> 'wt_stripe_oauth_update', 'mode' => $mode, 'name' => EH_STRIPE_PLUGIN_NAME), trailingslashit( get_home_url() ));
-        //sandbox
-        $client_id_test = 'ca_Pl5sdRX9ZIbMhFni2PDjsnkMEERxD3Ye';
-
-        //live
-        $client_id_live = 'ca_Pl5sCXjmB1vQPLI6ewCrUibnq1DojGbA';   
-        
+        $site_url = add_query_arg( array( 
+            'wc-api'=> 'wt_stripe_oauth_update', 
+            'mode' => $mode, 
+            'test_mode_type' => $test_mode_type, 
+            'name' => EH_STRIPE_PLUGIN_NAME), 
+            trailingslashit( home_url( '/', 'https' ) )
+        );
+         
         $user_id = get_current_user_id();
-
         if ( $user_id ) {
+            delete_user_meta( $user_id, 'wtst_random_key' );
             // Generate a random secure key (32 characters)
             $random_key = wp_generate_password(32, true, true);
 
@@ -1347,24 +1386,58 @@ class Eh_Stripe_Admin_Handler  {
                 'user_id' => $user_id,
                 'key'     => $random_key,
             );
-
           
         }
         
-
         $state = base64_encode(wp_json_encode(array(
             'site' => $site_url,
             'nonce' => $nonce,
         )));
 
+        $test_mode_type = EH_Stripe_Token_Handler::get_stripe_test_mode_type();
+
+        //Stripe oAuth URL        
+        //themehigh ids - need to change after publish the app
+        //test mode - https://marketplace.stripe.com/oauth/v2/authorize?client_id=ca_SrijWXrA8Rsh8T1Ol5Ebrist8calvSni&redirect_uri=https://verify-stripe.themehigh.com/wp-json/wt-stripe/v1/oauth
+        //sandbox mode -  https://marketplace.stripe.com/oauth/v2/authorize?client_id=ca_Srijfd5TDVdeLI8pWEMvcHp0NYNxqlxk&redirect_uri=https://verify-stripe.themehigh.com/wp-json/wt-stripe/v1/oauth
+        //live mode - https://marketplace.stripe.com/oauth/v2/authorize?client_id=ca_SrijCzqvjxjpzH7hnfQKzcMSEEJ4YaUJ&redirect_uri=https://verify-stripe.themehigh.com/wp-json/wt-stripe/v1/oauth
+
+        //test
+        $client_id_test = 'ca_SrijWXrA8Rsh8T1Ol5Ebrist8calvSni';
+        //sandbox
+        $client_id_sandbox = 'ca_Srijfd5TDVdeLI8pWEMvcHp0NYNxqlxk';
+        //live
+        $client_id_live = 'ca_SrijCzqvjxjpzH7hnfQKzcMSEEJ4YaUJ'; 
+
 
         if('test' === $mode){
-            return add_query_arg( array('client_id' => $client_id_test, "redirect_uri" => EH_STRIPE_OAUTH_WT_URL ."oauth", "state" => $state, 'scope' => 'read_write' ), "https://marketplace.stripe.com/oauth/v2/authorize" );
+            if($test_mode_type && 'sandbox' === $test_mode_type){
 
+                return add_query_arg( array(
+                    'client_id' => $client_id_sandbox,
+                    "redirect_uri" => EH_STRIPE_OAUTH_TH_URL ."oauth", 
+                    "state" => $state, 
+                    'scope' => 'read_write' ),
+                    "https://marketplace.stripe.com/oauth/v2/authorize" 
+                );
+            }else{
+                return add_query_arg( array(
+                    'client_id' => $client_id_test,
+                    "redirect_uri" => EH_STRIPE_OAUTH_TH_URL ."oauth", 
+                    "state" => $state, 
+                    'scope' => 'read_write' ),
+                    "https://marketplace.stripe.com/oauth/v2/authorize" 
+                );
+            }
         }
         else{
-            return add_query_arg( array('client_id' => $client_id_live, "redirect_uri" => EH_STRIPE_OAUTH_WT_URL ."oauth", "state" => $state, 'scope' => 'read_write' ), "https://marketplace.stripe.com/oauth/v2/authorize" );
-
+            return add_query_arg( array(
+                'client_id' => $client_id_live, 
+                "redirect_uri" => EH_STRIPE_OAUTH_TH_URL ."oauth", 
+                "state" => $state, 
+                'scope' => 'read_write' ),
+                "https://marketplace.stripe.com/oauth/v2/authorize" 
+            );
         }
     } 
 
@@ -1506,6 +1579,25 @@ class Eh_Stripe_Admin_Handler  {
             })( jQuery );
         </script>
         <?php
-    }     
+    }  
+    
+    /**
+     * @since 5.0.7
+     * Function to redirect to the settings page after plugin activation
+     * Themehigh added
+    */
+    public function redirect_to_stripe_settings(){
+
+        if ( ! is_admin() && defined( 'DOING_AJAX' ) ) {
+			return;
+		}
+        if(get_option('th_stripe_since',false)){
+            return;
+        }
+        update_option('th_stripe_since', time(), 'no');
+        wp_safe_redirect( esc_url_raw( admin_url( 'admin.php?page=wt_stripe_menu' ) ) );
+		exit();
+		
+    }
     
 }

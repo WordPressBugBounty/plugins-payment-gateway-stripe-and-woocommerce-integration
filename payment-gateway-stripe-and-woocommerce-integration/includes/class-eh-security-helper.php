@@ -5,10 +5,10 @@ if (!defined('ABSPATH')) {
 }
 
 /**
- * Webtoffee Security Library
+ * ThemeHigh Security Library
  *
  * Includes Data sanitization, Access checking
- * @author     WebToffee <info@webtoffee.com>
+ * @author     ThemeHigh <info@themehigh.com>
  */
 
 if(!class_exists('EH_Helper_Class'))

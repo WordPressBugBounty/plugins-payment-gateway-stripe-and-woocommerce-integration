@@ -36,7 +36,7 @@ class Eh_Stripe_Checkout extends WC_Payment_Gateway {
 		$this->title                   = $this->get_option( 'eh_stripe_checkout_title' );
         $this->description             = $this->get_option( 'eh_stripe_checkout_description' );
         /* translators: %1$s: Opening paragraph tag with style, %2$s: Dashboard link opening, %3$s: Dashboard link closing, %4$s: Preview link opening, %5$s: Preview link closing, %6$s: Closing paragraph tag, %7$s: Documentation link opening, %8$s: Documentation link closing, %9$s: Closing paragraph tag */
-        $this->method_description      = sprintf( __( '%1$sStripe Checkout redirects users to a secure, Stripe-hosted payment page to accept payment. You will have to specify an account name in Stripe %2$sDashboard%3$s prior to configuring the settings. %4$sPreview%5$s%6$s%7$sRead documentation%8$s%9$s', 'payment-gateway-stripe-and-woocommerce-integration' ), '<p style="max-width: 97%;">', '<a href="https://dashboard.stripe.com/account" target="_blank">', '</a>', '<a class="thickbox" href="' . EH_STRIPE_MAIN_URL_PATH . 'assets/img/stripe_checkout_line_items.gif?TB_iframe=true&width=100&height=100" >', '</a>', '</p>','<p><a target="_blank" href="https://www.webtoffee.com/woocommerce-stripe-payment-gateway-plugin-user-guide/#stripe_checkout">', '</a>', '</p>' );
+        $this->method_description      = sprintf( __( '%1$sStripe Checkout redirects users to a secure, Stripe-hosted payment page to accept payment. You will have to specify an account name in Stripe %2$sDashboard%3$s prior to configuring the settings. %4$sPreview%5$s%6$s%7$sRead documentation%8$s%9$s', 'payment-gateway-stripe-and-woocommerce-integration' ), '<p style="max-width: 97%;">', '<a href="https://dashboard.stripe.com/account" target="_blank">', '</a>', '<a class="thickbox" href="' . EH_STRIPE_MAIN_URL_PATH . 'assets/img/stripe_checkout_line_items.gif?TB_iframe=true&width=100&height=100" >', '</a>', '</p>','<p><a target="_blank" href="https://www.themehigh.com/docs/stripe-payment-plugin-for-woocommerce-free//#stripe_checkout">', '</a>', '</p>' );
         
         $this->enabled                 = $this->get_option( 'enabled' );
         $this->eh_order_button         = $this->get_option( 'eh_stripe_checkout_order_button');
@@ -180,7 +180,7 @@ class Eh_Stripe_Checkout extends WC_Payment_Gateway {
             'eh_checkout_webhook_desc' => array(
                 'type' => 'title',
                 /* translators: %1$s: Opening HTML div and paragraph tags, %2$s: Documentation link opening, %3$s: Documentation link closing, %4$s: Closing HTML paragraph and div tags */
-                'description' => sprintf(__('%1$sTo accept payments via delayed payment methods from Stripe hosted page, you must configure the webhook endpoint and subscribe to relevant events. %2$sClick here%3$s to know more%4$s', 'payment-gateway-stripe-and-woocommerce-integration'), '<div class="wt_info_div"><p>', '<a target="_blank" href="https://www.webtoffee.com/setting-up-webhooks-and-supported-webhooks/">', '</a>', '</p></div>'),
+                'description' => sprintf(__('%1$sTo accept payments via delayed payment methods from Stripe hosted page, you must configure the webhook endpoint and subscribe to relevant events. %2$sClick here%3$s to know more%4$s', 'payment-gateway-stripe-and-woocommerce-integration'), '<div class="wt_info_div"><p>', '<a target="_blank" href="https://www.themehigh.com/docs/configuring-webhook-endpoints-to-receive-woocommerce-order-status-updates/">', '</a>', '</p></div>'),
             ),              
 		);   
     }
@@ -566,7 +566,8 @@ class Eh_Stripe_Checkout extends WC_Payment_Gateway {
        //check customer token is exist for the logged in user
         $user = wp_get_current_user();
         $logged_in_userid = $user->ID;
-        $customer_id = get_user_meta($logged_in_userid, '_stripe_ch_customer_id', true);
+        //$customer_id = get_user_meta($logged_in_userid, '_stripe_ch_customer_id', true);
+        $customer_id = $this->validate_and_clean_stripe_ch_customer_id($logged_in_userid);
         //create stripe customer 
         if (empty($customer_id)) { 
 
@@ -891,5 +892,28 @@ class Eh_Stripe_Checkout extends WC_Payment_Gateway {
             EH_Stripe_Log::log_update('dead', $payment_intent, get_bloginfo('blogname') . ' - Charge - Order #' . $order_id);
         }
 
+    }
+
+    /**
+     * Validates and cleans the Stripe Checkout customer ID.
+     *themehigh added
+     * @param int $user_id The user ID to validate.
+     * @return string The valid Stripe Checkout customer ID or an empty string if invalid.
+     */
+    public function validate_and_clean_stripe_ch_customer_id($user_id) {
+        $customer_id = get_user_meta($user_id, '_stripe_ch_customer_id', true);
+        
+        if (empty($customer_id)) {
+            return '';
+        }
+        
+        try {
+            \Stripe\Customer::retrieve($customer_id);
+            return $customer_id;
+        } catch (\Stripe\Exception\InvalidRequestException $e) {
+            // Customer doesn't exist, remove invalid ID
+            delete_user_meta($user_id, '_stripe_ch_customer_id');
+            return '';
+        }
     }
 }

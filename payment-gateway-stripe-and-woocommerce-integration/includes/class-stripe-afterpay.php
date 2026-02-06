@@ -65,7 +65,7 @@ class EH_Afterpay extends WC_Payment_Gateway {
             'eh_afterpay_desc' => array(
                 'type' => 'title',
                 /* translators: %1$s: Opening HTML div and list tags, %2$s: Bold tag opening, %3$s: Bold tag closing, %4$s: Bold tag opening, %5$s: Bold tag closing, %6$s: Closing HTML list and div tags, %7$s: Documentation link opening, %8$s: Documentation link closing */
-                'description' => sprintf(__('%1$sSupported currencies: %2$sUSD, CAD, GBP, AUD, NZD, EUR%3$sStripe accounts in the following countries can accept the payment: %4$sAustralia, Canada, New Zealand, United Kingdom, United States%5$s%6$s%7$sRead documentation%8$s', 'payment-gateway-stripe-and-woocommerce-integration'), '<div class="wt_info_div"><ul><li>', '<b>', '</b></li><li>', '<b>', '</b></li></ul></div>', '<p><a target="_blank" href="https://www.webtoffee.com/woocommerce-stripe-payment-gateway-plugin-user-guide/#afterpay">', '</a></p>', ''),
+                'description' => sprintf(__('%1$sSupported currencies: %2$sUSD, CAD, GBP, AUD, NZD, EUR%3$sStripe accounts in the following countries can accept the payment: %2$sAustralia, Canada, New Zealand, United Kingdom, United States%3$s</li></ul><p><a target="_blank" href="https://www.themehigh.com/docs/set-up-afterpay-or-clearpay-payment-method-for-a-woocommerce-store/">Read documentation</a></p></div>', 'payment-gateway-stripe-and-woocommerce-integration'), '<div class="wt_info_div"><ul><li>', '<b>', '</b></li><li>'),
             ),
 
             'eh_stripe_afterpay_form_title'   => array(

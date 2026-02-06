@@ -152,7 +152,7 @@ if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
         <li><?php esc_html_e('Offer 20+ payment options', 'payment-gateway-stripe-and-woocommerce-integration'); ?></li>
       </ul>
       <div class="eh_section_button">
-        <a href="https://www.webtoffee.com/product/woocommerce-stripe-payment-gateway/?utm_source=free_plugin_sidebar&utm_medium=Stripe_basic&utm_campaign=Stripe&utm_content=<?php echo esc_attr(EH_STRIPE_VERSION); ?>" target="_blank">
+        <a href="https://www.themehigh.com/product/woocommerce-stripe-payment-gateway/" target="_blank">
           <img src="<?php echo esc_url(EH_STRIPE_MAIN_URL_PATH.'assets/img/white-crown.svg'); ?>" alt="Crown" style="width:16px; vertical-align:middle; margin-right:6px;">
           <?php esc_html_e('Upgrade to Premium', 'payment-gateway-stripe-and-woocommerce-integration'); ?>
         </a>
@@ -164,7 +164,7 @@ if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
   <div class="eh_section" style="background-color: #EBFAF0;">
     <div class="eh_section_header" style="background-color: #DDF9E4;">
       <img src="<?php echo esc_url(EH_STRIPE_MAIN_URL_PATH.'assets/img/subscription-cta.svg'); ?>" alt="Calendar Icon">
-      <span><?php esc_html_e('WebToffee WooCommerce Subscription Plugin', 'payment-gateway-stripe-and-woocommerce-integration'); ?></span>
+      <span><?php esc_html_e('ThemeHigh WooCommerce Subscription Plugin', 'payment-gateway-stripe-and-woocommerce-integration'); ?></span>
     </div>
     <div class="eh_section_content">
       <p style="margin-bottom: 15px;"><?php esc_html_e('Want to offer subscription-based products?', 'payment-gateway-stripe-and-woocommerce-integration'); ?></p>
@@ -181,7 +181,7 @@ if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
         <li><?php esc_html_e('Supports 10+ languages', 'payment-gateway-stripe-and-woocommerce-integration'); ?></li>
       </ul>
       <div class="eh_section_button">
-        <a href="https://www.webtoffee.com/product/woocommerce-subscription/?utm_source=free_plugin_sidebar&utm_medium=Stripe_basic&utm_campaign=Stripe&utm_content=<?php echo esc_attr(EH_STRIPE_VERSION); ?>" target="_blank">
+        <a href="https://www.themehigh.com/product/subscriptions-for-woocommerce/" target="_blank">
           <img src="<?php echo esc_url(EH_STRIPE_MAIN_URL_PATH.'assets/img/white-crown.svg'); ?>" alt="Crown" style="width:16px; vertical-align:middle; margin-right:6px;">
           <?php esc_html_e('Get woo Subscription', 'payment-gateway-stripe-and-woocommerce-integration'); ?>
         </a>
@@ -202,7 +202,7 @@ if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
     </div>
   </div>
 </div>
-
+<?php /*
 <!-- Like This Plugin -->
 <div class="eh_like_plugin">
   <h3><strong><?php esc_html_e('Like this plugin?', 'payment-gateway-stripe-and-woocommerce-integration'); ?></strong></h3>
@@ -214,3 +214,4 @@ if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
     – <?php esc_html_e('much appreciated!', 'payment-gateway-stripe-and-woocommerce-integration'); ?> :)
   </p>
 </div>
+*/ ?>

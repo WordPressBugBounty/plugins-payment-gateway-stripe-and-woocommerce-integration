@@ -353,15 +353,27 @@ class EH_Stripe_General_Settings extends EH_Stripe_Payment {
     public function generate_eh_stripe_oauth_html( $key, $value ) { 
         $html = '';
         $settings = get_option("woocommerce_eh_stripe_pay_settings");
-         $mode = isset($settings['eh_stripe_mode']) ? $settings['eh_stripe_mode'] : 'live'; 
-         if('test' === $mode ){       
+        $mode = isset($settings['eh_stripe_mode']) ? $settings['eh_stripe_mode'] : 'live'; 
+        $test_mode_type = get_option( 'woocommerce_eh_stripe_test_mode_type', 'test' );
+        if('test' === $mode ){ 
+
+            $token_option = ( 'sandbox' === $test_mode_type )
+                ? 'wt_stripe_access_token_sandbox'
+                : 'wt_stripe_access_token_test';
+
+            $account_id_option = ( 'sandbox' === $test_mode_type )
+                ? 'wt_stripe_account_id_sandbox'
+                : 'wt_stripe_account_id_test';   
             if(true === Eh_Stripe_Admin_Handler::wtst_oauth_compatible() && 
-                !empty(EH_Stripe_Token_Handler::wtst_get_site_option('get', array('name' => 'wt_stripe_access_token_test')))) {
-                $wt_stripe_account_id = EH_Stripe_Token_Handler::wtst_get_site_option('get', array('name' => 'wt_stripe_account_id_test'));
+                !empty(EH_Stripe_Token_Handler::wtst_get_site_option('get', array('name' => $token_option)))) {
 
+                $wt_stripe_account_id = EH_Stripe_Token_Handler::wtst_get_site_option(
+                    'get',
+                    array( 'name' => $account_id_option )
+                );
 
-
-               $html = '<tr valign="top">
+                $html = $this->get_oauth_connection_warning_html($settings);
+                $html .= '<tr valign="top">
                     <th scope="row" class="titledesc">
                         <label for="woocommerce_eh_stripe_test_oauth">Stripe account </label>
                     </th>            
@@ -372,9 +384,11 @@ class EH_Stripe_General_Settings extends EH_Stripe_Payment {
 
             }
             else{
-                $install_link = Eh_Stripe_Admin_Handler::wt_get_install_link($mode);
+
+                $html = $this->generate_test_mode_switch_button_html();
+                $install_link = Eh_Stripe_Admin_Handler::wt_get_install_link($mode, $test_mode_type);
                 $message = __("You are in test mode. Connect to Stripe in live mode to receive payments.", "payment-gateway-stripe-and-woocommerce-integration");
-                 $html = '<div class="wtst-notice wtst-notice-warning " ><div style="padding:10px">' . $message .'</div></div><tr valign="top"><td colspan="2" class="forminp forminp-' . sanitize_text_field($value['type']) . '"><div class="wtst-oauth-banner">
+                 $html .= '<div class="wtst-notice wtst-notice-warning " ><div style="padding:10px">' . $message .'</div></div><tr valign="top"><td colspan="2" class="forminp forminp-' . sanitize_text_field($value['type']) . '"><div class="wtst-oauth-banner">
                     <div class="wtst-oauth-banner-img" style="background-image: url(' . esc_url(EH_STRIPE_MAIN_URL_PATH."assets/img/oauth-banner.svg" ). ')"></div>
                     <div class="wtst-oauth-banner-container"><div>' .  esc_html__("Connect your Stripe account to start testing", "payment-gateway-stripe-and-woocommerce-integration") .'</div>
                         <div><a target="_blank" class="button-primary wtst-oauth" href="' . esc_url($install_link) .'">' . esc_html__("Connect to Stripe", "payment-gateway-stripe-and-woocommerce-integration") . '</a></div>
@@ -388,8 +402,8 @@ class EH_Stripe_General_Settings extends EH_Stripe_Payment {
             if(true === Eh_Stripe_Admin_Handler::wtst_oauth_compatible() &&                 
                 !empty(EH_Stripe_Token_Handler::wtst_get_site_option('get', array('name' => 'wt_stripe_access_token_live')))) {
                 $wt_stripe_account_id = EH_Stripe_Token_Handler::wtst_get_site_option('get', array('name' => 'wt_stripe_account_id_live'));
-
-                $html = '<tr valign="top">
+                $html = $this->get_oauth_connection_warning_html($settings);
+                $html .= '<tr valign="top">
                     <th scope="row" class="titledesc">
                         <label for="woocommerce_eh_stripe_live_oauth">Stripe account </label>
                     </th>            
@@ -402,7 +416,7 @@ class EH_Stripe_General_Settings extends EH_Stripe_Payment {
             else{
                 $install_link = Eh_Stripe_Admin_Handler::wt_get_install_link($mode);
 
-                 $html = '<tr valign="top"><td colspan="2" class="forminp forminp-' . sanitize_text_field($value['type']) . '"><div class="wtst-oauth-banner">
+                $html = '<tr valign="top"><td colspan="2" class="forminp forminp-' . sanitize_text_field($value['type']) . '"><div class="wtst-oauth-banner">
                     <div class="wtst-oauth-banner-img" style="background-image: url(' . esc_url(EH_STRIPE_MAIN_URL_PATH."assets/img/oauth-banner.svg" ). ')"></div>
                     <div class="wtst-oauth-banner-container"><div>' .  esc_html__("You haven’t connected your Stripe account yet. Connect now to start receiving payments", "payment-gateway-stripe-and-woocommerce-integration") .'</div>
                         <div><a target="_blank" class="button-primary wtst-oauth" href="' . esc_url($install_link) .'">' . esc_html__("Connect to Stripe", "payment-gateway-stripe-and-woocommerce-integration") . '</a></div>
@@ -448,7 +462,67 @@ class EH_Stripe_General_Settings extends EH_Stripe_Payment {
 
         return $html;
     }
+    /**
+     * 
+     * Function to generate payment mode switch html
+     * @since 5.0.7
+     */
+    public function generate_test_mode_switch_button_html(){
 
+        $current_mode = get_option("woocommerce_eh_stripe_test_mode_type", 'test');
+        $test_mode_text = $current_mode === 'sandbox' ?  __('Sandbox', 'payment-gateway-stripe-and-woocommerce-integration') : __('Test', 'payment-gateway-stripe-and-woocommerce-integration'); 
+        $html = sprintf(
+            '<tr>
+                <th scope="row" style="width:100px;" >%1$s : %2$s</th>
+                <td>
+                    
+                    <input type="hidden" name="woocommerce_eh_stripe_test_mode_type_hidden" id="woocommerce_eh_stripe_test_mode_type_hidden" value="%3$s" />
+                    <p><em>Stripe supports two test modes: “Test” and “Sandbox”. Choose the appropriate mode based on your integration setup.</em></p>
 
+                    <span>
+                        <a href="#" id="th_test_mode_type"  style="display:%4$s;">%5$s</a>
+                        <a href="#" id="th_sandbox_mode_type"  style="display:%6$s;">%7$s</a>
+                    </span>
+                </td>
+            </tr>',
+            esc_html__('Test Mode', 'payment-gateway-stripe-and-woocommerce-integration'),
+            esc_html($test_mode_text),
+            esc_attr($current_mode), // for hidden input
+            esc_attr($current_mode === 'test' ? 'inline-block' : 'none'),
+            esc_html__('Switch to Sandbox Mode', 'payment-gateway-stripe-and-woocommerce-integration'),
+            esc_attr($current_mode === 'sandbox' ? 'inline-block' : 'none'),
+            esc_html__('Switch to Test Mode', 'payment-gateway-stripe-and-woocommerce-integration')
+        );
+
+        return $html;
+    }
+
+    public function get_oauth_connection_warning_html( $stripe_settings ) {
+
+        if ( empty( $stripe_settings ) ) {
+            return '';
+        }
+
+        $app_author = get_option( 'eh_stripe_connected_app_author', '' );
+
+        // Show warning unless explicitly connected via ThemeHigh
+        if ( $app_author !== 'themehigh' ) {
+            return '<tr valign="top">
+                <td colspan="2" class="forminp">
+                    <div class="wtst-oauth-warning" style="background:#f8d7da;border-left:4px solid #dc3545;padding:12px 15px;border-radius:4px;display:flex;align-items:center;">
+                        <span style="color:#dc3545;font-size:18px;margin-right:10px;">&#9888;</span>
+                        <span style="color:#721c24;font-size:14px;line-height:1.5;font-weight:500;">
+                            ' . esc_html__(
+                                'If you are currently connected through WebToffee, please disconnect and reconnect using ThemeHigh. The WebToffee connection will be discontinued soon.',
+                                'payment-gateway-stripe-and-woocommerce-integration'
+                            ) . '
+                        </span>
+                    </div>
+                </td>
+            </tr>';
+        }
+
+        return '';
+    }
 
 }

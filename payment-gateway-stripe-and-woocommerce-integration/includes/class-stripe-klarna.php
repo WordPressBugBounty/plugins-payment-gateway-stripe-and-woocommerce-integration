@@ -67,7 +67,7 @@ class EH_Klarna_Gateway extends WC_Payment_Gateway {
             'eh_klarna_desc' => array(
                 'type' => 'title',
                 /* translators: %1$s: Opening HTML div and list tags, %2$s: Bold tag opening, %3$s: Bold tag closing, %4$s: Bold tag opening, %5$s: Bold tag closing, %6$s: Closing HTML list and div tags, %7$s: Documentation link opening, %8$s: Documentation link closing */
-                'description' => sprintf(__('%1$sSupported currencies: %2$sEUR, USD, GBP, DKK, SEK, NOK%3$s %4$sStripe accounts in the following countries can accept the payment: %5$sAustria, Belgium, Denmark, Estonia, Finland, France, Germany, Greece, Ireland, Italy, Latvia, Lithuania, Netherlands, Norway, Slovakia, Slovenia, Spain, Sweden, United Kingdom, United States %6$s %7$s Read documentation %8$s', 'payment-gateway-stripe-and-woocommerce-integration'), '<div class="wt_info_div"><ul><li>', '<b>','</b>', '</li><li>', '<b>', '</b></li></ul></div>', '<p><a target="_blank" href="https://www.webtoffee.com/woocommerce-stripe-payment-gateway-plugin-user-guide/#klarna">', '</a></p>', ''),
+                'description' => sprintf(__('%1$sSupported currencies: %2$sEUR, USD, GBP, DKK, SEK, NOK%3$s %4$sStripe accounts in the following countries can accept the payment: %5$sAustria, Belgium, Denmark, Estonia, Finland, France, Germany, Greece, Ireland, Italy, Latvia, Lithuania, Netherlands, Norway, Slovakia, Slovenia, Spain, Sweden, United Kingdom, United States %6$s %7$s Read documentation %8$s', 'payment-gateway-stripe-and-woocommerce-integration'), '<div class="wt_info_div"><ul><li>', '<b>','</b>', '</li><li>', '<b>', '</b></li></ul></div>', '<p><a target="_blank" href="https://www.themehigh.com/docs/set-up-klarna-payment-method-for-a-woocommerce-store/">', '</a></p>', ''),
             ),
             'eh_stripe_klarna_form_title'   => array(
                 'type'        => 'title',
@@ -106,7 +106,7 @@ class EH_Klarna_Gateway extends WC_Payment_Gateway {
             'eh_klarna_webhook_desc' => array(
                 'type' => 'title',
                 /* translators: %1$s: Opening HTML div and paragraph tags, %2$s: Documentation link opening, %3$s: Documentation link closing, %4$s: Closing HTML paragraph and div tags */
-                'description' => sprintf(__('%1$sTo accept payments via Klarna payment method, you must configure the webhook endpoint and subscribe to relevant events. %2$sClick here%3$s to know more%4$s', 'payment-gateway-stripe-and-woocommerce-integration'), '<div class="wt_info_div"><p>', '<a target="_blank" href="https://www.webtoffee.com/setting-up-webhooks-and-supported-webhooks/">', '</a>', '</p></div>'),
+                'description' => sprintf(__('%1$sTo accept payments via Klarna payment method, you must configure the webhook endpoint and subscribe to relevant events. %2$sClick here%3$s to know more%4$s', 'payment-gateway-stripe-and-woocommerce-integration'), '<div class="wt_info_div"><p>', '<a target="_blank" href="https://www.themehigh.com/docs/configuring-webhook-endpoints-to-receive-woocommerce-order-status-updates/">', '</a>', '</p></div>'),
             ),            
         );   
     }
