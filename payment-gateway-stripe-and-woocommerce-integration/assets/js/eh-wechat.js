@@ -3,7 +3,8 @@ jQuery( function( $ ) {
     
 
 try {
-    var stripe = Stripe( eh_wechat_val.key, {apiVersion: eh_wechat_val.version} );
+    //var stripe = Stripe( eh_wechat_val.key, {apiVersion: eh_wechat_val.version} );
+     var stripe = Stripe(eh_wechat_val.key);
 } catch( error ) {
     console.log( error );
     return;
@@ -168,3 +169,66 @@ try {
 
     
 } );
+
+/*
+---------------------------------------
+WeChat QR Payment Status Polling
+---------------------------------------
+*/
+
+jQuery(function ($) {
+    
+    if (
+        typeof eh_wechat_poll !== "undefined" &&
+        eh_wechat_poll.order_id &&
+        $('#eh-wechat-qr').length
+    ) {
+
+        let attempts = 0;
+        let maxAttempts = 60;
+        let pollInterval = 3000;
+        var url = eh_wechat_poll.wc_ajax_url.replace(
+                '%%endpoint%%',
+                'wt_check_wechat_order_status'
+            );
+        function pollWechatPaymentStatus() {
+
+            attempts++;
+
+            if (attempts > maxAttempts) {
+                window.location.href = eh_wechat_poll.redirect;
+                return;
+            }
+            $.post(
+                url,
+                {
+                   // action: "wt_check_wechat_order_status",
+                    order_id: eh_wechat_poll.order_id,
+                    nonce: eh_wechat_poll.nonce
+                },
+                function (res) {
+
+                    if (res.success) {
+
+                        let status = res.data.status;
+
+                        if (
+                            status === "processing" ||
+                            status === "completed" ||
+                            status === "on-hold"
+                        ) {
+                            window.location.href = eh_wechat_poll.redirect;
+                            return;
+                        }
+                    }
+
+                    setTimeout(pollWechatPaymentStatus, pollInterval);
+
+                }
+            );
+        }
+
+        setTimeout(pollWechatPaymentStatus, pollInterval);
+    }
+
+});

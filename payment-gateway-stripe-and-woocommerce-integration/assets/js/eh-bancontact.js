@@ -3,7 +3,8 @@ jQuery( function( $ ) {
     
 
 try {
-    var stripe = Stripe( eh_bancontact_val.key, {apiVersion: eh_bancontact_val.version} );
+    //var stripe = Stripe( eh_bancontact_val.key, {apiVersion: eh_bancontact_val.version} );
+    var stripe = Stripe( eh_bancontact_val.key ); 
 } catch( error ) {
     console.log( error );
     return;

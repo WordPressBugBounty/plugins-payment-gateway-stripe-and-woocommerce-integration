@@ -38,8 +38,10 @@ class EH_Stripe_Overview
             $refund_params = array(
                 'amount' => $obj->get_stripe_amount($amount, $currency),
                 'reason' => 'requested_by_customer',
+                'charge'   => $charge_id,
                 'metadata' => array(
                     'order_id' => $wc_order->get_order_number(),
+                    'refund_initiated_from' => 'woocommerce',
                     'Total Tax' => $wc_order->get_total_tax(),
                     'Total Shipping' => (version_compare(WC()->version, '2.7.0', '<')) ? $wc_order->get_total_shipping() : $wc_order->get_shipping_total(),
                     'Customer IP' => $client['IP'],
@@ -50,8 +52,9 @@ class EH_Stripe_Overview
             );
 
             try {
-                $charge_response = \Stripe\Charge::retrieve($charge_id);
-                $refund_response = $charge_response->refunds->create($refund_params);
+                //$charge_response = \Stripe\Charge::retrieve($charge_id);
+                //$refund_response = $charge_response->refunds->create($refund_params);
+                $refund_response = \Stripe\Refund::create($refund_params);
                 if ($refund_response) {
 
                     //phpcs:ignore WordPress.DateTime.RestrictedFunctions.date_date
@@ -151,7 +154,30 @@ class EH_Stripe_Overview
             else{
                 $intent = \Stripe\PaymentIntent::retrieve($intent_id);
                 $intent->capture();
-                $charge_response =  end($intent->charges->data);
+                //$charge_response =  end($intent->charges->data);
+                $intent = \Stripe\PaymentIntent::retrieve(array(
+                    'id'     => $intent_id,
+                    'expand' => array('latest_charge.balance_transaction'),
+                ));
+
+                if (!empty($intent->latest_charge)) {
+                    if (is_object($intent->latest_charge) && isset($intent->latest_charge->id)) {
+                        $charge_response = $intent->latest_charge;
+                    } else {
+                        $charge_response = \Stripe\Charge::retrieve(array(
+                            'id'     => $intent->latest_charge,
+                            'expand' => array('balance_transaction'),
+                        ));
+                    }
+                } elseif (isset($intent->charges->data) && !empty($intent->charges->data)) {
+                    $charge_response = end($intent->charges->data);
+                } else {
+                    $charge_response = null;
+                }
+            }
+
+            if (empty($charge_response)) {
+                throw new Exception(__('Charge response not found after capture.', 'payment-gateway-stripe-and-woocommerce-integration'));
             }
 
             $data = $eh_stripe_this->make_charge_params($charge_response, $order_id);
@@ -173,7 +199,7 @@ class EH_Stripe_Overview
                 'phone' => get_user_meta($user->ID, 'billing_phone', true),
             );
             $oops = $error->getJsonBody();
-            $wc_order->add_order_note(esc_html($capture_response->status) . ' ' . esc_html($error->getMessage()));
+            $wc_order->add_order_note(esc_html($error->getMessage()));
             EH_Stripe_Log::log_update('dead', array_merge($user_detail, $oops), get_bloginfo('blogname') . ' - Charge - Order #' . $wc_order->get_order_number());
             die(esc_html($error->getMessage()));
         }
@@ -214,8 +240,10 @@ class EH_Stripe_Overview
             $refund_params = array(
                 'amount' => $obj->get_stripe_amount($div, $currency),
                 'reason' => 'requested_by_customer',
+                'charge'   => $charge_id,
                 'metadata' => array(
                     'order_id' => $wc_order->get_order_number(),
+                    'refund_initiated_from' => 'woocommerce',
                     'Total Tax' => $wc_order->get_total_tax(),
                     'Total Shipping' => (version_compare(WC()->version, '2.7.0', '<')) ? $wc_order->get_total_shipping() : $wc_order->get_shipping_total(),
                     'Customer IP' => $client['IP'],
@@ -226,8 +254,9 @@ class EH_Stripe_Overview
             );
            
             try {
-                $charge_response = \Stripe\Charge::retrieve($charge_id);
-                $refund_response = $charge_response->refunds->create($refund_params);
+                //$charge_response = \Stripe\Charge::retrieve($charge_id);
+                //$refund_response = $charge_response->refunds->create($refund_params);
+                $refund_response = \Stripe\Refund::create($refund_params);
                 if ($refund_response) {
 
                     //phpcs:ignore WordPress.DateTime.RestrictedFunctions.date_date

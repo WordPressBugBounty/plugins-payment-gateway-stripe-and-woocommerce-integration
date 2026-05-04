@@ -313,7 +313,7 @@ class Eh_Stripe_Admin_Handler  {
                                         // Use local SweetAlert2 instead of remote CDN
                                         wp_enqueue_style( 'sweetalert2', EH_STRIPE_MAIN_URL_PATH . 'assets/css/sweetalert2.css', array(), EH_STRIPE_VERSION );
                                         wp_enqueue_script( 'sweetalert2', EH_STRIPE_MAIN_URL_PATH . 'assets/js/sweetalert2.min.js', array( 'jquery' ), EH_STRIPE_VERSION, true );                                        
-                                        wc_enqueue_js("
+                                        $this->add_inline_js("
                                             $('#woocommerce_eh_stripe_pay_eh_stripe_mode').closest('tr').hide();
                                             $('.description').css({'font-style':'normal'});
                                             $('.description').css({'font-style':'normal'});
@@ -408,7 +408,7 @@ class Eh_Stripe_Admin_Handler  {
                                             
                                             $obj->admin_options();
                                             
-                                            wc_enqueue_js("
+                                            $this->add_inline_js("
                                                 $('.description').css({'font-style':'normal'});
                                                 $('.eh-css-class').css({'border-top': 'dashed 1px #ccc','padding-top': '5px','width': '95%'}); 
                                                 jQuery( '#woocommerce_eh_stripe_pay_eh_stripe_statement_descriptor, #woocommerce_eh_stripe_pay_eh_stripe_live_secret_key ' ).attr('maxlength','22');
@@ -446,7 +446,7 @@ class Eh_Stripe_Admin_Handler  {
                                             
                                             $obj->admin_options();
                                             
-                                            wc_enqueue_js("
+                                            $this->add_inline_js("
                                                 $('.description').css({'font-style':'normal'});
                                                 $('.eh-desp-class').css({'font-weight': '400','font-size': '12px','width':'100%','margin-top': '10px'});
                                                 $('.eh-css-class').css({'border-top': 'dashed 1px #ccc','padding-top': '5px','width': '95%'}); 
@@ -485,7 +485,7 @@ class Eh_Stripe_Admin_Handler  {
                                             
                                             $obj->admin_options();
                                             
-                                            wc_enqueue_js("
+                                            $this->add_inline_js("
                                                 $('.description').css({'font-style':'normal'});
                                                 $('.eh-desp-class').css({'font-style': 'italic','font-weight': '400','font-size': '12px','width':'100%','margin-top': '10px'});
                                                 $('.eh-css-class').css({'border-top': 'dashed 1px #ccc','padding-top': '5px','width': '95%'}); 
@@ -528,7 +528,7 @@ class Eh_Stripe_Admin_Handler  {
                                             
                                             $obj->admin_options();
 
-                                            wc_enqueue_js("
+                                            $this->add_inline_js("
                                                 $('.description').css({'font-style':'normal'});
                                                 $('.eh-desp-class').css({'font-style': 'italic','font-weight': '400','font-size': '12px','width':'100%','margin-top': '10px'});
                                                 $('.eh-css-class').css({'border-top': 'dashed 1px #ccc','padding-top': '5px','width': '95%'}); 
@@ -567,7 +567,7 @@ class Eh_Stripe_Admin_Handler  {
                                             $obj = new Eh_Stripe_Checkout();
                                             
                                             $obj->admin_options();
-                                            wc_enqueue_js("
+                                            $this->add_inline_js("
                                             $('.description').css({'font-style':'normal'});
                                             $('.eh-desp-class').css({'font-style': 'italic','font-weight': '400','font-size': '12px','width':'100%','margin-top': '10px'});
                                             $('.eh-css-class').css({'border-top': 'dashed 1px #ccc','padding-top': '5px','width': '95%'}); 
@@ -611,7 +611,7 @@ class Eh_Stripe_Admin_Handler  {
                                         
                                         $obj->admin_options();
 
-                                        wc_enqueue_js("
+                                        $this->add_inline_js("
                                             $('.description').css({'font-style':'normal'});
                                             $('.eh-desp-class').css({'font-style': 'italic','font-weight': '400','font-size': '12px','width':'100%','margin-top': '10px'});
                                             $('.eh-css-class').css({'border-top': 'dashed 1px #ccc','padding-top': '5px','width': '95%'}); 
@@ -652,7 +652,7 @@ class Eh_Stripe_Admin_Handler  {
                                         
                                         $obj->admin_options();
 
-                                        wc_enqueue_js("
+                                        $this->add_inline_js("
                                             $('.description').css({'font-style':'normal'});
                                             $('.eh-desp-class').css({'font-style': 'italic','font-weight': '400','font-size': '12px','width':'100%','margin-top': '10px'});
                                             $('.eh-css-class').css({'border-top': 'dashed 1px #ccc','padding-top': '5px','width': '95%'}); 
@@ -725,7 +725,7 @@ class Eh_Stripe_Admin_Handler  {
                                         
                                         $obj->admin_options();
 
-                                        wc_enqueue_js("
+                                        $this->add_inline_js("
                                             $('.description').css({'font-style':'normal'});
                                             $('.eh-desp-class').css({'font-style': 'italic','font-weight': '400','font-size': '12px','width':'100%','margin-top': '10px'});
                                             $('.eh-css-class').css({'border-top': 'dashed 1px #ccc','padding-top': '5px','width': '95%'}); 
@@ -765,7 +765,7 @@ class Eh_Stripe_Admin_Handler  {
                                         
                                         $obj->admin_options();
 
-                                        wc_enqueue_js("
+                                        $this->add_inline_js("
                                             $('.description').css({'font-style':'normal'});
                                             $('.eh-desp-class').css({'font-style': 'italic','font-weight': '400','font-size': '12px','width':'100%','margin-top': '10px'});
                                             $('.eh-css-class').css({'border-top': 'dashed 1px #ccc','padding-top': '5px','width': '95%'}); 
@@ -806,7 +806,7 @@ class Eh_Stripe_Admin_Handler  {
                                     
                                     $obj->admin_options();
 
-                                    wc_enqueue_js("
+                                    $this->add_inline_js("
                                         $('.description').css({'font-style':'normal'});
                                         $('.eh-desp-class').css({'font-style': 'italic','font-weight': '400','font-size': '12px','width':'100%','margin-top': '10px'});
                                         $('.eh-css-class').css({'border-top': 'dashed 1px #ccc','padding-top': '5px','width': '95%'}); 
@@ -845,7 +845,7 @@ class Eh_Stripe_Admin_Handler  {
                                     
                                     $obj->admin_options();
 
-                                    wc_enqueue_js("
+                                    $this->add_inline_js("
                                         $('.description').css({'font-style':'normal'});
                                         $('.eh-desp-class').css({'font-style': 'italic','font-weight': '400','font-size': '12px','width':'100%','margin-top': '10px'});
                                         $('.eh-css-class').css({'border-top': 'dashed 1px #ccc','padding-top': '5px','width': '95%'}); 
@@ -885,7 +885,7 @@ class Eh_Stripe_Admin_Handler  {
                                     
                                     $obj->admin_options();
 
-                                    wc_enqueue_js("
+                                    $this->add_inline_js("
                                         $('.description').css({'font-style':'normal'});
                                         $('.eh-desp-class').css({'font-style': 'italic','font-weight': '400','font-size': '12px','width':'100%','margin-top': '10px'});
                                         $('.eh-css-class').css({'border-top': 'dashed 1px #ccc','padding-top': '5px','width': '95%'}); 
@@ -925,7 +925,7 @@ class Eh_Stripe_Admin_Handler  {
                                     
                                     $obj->admin_options();
 
-                                    wc_enqueue_js("
+                                    $this->add_inline_js("
                                         $('.description').css({'font-style':'normal'});
                                         $('.eh-desp-class').css({'font-style': 'italic','font-weight': '400','font-size': '12px','width':'100%','margin-top': '10px'});
                                         $('.eh-css-class').css({'border-top': 'dashed 1px #ccc','padding-top': '5px','width': '95%'}); 
@@ -966,7 +966,7 @@ class Eh_Stripe_Admin_Handler  {
                                     
                                     $obj->admin_options();
 
-                                    wc_enqueue_js("
+                                    $this->add_inline_js("
                                         $('.description').css({'font-style':'normal'});
                                         $('.eh-desp-class').css({'font-style': 'italic','font-weight': '400','font-size': '12px','width':'100%','margin-top': '10px'});
                                         $('.eh-css-class').css({'border-top': 'dashed 1px #ccc','padding-top': '5px','width': '95%'}); 
@@ -1006,7 +1006,7 @@ class Eh_Stripe_Admin_Handler  {
                                     
                                     $obj->admin_options();
 
-                                    wc_enqueue_js("
+                                    $this->add_inline_js("
                                         $('.description').css({'font-style':'normal'});
                                         $('.eh-desp-class').css({'font-style': 'italic','font-weight': '400','font-size': '12px','width':'100%','margin-top': '10px'});
                                         $('.eh-css-class').css({'border-top': 'dashed 1px #ccc','padding-top': '5px','width': '95%'}); 
@@ -1046,7 +1046,7 @@ class Eh_Stripe_Admin_Handler  {
                                     
                                     $obj->admin_options();
 
-                                    wc_enqueue_js("
+                                    $this->add_inline_js("
                                         $('.description').css({'font-style':'normal'});
                                         $('.eh-desp-class').css({'font-style': 'italic','font-weight': '400','font-size': '12px','width':'100%','margin-top': '10px'});
                                         $('.eh-css-class').css({'border-top': 'dashed 1px #ccc','padding-top': '5px','width': '95%'}); 
@@ -1086,7 +1086,7 @@ class Eh_Stripe_Admin_Handler  {
                                     
                                     $obj->admin_options();
 
-                                    wc_enqueue_js("
+                                    $this->add_inline_js("
                                         $('.description').css({'font-style':'normal'});
                                         $('.eh-desp-class').css({'font-style': 'italic','font-weight': '400','font-size': '12px','width':'100%','margin-top': '10px'});
                                         $('.eh-css-class').css({'border-top': 'dashed 1px #ccc','padding-top': '5px','width': '95%'}); 
@@ -1126,7 +1126,7 @@ class Eh_Stripe_Admin_Handler  {
                                     
                                     $obj->admin_options();
 
-                                    wc_enqueue_js("
+                                    $this->add_inline_js("
                                         $('.description').css({'font-style':'normal'});
                                         $('.eh-desp-class').css({'font-style': 'italic','font-weight': '400','font-size': '12px','width':'100%','margin-top': '10px'});
                                         $('.eh-css-class').css({'border-top': 'dashed 1px #ccc','padding-top': '5px','width': '95%'}); 
@@ -1166,7 +1166,7 @@ class Eh_Stripe_Admin_Handler  {
                                     
                                     $obj->admin_options();
 
-                                    wc_enqueue_js("
+                                    $this->add_inline_js("
                                         $('.description').css({'font-style':'normal'});
                                         $('.eh-desp-class').css({'font-style': 'italic','font-weight': '400','font-size': '12px','width':'100%','margin-top': '10px'});
                                         $('.eh-css-class').css({'border-top': 'dashed 1px #ccc','padding-top': '5px','width': '95%'}); 
@@ -1184,7 +1184,7 @@ class Eh_Stripe_Admin_Handler  {
                                     
                                 break; 
                                
-                            /*case 'multibanco' :
+                            case 'multibanco' :
                                 $this->eh_local_gateways();
                                 ?><form method="post" class="eh_mainform" action="" enctype="multipart/form-data">
                                     <div class="icon32 icon32-woocommerce-settings" id="icon-woocommerce"><br /></div>
@@ -1202,7 +1202,7 @@ class Eh_Stripe_Admin_Handler  {
                                     
                                     $obj->admin_options();
 
-                                    wc_enqueue_js("
+                                    $this->add_inline_js("
                                         $('.description').css({'font-style':'normal'});
                                         $('.eh-desp-class').css({'font-style': 'italic','font-weight': '400','font-size': '12px','width':'100%','margin-top': '10px'});
                                         $('.eh-css-class').css({'border-top': 'dashed 1px #ccc','padding-top': '5px','width': '95%'}); 
@@ -1218,7 +1218,7 @@ class Eh_Stripe_Admin_Handler  {
                                     </p>
                                 </form> <?php
                                     
-                                break; */
+                                break;
 
                             case 'affirm' :
                                     $this->eh_local_gateways();
@@ -1242,7 +1242,7 @@ class Eh_Stripe_Admin_Handler  {
                                     
                                     $obj->admin_options();
 
-                                    wc_enqueue_js("
+                                    $this->add_inline_js("
                                         $('.description').css({'font-style':'normal'});
                                         $('.eh-desp-class').css({'font-style': 'italic','font-weight': '400','font-size': '12px','width':'100%','margin-top': '10px'});
                                         $('.eh-css-class').css({'border-top': 'dashed 1px #ccc','padding-top': '5px','width': '95%'}); 
@@ -1317,7 +1317,7 @@ class Eh_Stripe_Admin_Handler  {
                 <li id="eh-li-local"><a <?php ($clicked_tab == 'boleto') ? print('style="color:#9c9696"') : '' ?>   id="eh-boleto-link" class="nav-link"  href="?page=wt_stripe_menu&tab=boleto"><?php esc_html_e('Boleto', 'payment-gateway-stripe-and-woocommerce-integration') ?></a>|</li>
                 <li id="eh-li-local"><a <?php ($clicked_tab == 'oxxo') ? print('style="color:#9c9696"') : '' ?>   id="eh-oxxo-link" class="nav-link"  href="?page=wt_stripe_menu&tab=oxxo"><?php esc_html_e('OXXO', 'payment-gateway-stripe-and-woocommerce-integration') ?></a>|</li>
                 <li id="eh-li-local"><a <?php ($clicked_tab == 'grabpay') ? print('style="color:#9c9696"') : '' ?>   id="eh-grabpay-link" class="nav-link"  href="?page=wt_stripe_menu&tab=grabpay"><?php esc_html_e('GrabPay', 'payment-gateway-stripe-and-woocommerce-integration') ?></a>|</li>
-                <!-- <li id="eh-li-local"><a <?php ($clicked_tab == 'multibanco') ? print('style="color:#9c9696"') : '' ?>   id="eh-multibanco-link" class="nav-link"  href="?page=wt_stripe_menu&tab=multibanco"><?php //_e('Multibanco', 'payment-gateway-stripe-and-woocommerce-integration') ?></a>|</li>   -->      
+                <li id="eh-li-local"><a <?php ($clicked_tab == 'multibanco') ? print('style="color:#9c9696"') : '' ?>   id="eh-multibanco-link" class="nav-link"  href="?page=wt_stripe_menu&tab=multibanco"><?php esc_html_e('Multibanco', 'payment-gateway-stripe-and-woocommerce-integration') ?></a>|</li>     
                 <li id="eh-li-local"><a <?php ('affirm' == $clicked_tab) ? print('style="color:#9c9696"') : '' ?>   id="eh-affirm-link" class="nav-link"  href="?page=wt_stripe_menu&tab=affirm "><?php esc_html_e('Affirm', 'payment-gateway-stripe-and-woocommerce-integration') ?></a></li>        
             </ul><?php
 
@@ -1598,6 +1598,25 @@ class Eh_Stripe_Admin_Handler  {
         wp_safe_redirect( esc_url_raw( admin_url( 'admin.php?page=wt_stripe_menu' ) ) );
 		exit();
 		
+    }
+
+    /**
+     * @since 5.0.7
+     * inline JS similar to wc_enqueue_js
+     * woocommerce wc_enque_js deprecated
+     */
+    private function add_inline_js( $script ) {
+
+        wp_add_inline_script(
+            'eh_stripe_oauth',
+            "jQuery(function($) {
+
+                {$script}
+
+            });",
+            'after'
+        );
+
     }
     
 }

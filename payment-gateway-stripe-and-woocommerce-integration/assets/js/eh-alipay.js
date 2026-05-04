@@ -3,7 +3,8 @@ jQuery( function( $ ) {
     
 
 try {
-    var stripe = Stripe( eh_alipay_val.key, {apiVersion: eh_alipay_val.version} );
+    //var stripe = Stripe( eh_alipay_val.key, {apiVersion: eh_alipay_val.version} );
+     var stripe = Stripe(eh_alipay_val.key);
 } catch( error ) {
     console.log( error );
     return;
@@ -108,7 +109,8 @@ try {
 
                                 $form.append( '<input type="hidden" class="eh_alipay_token" name="eh_alipay_token" value="' + result.paymentMethod.id + '"/>' );
 
-                                $form.submit();
+                                //$form.submit();
+                                $form.trigger('submit');
                             }
                     });
                     return false;

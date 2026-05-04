@@ -229,7 +229,8 @@ class Eh_Bacs extends WC_Payment_Gateway {
 
         if(is_checkout()){ 
             //phpcs:ignore WordPress.WP.EnqueuedResourceParameters.MissingVersion, WordPress.WP.EnqueuedResourceParameters.NotInFooter            
-             wp_register_script('stripe_v3_js', 'https://js.stripe.com/v3/');
+            //wp_register_script('stripe_v3_js', 'https://js.stripe.com/v3/');
+            wp_register_script( 'stripe_v3_js', 'https://js.stripe.com/basil/stripe.js');
             wp_enqueue_script('eh_checkout_script', EH_STRIPE_MAIN_URL_PATH . 'assets/js/eh-checkout.js',array('stripe_v3_js','jquery'),EH_STRIPE_VERSION ,true);
             
             $stripe_settings = get_option("woocommerce_eh_stripe_pay_settings");
@@ -251,7 +252,7 @@ class Eh_Bacs extends WC_Payment_Gateway {
                 'wp_ajaxurl'                                    => admin_url("admin-ajax.php"),
                 'wc_ajaxurl'                                    => WC_AJAX::get_endpoint( '%%change_end%%' ),
             );
-            $eh_bacs_params['version'] = EH_Stripe_Token_Handler::wt_get_api_version();  
+            //$eh_bacs_params['version'] = EH_Stripe_Token_Handler::wt_get_api_version();  
             wp_localize_script( 'eh_checkout_script', 'eh_stripe_checkout_params', $eh_bacs_params);
         }
     }
@@ -299,8 +300,25 @@ class Eh_Bacs extends WC_Payment_Gateway {
             ],
              'metadata' => ['order_id' => $order_id],
 
-          'success_url'=> add_query_arg(array('session_id' => '{CHECKOUT_SESSION_ID}', 'order_id' => $order_id, '_wpnonce' => wp_create_nonce('eh_checkout_nonce')), WC()->api_request_url('EH_Bacs')),
-            'cancel_url' => add_query_arg(array('action' => 'cancel_order', 'order_id' => $order_id, '_wpnonce' => wp_create_nonce('eh_checkout_nonce')), WC()->api_request_url('EH_Bacs')),
+          'success_url'=> add_query_arg(
+                array(
+                    'session_id' => '{CHECKOUT_SESSION_ID}', 
+                    'order_id' => $order_id, 
+                    'key'        => $order->get_order_key(),
+                    '_wpnonce' => wp_create_nonce('eh_checkout_nonce')
+                ), 
+                WC()->api_request_url('EH_Bacs')
+            ),
+            'cancel_url' => add_query_arg(
+                array(
+                    'action' => 'cancel_order', 
+                    'order_id' => $order_id, 
+                    'key'        => $order->get_order_key(),
+                    '_wpnonce' => wp_create_nonce('eh_checkout_nonce'
+                    )
+                ), 
+                WC()->api_request_url('EH_Bacs')
+            ),
         );
 
         $session_data['line_items'][] = array(
@@ -376,12 +394,22 @@ class Eh_Bacs extends WC_Payment_Gateway {
             die(esc_html__('Access Denied', 'payment-gateway-stripe-and-woocommerce-integration'));
         }
 
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+        $order_id  = isset($_GET['order_id']) ? absint($_GET['order_id']) : 0;
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+        $order_key = isset($_GET['key']) ? sanitize_text_field(wp_unslash($_GET['key'])) : '';
+        $order     = $order_id ? wc_get_order($order_id) : null;
+
+        // Order key validation — proves this request is for THIS order
+        if ( ! $order || ! hash_equals($order->get_order_key(), $order_key) ) {
+            wc_add_notice(__('Invalid order.', 'payment-gateway-stripe-and-woocommerce-integration'), 'error');
+            wp_safe_redirect(wc_get_checkout_url());
+            exit;
+        }
+
         //phpcs:ignore WordPress.Security.NonceVerification.Recommended 
         if (isset($_REQUEST['action']) && 'cancel_order' == $_REQUEST['action']) { 
-            //phpcs:ignore WordPress.Security.NonceVerification.Recommended 
-            $order_id = isset($_GET['order_id']) ? intval( sanitize_text_field(wp_unslash($_GET['order_id'])) ) : 0 ;
-            $order = wc_get_order($order_id);
-
+            
             wc_add_notice(__('You have cancelled Bacs Direct Debit Session. Please try to process your order again.', 'payment-gateway-stripe-and-woocommerce-integration'), 'notice');
             wp_redirect(wc_get_checkout_url());
             exit;        
@@ -389,21 +417,42 @@ class Eh_Bacs extends WC_Payment_Gateway {
         else{ 
             //phpcs:ignore WordPress.Security.NonceVerification.Recommended 
             $session_id = isset($_GET['session_id']) ? sanitize_text_field(wp_unslash($_GET['session_id'])) : '';
-            //phpcs:ignore WordPress.Security.NonceVerification.Recommended 
-            $order_id = isset($_GET['order_id']) ? intval( sanitize_text_field(wp_unslash($_GET['order_id'])) ) : 0;
-            $order = wc_get_order($order_id);
+            if ( empty($session_id) ) {
+                wc_add_notice(__('Invalid session.', 'payment-gateway-stripe-and-woocommerce-integration'), 'error');
+                wp_safe_redirect(wc_get_checkout_url());
+                exit;
+            }
+
+            //$session = \Stripe\Checkout\Session::retrieve($session_id);
+            //$payment_intent_id = $session->payment_intent;
+
+            $session = \Stripe\Checkout\Session::retrieve([
+                'id'     => $session_id,
+                'expand' => ['payment_intent.latest_charge']
+            ]);
+
+            $session_order_id = $session->metadata->order_id ? $session->metadata->order_id : 0;
+            if ( (int) $session_order_id !== $order_id ) {
+                EH_Stripe_Log::log_update('dead', array(
+                    'order_id'         => $order_id,
+                    'session_order_id' => $session_order_id,
+                    'session_id'       => $session_id,
+                ), get_bloginfo('blogname') . ' - Bacs: session/order mismatch - Order #' . $order_id);
+
+                wc_add_notice(__('Unable to process this payment.', 'payment-gateway-stripe-and-woocommerce-integration'), 'error');
+                wp_safe_redirect(wc_get_checkout_url());
+                exit;
+            }
 
             $obj = new EH_Stripe_Payment();
-           
             //phpcs:ignore WordPress.DateTime.RestrictedFunctions.date_date
             $order_time = date('Y-m-d H:i:s', time() + get_option('gmt_offset') * 3600);
-            
-            $session = \Stripe\Checkout\Session::retrieve($session_id);
-            $payment_intent_id = $session->payment_intent;
+            $payment_intent = $session->payment_intent;
+            $payment_intent_id = $payment_intent->id;
             
             EH_Helper_Class::wt_stripe_order_db_operations($order_id, $order, 'add', '_eh_stripe_payment_intent', $payment_intent_id, false);
 
-            $payment_intent = \Stripe\PaymentIntent::retrieve($payment_intent_id);
+            //$payment_intent = \Stripe\PaymentIntent::retrieve($payment_intent_id);
 
             if (isset($payment_intent->status) && 'processing' === $payment_intent->status) {
                $order->update_status('on-hold');
@@ -419,16 +468,25 @@ class Eh_Bacs extends WC_Payment_Gateway {
 
             }
             else{
-                $charge_details = $payment_intent->charges['data'];
+                //$charge_details = $payment_intent->charges['data'];
             
-                foreach($charge_details as $charge){
+                // foreach($charge_details as $charge){
 
-                    $charge_response = $charge;  
+                //     $charge_response = $charge;  
+                // }
+
+                if ( is_object( $payment_intent->latest_charge ) && isset( $payment_intent->latest_charge->id ) ) {
+                    $charge_response = $payment_intent->latest_charge;
+                } else {
+                    $charge_response = \Stripe\Charge::retrieve( array(
+                        'id'     => $payment_intent->latest_charge,
+                        'expand' => array('balance_transaction'),
+                    ));
                 }
 
                 $data = $obj->make_charge_params($charge_response, $order_id);
                 
-                if (true === $charge_response->paid) {
+                if (! empty($charge_response) && true === $charge_response->paid) {
 
                     if(true === $charge_response->captured && $order->needs_payment()){
                         $order->payment_complete($data['id']);
@@ -444,10 +502,12 @@ class Eh_Bacs extends WC_Payment_Gateway {
 
                     $order->set_transaction_id( $data['transaction_id'] );
 
-                    WC()->cart->empty_cart();
+                    if ( WC()->cart ) {
+                        WC()->cart->empty_cart();
+                    }
                     
-                     EH_Helper_Class::wt_stripe_order_db_operations($order_id, $order, 'add', '_eh_stripe_payment_charge', $data, false);
-                    EH_Stripe_Log::log_update('live', $data, get_bloginfo('blogname') . ' - Charge - Order #' . $order_id);
+                EH_Helper_Class::wt_stripe_order_db_operations($order_id, $order, 'add', '_eh_stripe_payment_charge', $data, false);
+                EH_Stripe_Log::log_update('live', $data, get_bloginfo('blogname') . ' - Charge - Order #' . $order_id);
                     
                     // Return thank you page redirect.
                     $result =  array(
@@ -503,8 +563,10 @@ class Eh_Bacs extends WC_Payment_Gateway {
 				$refund_params = array(
 					'amount' => EH_Stripe_Payment::get_stripe_amount($div, $currency),
 					'reason' => 'requested_by_customer',
+                    'charge' => $charge_id,
 					'metadata' => array(
 						'order_id' => $wc_order->get_id(),
+						'refund_initiated_from' => 'woocommerce',
 						'Total Tax' => $wc_order->get_total_tax(),
 						'Total Shipping' => (version_compare(WC()->version, '2.7.0', '<')) ? $wc_order->get_total_shipping() : $wc_order->get_shipping_total(),
 						'Customer IP' => $client['IP'],
@@ -515,8 +577,9 @@ class Eh_Bacs extends WC_Payment_Gateway {
 				);
 						
 				try {
-					$charge_response = \Stripe\Charge::retrieve($charge_id);
-					$refund_response = $charge_response->refunds->create($refund_params);
+					//$charge_response = \Stripe\Charge::retrieve($charge_id);
+					//$refund_response = $charge_response->refunds->create($refund_params);
+                    $refund_response = \Stripe\Refund::create($refund_params);
 					if ($refund_response) {
 										
                         //phpcs:ignore WordPress.DateTime.RestrictedFunctions.date_date

@@ -437,6 +437,7 @@ class EH_Giropay extends WC_Payment_Gateway {
                     'charge' => $charge_id,
                     'metadata' => array(
                         'order_id' => $order->get_id(),
+                        'refund_initiated_from' => 'woocommerce',
                         'Total Tax' => $order->get_total_tax(),
                         'Total Shipping' => (version_compare(WC()->version, '2.7.0', '<')) ? $order->get_total_shipping() : $order->get_shipping_total(),
                         'Customer IP' => $client['IP'],
@@ -551,7 +552,19 @@ class EH_Giropay extends WC_Payment_Gateway {
         
         // Stores charge data.
         $obj1 = new EH_Stripe_Payment();
-        $charge_response = end($response->charges->data);
+        //$charge_response = end($response->charges->data);
+        if ( ! empty( $response->latest_charge ) ) {
+            if ( is_object( $response->latest_charge ) && isset( $response->latest_charge->id ) ) {
+                $charge_response = $response->latest_charge;
+            } else {
+                $charge_response = \Stripe\Charge::retrieve( array(
+                    'id'     => $response->latest_charge,
+                    'expand' => array('balance_transaction'),
+                ));
+            }
+        } else {
+            $charge_response = null;
+        }
         if (!empty($charge_response)) {
             $charge_param = $obj1->make_charge_params($charge_response , $order_id);
             
@@ -586,7 +599,9 @@ class EH_Giropay extends WC_Payment_Gateway {
                     $order->add_order_note( __('Payment Status : ', 'payment-gateway-stripe-and-woocommerce-integration') . ucfirst($charge_response->status) .' [ ' . $order_time . ' ] . ' . __('Source : ', 'payment-gateway-stripe-and-woocommerce-integration') . $charge_response->payment_method_details->type . '. ' . __('Charge Status :', 'payment-gateway-stripe-and-woocommerce-integration') . $captured . (is_null($charge_response->balance_transaction) ? '' :'. Transaction ID : ' . $charge_response->balance_transaction) );
 
                 }
-                WC()->cart->empty_cart();
+                if ( WC()->cart ) {
+                    WC()->cart->empty_cart();
+                }
                 EH_Stripe_Log::log_update('live', $charge_response, get_bloginfo('blogname') . ' - Charge - Order #' . $order->get_order_number());
                 return array(
                     'result' => 'success',

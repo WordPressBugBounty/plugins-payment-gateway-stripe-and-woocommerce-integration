@@ -5,7 +5,7 @@ Tags: stripe checkout, credit card, google pay, apple pay, stripe payments
 Requires at least: 5.6
 Tested up to: 6.9
 Requires PHP: 5.6
-Stable tag: 5.0.7
+Stable tag: 5.0.8
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
@@ -286,6 +286,12 @@ Payment Gateway for Stripe and for WooCommerce acts as a secure bridge between y
 24. Stripe General Settings
 
 == Changelog ==
+= 5.0.8 =
+* [Enhancement] Updated Stripe API version (Basil).
+* [Enhancement] Improved Google Pay, Multibanco and Wechat payment handling.
+* [Fix] Fixed security vulnerabilities in redirect payment gateways.
+* [Compatibility] WooCommerce 10.7
+
 = 5.0.7 =
 * [Ownership] – Plugin acquired by ThemeHigh.
 * [Enhancement] - Updated OAuth with Themehigh Stripe app

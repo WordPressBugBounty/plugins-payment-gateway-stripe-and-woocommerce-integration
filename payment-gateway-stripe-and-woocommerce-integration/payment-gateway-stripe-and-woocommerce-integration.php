@@ -6,9 +6,9 @@
  * Description: Accept payments from your WooCommerce store via Credit/Debit Cards, Stripe Checkout, Apple Pay, Google Pay, Alipay, SEPA Pay, Klarna, Afterpay, WeChat Pay, iDEAL, Bancontact, EPS, P24, Bacs Debit, BECS Debit, FPX, Boleto, OXXO, GrabPay, Multibanco and Affirm using Stripe.
  * Author: ThemeHigh
  * Author URI: https://www.themehigh.com
- * Version: 5.0.7
+ * Version: 5.0.8
  * WC requires at least: 7.0
- * WC tested up to: 10.4
+ * WC tested up to: 10.7
  * License: GPLv3
  * License URI: https://www.gnu.org/licenses/gpl-3.0.html
  * Text Domain: payment-gateway-stripe-and-woocommerce-integration
@@ -26,7 +26,7 @@ if (!defined('EH_STRIPE_MAIN_PATH')) {
     define('EH_STRIPE_MAIN_PATH', plugin_dir_path(__FILE__));
 }
 if (!defined('EH_STRIPE_VERSION')) {
-    define('EH_STRIPE_VERSION', '5.0.7');
+    define('EH_STRIPE_VERSION', '5.0.8');
 }
 if (!defined('EH_STRIPE_MAIN_FILE')) {
     define('EH_STRIPE_MAIN_FILE', __FILE__);
@@ -139,6 +139,8 @@ if(is_plugin_active('eh-stripe-payment-gateway/stripe-payment-gateway.php')){
         include_once(EH_STRIPE_MAIN_PATH . "includes/class-stripe-oauth.php");
         include_once(EH_STRIPE_MAIN_PATH . "includes/class-eh-stripe-token-handler.php");        
         include_once(EH_STRIPE_MAIN_PATH . "includes/class-stripe-payment-request-button.php");
+
+        
         add_action( 'wc_ajax_eh_spg_gen_payment_request_button_cart', array( 'Eh_Stripe_Payment_Request_Class', 'payment_request_button_cart_items' ) );
 
     
@@ -162,7 +164,7 @@ if(is_plugin_active('eh-stripe-payment-gateway/stripe-payment-gateway.php')){
             $methods[] = 'EH_Oxxo';
             $methods[] = 'EH_Grabpay';
             //Temporarily disabled
-            //$methods[] = 'EH_Multibanco';
+            $methods[] = 'EH_Multibanco';
             $methods[] = 'EH_Affirm';
             eh_load_payment_methods();
             return $methods;
@@ -211,6 +213,8 @@ if(is_plugin_active('eh-stripe-payment-gateway/stripe-payment-gateway.php')){
                 include_once(EH_STRIPE_MAIN_PATH . "includes/class-stripe-grabpay.php");
                 include_once(EH_STRIPE_MAIN_PATH . "includes/class-stripe-multibanco.php");
                 include_once(EH_STRIPE_MAIN_PATH . "includes/class-stripe-affirm.php");
+                include_once EH_STRIPE_MAIN_PATH . 'includes/class-eh-stripe-webhook-handler.php';
+                EH_Stripe_Webhook_Handler::init();
     
                 // include_once(EH_STRIPE_MAIN_PATH . 'includes/admin/class-wt-promotion-banner.php');
     
@@ -346,9 +350,28 @@ if(is_plugin_active('eh-stripe-payment-gateway/stripe-payment-gateway.php')){
             $eh_stripe_this = new EH_Stripe_Payment();
             $intent = \Stripe\PaymentIntent::retrieve($intent_id);
                 $intent->capture();
-                $charge_response = end($intent->charges->data);
-
+                //$charge_response = end($intent->charges->data);
                 
+
+            if ( ! empty( $intent->latest_charge ) ) {
+                if ( is_object( $intent->latest_charge ) && isset( $intent->latest_charge->id ) ) {
+                    $charge_response = $intent->latest_charge;
+                } else {
+                    $charge_response = \Stripe\Charge::retrieve( array(
+                        'id'     => $intent->latest_charge,
+                        'expand' => array('balance_transaction'),
+                    ));
+                }
+            } elseif ( isset( $intent->charges->data ) && ! empty( $intent->charges->data ) ) {
+                $charge_response = end( $intent->charges->data );
+            } else {
+                $charge_response = null;
+            }
+
+            if (empty($charge_response)) {
+                throw new Exception(__('Charge response not found after capture.', 'payment-gateway-stripe-and-woocommerce-integration'));
+            }
+
             $data = $eh_stripe_this->make_charge_params($charge_response, $order_id);
 
             if ('Captured' == $data['captured'] && 'Paid' == $data['paid']) {

@@ -29,6 +29,10 @@ class EH_Stripe_Token_Handler {
         // Only initialize once
         if (!self::$is_initialized) { 
             $api_key = self::get_stripe_api_key(); // Get current token
+            if (empty($api_key)) {
+                EH_Stripe_Log::log_update('oauth', 'Empty API key', 'Stripe init error');
+                return;
+            }
             \Stripe\Stripe::setApiKey($api_key);
             \Stripe\Stripe::setApiVersion(self::wt_get_api_version());
             \Stripe\Stripe::setAppInfo(
@@ -87,7 +91,9 @@ class EH_Stripe_Token_Handler {
     
 
     public static function wt_get_api_version(){
-        return apply_filters('wt_stripe_api_version', '2022-08-01');
+       //return apply_filters('wt_stripe_api_version', '2022-08-01');
+       // Updated for New - Basil 17.5
+        return apply_filters('wt_stripe_api_version', '2025-03-31.basil');
     }
 
     /**
@@ -363,10 +369,6 @@ class EH_Stripe_Token_Handler {
             try {
                 // Double-check expiry after acquiring lock (another process may have refreshed)
                 if ( ! self::wtst_get_oauth_expired( $mode ) && ! $force ) {
-                    // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_flock -- Required for atomic locking
-                    flock( $lock_handle, LOCK_UN );
-                    // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fclose -- Closing lock file
-                    fclose( $lock_handle );
                     return self::get_current_access_token($mode, $test_mode);
                 }
                 return self::execute_token_refresh($mode, $test_mode);
@@ -381,6 +383,11 @@ class EH_Stripe_Token_Handler {
                 flock( $lock_handle, LOCK_UN );
                 // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fclose -- Closing lock file
                 fclose( $lock_handle );
+                // Remove the temporary lock file
+                if ( file_exists( $lock_file_path ) ) {
+                    // phpcs:ignore WordPress.WP.AlternativeFunctions.unlink_unlink -- Removing temporary lock file
+                    unlink( $lock_file_path );
+                }
             }
         }
 
@@ -466,14 +473,28 @@ class EH_Stripe_Token_Handler {
             )
         );
 
+        EH_Stripe_Log::log_update(
+            'oauth',
+            array(
+                'body_type' => gettype($request_body),
+                'body_preview' => substr($request_body, 0, 120),
+                'url' => $url,
+            ),
+            'Refresh token API request debug'
+        );
+
         $response = wp_safe_remote_post(
             $url,
             array(
+                'method' => 'POST',
                 'body'    => $request_body,
                 'headers' => array(
-                    'Content-Type' => 'application/json',
+                    'Content-Type' => 'application/json; charset=utf-8',
+                    'Accept'       => 'application/json',
                     'User-Agent'   => self::wt_get_api_user_agent(),
                 ),
+                /* IMPORTANT FIX */
+                'data_format' => 'body',
                 'timeout' => apply_filters("wtst_refresh_token_timeout", 60), // Optional: Set a timeout for the request.
                 'connect_timeout' => apply_filters("wtst_refresh_token_connect_timeout", 25), // Connection timeout
             )
@@ -584,7 +605,16 @@ class EH_Stripe_Token_Handler {
      */
     private static function handle_refresh_error(){
 
-        if (!is_admin() && ! wp_doing_cron() && function_exists('wc_add_notice')) {
+        // Log the error for debugging
+        EH_Stripe_Log::log_update('oauth', 'Token refresh failed - user notified if applicable', 'Refresh error handling');
+
+        // Check request contexts safely (functions may not exist in older WP versions)
+        $doing_cron = function_exists('wp_doing_cron') && wp_doing_cron();
+        $doing_ajax = function_exists('wp_doing_ajax') && wp_doing_ajax();
+        $doing_rest = function_exists('wp_doing_rest') && wp_doing_rest();
+
+        // Only add notice in appropriate contexts (frontend, not admin/cron/ajax/rest)
+        if (!is_admin() && !$doing_cron && !$doing_ajax && !$doing_rest && function_exists('wc_add_notice')) {
             wc_add_notice(
                 __('Please try again after some time', 'payment-gateway-stripe-and-woocommerce-integration'),
                 'error'
@@ -851,7 +881,13 @@ class EH_Stripe_Token_Handler {
                 // Log the error and notify the user if the directory cannot be created
                 EH_Stripe_Log::log_update('oauth', 'Failed to create lock folder: ' . $folder_path, 'Directory creation error');
                 
-                if (!is_admin()) {
+                // Check request contexts safely (functions may not exist in older WP versions)
+                $doing_cron = function_exists('wp_doing_cron') && wp_doing_cron();
+                $doing_ajax = function_exists('wp_doing_ajax') && wp_doing_ajax();
+                $doing_rest = function_exists('wp_doing_rest') && wp_doing_rest();
+
+                // Only add notice in appropriate contexts (frontend, not admin/cron/ajax/rest)
+                if (!is_admin() && !$doing_cron && !$doing_ajax && !$doing_rest && function_exists('wc_add_notice')) {
                     /* translators: Error message asking user to try again later */
                     wc_add_notice(__('Please try again after some time.', 'payment-gateway-stripe-and-woocommerce-integration'), 'error');
                 }

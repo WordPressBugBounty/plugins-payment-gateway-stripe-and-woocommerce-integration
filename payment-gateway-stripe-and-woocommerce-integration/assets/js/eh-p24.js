@@ -3,7 +3,8 @@ jQuery( function( $ ) {
     
 
 try {
-    var stripe = Stripe( eh_p24_val.key, {apiVersion: eh_p24_val.version} );
+    //var stripe = Stripe( eh_p24_val.key, {apiVersion: eh_p24_val.version} );
+    var stripe = Stripe( eh_p24_val.key);
 } catch( error ) {
     console.log( error );
     return;

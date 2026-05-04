@@ -173,7 +173,8 @@ class EH_Wechat extends WC_Payment_Gateway {
         $stripe_settings   = get_option( 'woocommerce_eh_stripe_pay_settings' );
         if ( (is_checkout()  && !is_order_received_page())) {
             //phpcs:ignore WordPress.WP.EnqueuedResourceParameters.MissingVersion, WordPress.WP.EnqueuedResourceParameters.NotInFooter            
-            wp_register_script('stripe_v3_js', 'https://js.stripe.com/v3/');
+            //wp_register_script('stripe_v3_js', 'https://js.stripe.com/v3/');
+            wp_register_script( 'stripe_v3_js', 'https://js.stripe.com/basil/stripe.js');
 
          wp_enqueue_script('eh_wechat_js', plugins_url('assets/js/eh-wechat.js', EH_STRIPE_MAIN_FILE), array('stripe_v3_js','jquery'),EH_STRIPE_VERSION, true);
            $mode = isset($stripe_settings['eh_stripe_mode']) ? $stripe_settings['eh_stripe_mode'] : 'live';
@@ -218,8 +219,20 @@ class EH_Wechat extends WC_Payment_Gateway {
                     $stripe_params['currency']    =  ((version_compare(WC()->version, '2.7.0', '<')) ? $order->order_currency : $order->get_currency());
                 }                       
             }
-            $stripe_params['version'] = EH_Stripe_Token_Handler::wt_get_api_version();  
+            //$stripe_params['version'] = EH_Stripe_Token_Handler::wt_get_api_version();  
            wp_localize_script('eh_wechat_js', 'eh_wechat_val', apply_filters('eh_wechat_val', $stripe_params));
+
+            wp_localize_script(
+                'eh_wechat_js',
+                'eh_wechat_poll',
+                array(
+                    //'ajax_url' => admin_url('admin-ajax.php'),
+                    'wc_ajax_url' => WC_AJAX::get_endpoint('%%endpoint%%'),
+                    'order_id' => isset($_REQUEST['order_id']) ? absint($_REQUEST['order_id']) : '',
+                    'redirect' => isset($_REQUEST['order_id']) ? $this->get_return_url( wc_get_order($_REQUEST['order_id']) ) : '',
+                    'nonce'       => wp_create_nonce('eh_wechat_poll_nonce')
+                )
+            );
         }
     }
 
@@ -245,7 +258,25 @@ class EH_Wechat extends WC_Payment_Gateway {
             //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing
             if(wp_verify_nonce( sanitize_text_field(wp_unslash($_REQUEST['_wpnonce'])), 'eh_stripe_show_qr' ) ) { 
                 //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing   
-               $intent = \Stripe\PaymentIntent::retrieve( sanitize_text_field(wp_unslash($_REQUEST['intent_id']))  ); 
+               $intent = \Stripe\PaymentIntent::retrieve( sanitize_text_field(wp_unslash($_REQUEST['intent_id']))  );
+               
+               if ($intent->status !== 'requires_action') {
+                    // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+                    $order_id  = isset($_REQUEST['order_id']) ? absint($_REQUEST['order_id']) : 0;
+                    // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+                    $order_key = isset($_REQUEST['key']) ? sanitize_text_field(wp_unslash($_REQUEST['key'])) : '';
+                    
+                    if ( $order_id ) {
+                        $order = wc_get_order($order_id);
+                        if ( $order && hash_equals($order->get_order_key(), $order_key) ) {
+                            wp_safe_redirect($this->get_return_url($order));
+                            exit;
+                        }
+                    }
+                    wp_safe_redirect(wc_get_checkout_url());
+                    exit;
+                }
+                
                if (isset($intent->next_action->wechat_pay_display_qr_code->image_url_png)) {
                     $width = '45%'; 
                     $width = apply_filters('eh_stripe_qr_width', $width);
@@ -253,19 +284,35 @@ class EH_Wechat extends WC_Payment_Gateway {
                     $qr_style = apply_filters('eh_stripe_qr_style', $qr_style);
 
                     
-                   ?><div id="eh-wechat-qr" <?php print esc_attr($qr_style); ?> ><center><img width="<?php print esc_attr($width); ?>" src="<?php print esc_url($intent->next_action->wechat_pay_display_qr_code->image_url_png) ?>" ></center>
+                   ?>
+                   <div class="we-chat-overlay">
+                        
+                        <div id="eh-wechat-qr" <?php echo esc_attr(($qr_style)) ?> >
+                            <div id="eh-wechat-message">
+                                <?php echo esc_html(apply_filters('eh_stripe_qr_message', __('Please scan the QR code to complete the payment. This page will automatically redirect when payment is confirmed.', 'payment-gateway-stripe-and-woocommerce-integration'))); ?>
+                            </div>
+                            <!-- <div class="wt-qr-close" style="color: red; width: 45%; text-align: center;">X</div> -->
+                            <img width="<?php echo esc_attr($width); ?>" src="<?php echo esc_url($intent->next_action->wechat_pay_display_qr_code->image_url_png); ?>">
+                            <style>.woocommerce-checkout-payment { display: none; }</style>
+                        </div> 
+                    </div><?php
+
+                   /*<div id="eh-wechat-qr" <?php print esc_attr($qr_style); ?> ><center><img width="<?php print esc_attr($width); ?>" src="<?php print esc_url($intent->next_action->wechat_pay_display_qr_code->image_url_png) ?>" ></center>
 
                     <style>.payment_methods{ display: none; }</style>
                     <p style="text-align: center; font-weight: bold; font-family: Arial, sans-serif;"><?php esc_html_e("WeChat Pay QR", "payment-gateway-stripe-and-woocommerce-integration") ?></p>
-                    </div> <?php
+                    </div> <?php*/
 
                }
             }
+            $redirect_url = wc_get_checkout_url(); 
             //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing
             if (isset($_REQUEST['order_id']) && !empty($_REQUEST['order_id'])) {
                 //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing
                 $order = wc_get_order( sanitize_text_field(wp_unslash($_REQUEST['order_id'])) );
-                $redirect_url = $this->get_return_url($order);
+                if ($order) {
+                    $redirect_url = $this->get_return_url($order);
+                }
             }
 
             $redirect_time = 1;
@@ -275,36 +322,37 @@ class EH_Wechat extends WC_Payment_Gateway {
             } else {
                 $redirect_time = intval($redirect_time) * 60000;
             }
+            if(apply_filters('eh_stripe_qr_redirect_script', false)){
+                echo '<script>
 
-            echo '<script>
+                jQuery(function() 
+                { 
+                    jQuery(".woocommerce-notice").html("Please scan the QR code to complete the payment.");
+                    jQuery(document.body).on("update_checkout", function(e){
+                        //e.preventDefault();
+                        //e.stopPropagation();
+                        e.stopImmediatePropagation();
+                        jQuery("#place_order").hide();
+                    });
 
-            jQuery(function() 
-            { 
-                jQuery(".woocommerce-notice").html("Please scan the QR code to complete the payment.");
-                jQuery(document.body).on("update_checkout", function(e){
-                    //e.preventDefault();
-                    //e.stopPropagation();
-                    e.stopImmediatePropagation();
-                    jQuery("#place_order").hide();
+                    confirmBox();
+                        
+                    function confirmBox(){ 
+                        window.setTimeout(function() { 
+                        
+                            if(confirm("When you have finished scanning the QR Code, click OK to redirect to the order received page.")){
+                                window.location.href = "' . esc_js($redirect_url) . '";
+                            }
+                            else{
+                                confirmBox();
+                            }
+                        
+                        }, ' . esc_js($redirect_time) . ');
+                    }
+                
                 });
-
-                confirmBox();
-                    
-                function confirmBox(){ 
-                     window.setTimeout(function() { 
-                       
-                        if(confirm("When you have finished scanning the QR Code, click OK to redirect to the order received page.")){
-                            window.location.href = "' . esc_js($redirect_url) . '";
-                        }
-                        else{
-                            confirmBox();
-                        }
-                       
-                    }, ' . esc_js($redirect_time) . ');
-                }
-               
-            });
-          </script>';
+                </script>';
+            }
 
 
         }
@@ -340,8 +388,10 @@ class EH_Wechat extends WC_Payment_Gateway {
                 if(! empty($intent)){
 
                     if ( $intent->status === 'succeeded' ) {
-                        wc_add_notice(__('An error has occurred internally, due to which you are not redirected to the order received page. Please contact support for more assistance.', 'payment-gateway-stripe-and-woocommerce-integration'), $notice_type = 'error');
-                        wp_redirect(wc_get_checkout_url());
+                        //wc_add_notice(__('An error has occurred internally, due to which you are not redirected to the order received page. Please contact support for more assistance.', 'payment-gateway-stripe-and-woocommerce-integration'), $notice_type = 'error');
+                        //wp_redirect(wc_get_checkout_url());
+                        wp_redirect($this->get_return_url($order));
+                        exit;
                     }else{
                         $intent = \Stripe\PaymentIntent::create( $payment_intent_args , array(
                             'idempotency_key' => $order->get_order_key() . '-' . $payment_method
@@ -364,6 +414,7 @@ class EH_Wechat extends WC_Payment_Gateway {
                         array(
                             'order_id'         => $order_id,
                             'intent_id'         => $intent->id,
+                            'key'           => $order->get_order_key(),
                             '_wpnonce'      => wp_create_nonce( 'eh_stripe_show_qr' ),
 
                         ),
@@ -542,7 +593,7 @@ class EH_Wechat extends WC_Payment_Gateway {
             $post_data['customer'] = $customer;
         }
 
-        return apply_filters( 'eh_wechat_generate_charge_request', $post_data, $order, $source_id );
+        return apply_filters( 'eh_wechat_generate_charge_request', $post_data, $order, $customer );
     }
 
 
@@ -582,6 +633,7 @@ class EH_Wechat extends WC_Payment_Gateway {
                     'charge' => $charge_id,
                     'metadata' => array(
                         'order_id' => $order->get_id(),
+                        'refund_initiated_from' => 'woocommerce',
                         'Total Tax' => $order->get_total_tax(),
                         'Total Shipping' => (version_compare(WC()->version, '2.7.0', '<')) ? $order->get_total_shipping() : $order->get_shipping_total(),
                         'Customer IP' => $client['IP'],
@@ -639,49 +691,102 @@ class EH_Wechat extends WC_Payment_Gateway {
             return false;
         }
 
-        return \Stripe\PaymentIntent::retrieve( $intent_id );
+        //return \Stripe\PaymentIntent::retrieve( $intent_id );
+        return \Stripe\PaymentIntent::retrieve( array(
+            'id'     => $intent_id,
+            'expand' => array('latest_charge.balance_transaction'),
+        ));
     }
 
     public function eh_wechat_callback_handler() {
-        //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing   
-        if (isset($_REQUEST['order_id']) && !empty($_REQUEST['order_id'])) {
-            //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing
-            $order_id = sanitize_text_field(wp_unslash($_REQUEST['order_id']));
-            $order = wc_get_order( $order_id );
 
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+        $order_id  = isset($_REQUEST['order_id']) ? absint($_REQUEST['order_id']) : 0;
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+        $order_key = isset($_REQUEST['key']) ? sanitize_text_field(wp_unslash($_REQUEST['key'])) : '';
+
+        if ( ! $order_id ) {
+            wc_add_notice(__('Invalid order.', 'payment-gateway-stripe-and-woocommerce-integration'), 'error');
+            wp_safe_redirect(wc_get_checkout_url());
+            exit;
         }
-        //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing   
-        if (isset($_REQUEST['payment_intent']) && !empty($_REQUEST['payment_intent'])) {
-            //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing
-            $intent_id = sanitize_text_field(wp_unslash($_REQUEST['payment_intent']));
-            $intent_result = \Stripe\PaymentIntent::retrieve( $intent_id );
-            if (!empty($intent_result)) {
+
+        $order = wc_get_order($order_id);
+
+        // Layer 1: order key validation
+        if ( ! $order || ! hash_equals($order->get_order_key(), $order_key) ) {
+            wc_add_notice(__('Invalid order key.', 'payment-gateway-stripe-and-woocommerce-integration'), 'error');
+            wp_safe_redirect(wc_get_checkout_url());
+            exit;
+        }
+
+        // Already handled
+        if ( $order->has_status(array('processing', 'completed')) ) {
+            wp_safe_redirect($this->get_return_url($order));
+            exit;
+        }
+
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+        if ( isset($_REQUEST['payment_intent']) && ! empty($_REQUEST['payment_intent']) ) {
+
+            // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+            $intent_id       = sanitize_text_field(wp_unslash($_REQUEST['payment_intent']));
+            $saved_intent_id = $order->get_meta('_eh_stripe_payment_intent');
+
+            // Layer 2: PaymentIntent ownership check
+            if ( empty($saved_intent_id) || ! hash_equals($saved_intent_id, $intent_id) ) {
+                EH_Stripe_Log::log_update('dead', array(
+                    'order_id'        => $order_id,
+                    'supplied_intent' => $intent_id,
+                    'saved_intent'    => $saved_intent_id ?: 'none',
+                ), get_bloginfo('blogname') . ' - WeChat: intent mismatch - Order #' . $order_id);
+
+                wc_add_notice(__('Unable to process this payment.', 'payment-gateway-stripe-and-woocommerce-integration'), 'error');
+                wp_safe_redirect(wc_get_checkout_url());
+                exit;
+            }
+
+            // Mutex lock — prevents duplicate processing on concurrent requests
+            $lock_key = 'stripe_wechat_processing_' . $order_id;
+            if ( get_transient($lock_key) ) {
+                wp_safe_redirect($this->get_return_url($order));
+                exit;
+            }
+            set_transient($lock_key, true, 5 * MINUTE_IN_SECONDS);
+
+            try {
+                $intent_result = \Stripe\PaymentIntent::retrieve(array(
+                    'id'     => $intent_id,
+                    'expand' => array('latest_charge.balance_transaction'),
+                ));
                 $this->eh_process_payment_response($intent_result, $order);
-                 $redirect_url = $this->get_return_url( $order );
-                wp_safe_redirect($redirect_url);
-            }
-            else{
-                if ($order) {
-                $order->update_status( 'failed', __( 'Stripe payment failed', 'payment-gateway-stripe-and-woocommerce-integration' ) );
-                }
-                
-                wc_add_notice( __( 'Unable to process this payment.', 'payment-gateway-stripe-and-woocommerce-integration' ), 'error' );
-                wp_safe_redirect( wc_get_checkout_url() );
+                delete_transient($lock_key);
+                wp_safe_redirect($this->get_return_url($order));
+                exit;
+            } catch (\Exception $e) {
+                delete_transient($lock_key);
+                EH_Stripe_Log::log_update('dead', array(
+                    'order_id' => $order_id,
+                    'error'    => $e->getMessage(),
+                ), get_bloginfo('blogname') . ' - WeChat: intent retrieve failed - Order #' . $order_id);
+
+                wc_add_notice(__('Unable to verify payment. Please try again.', 'payment-gateway-stripe-and-woocommerce-integration'), 'error');
+                wp_safe_redirect(wc_get_checkout_url());
+                exit;
             }
         }
-        else{
-            if ($order) {
-                $order->update_status( 'failed', __( 'Stripe payment failed', 'payment-gateway-stripe-and-woocommerce-integration' ) );
-            }
-            
-            wc_add_notice( __( 'Unable to process this payment.', 'payment-gateway-stripe-and-woocommerce-integration' ), 'error' );
-            wp_safe_redirect( wc_get_checkout_url() );
-         }
 
-
+        // No payment_intent — webhook is authoritative, don't assume failure
+        if ( $order->has_status(array('processing', 'completed')) ) {
+            wp_safe_redirect($this->get_return_url($order));
+        } else {
+            wc_add_notice(__('Your payment is pending. You will receive a confirmation shortly.', 'payment-gateway-stripe-and-woocommerce-integration'), 'notice');
+            wp_safe_redirect(wc_get_checkout_url());
+        }
+        exit;
     }
 
-        /**
+    /**
      * Store extra meta data for an order and adds order notes for orders.
      */
     public function eh_process_payment_response( $response, $order = null ) {
@@ -694,13 +799,28 @@ class EH_Wechat extends WC_Payment_Gateway {
         
         // Stores charge data.
         $obj1 = new EH_Stripe_Payment();
-        $charge_response = end($response->charges->data);
+        //$charge_response = end($response->charges->data);
+
+        $charge_response = null;
+        if ( ! empty( $response->latest_charge ) ) {
+            if ( is_object( $response->latest_charge ) && isset( $response->latest_charge->id ) ) {
+                $charge_response = $response->latest_charge;
+            } else {
+                $charge_response = \Stripe\Charge::retrieve( array(
+                    'id'     => $response->latest_charge,
+                    'expand' => array('balance_transaction'),
+                ));
+            }
+        } elseif ( isset($response->charges->data) && !empty($response->charges->data) ) {
+            $charge_response = end($response->charges->data);
+        }
+
         if (!empty($charge_response)) {
             $charge_param = $obj1->make_charge_params($charge_response , $order_id);
             EH_Helper_Class::wt_stripe_order_db_operations($order_id, $order, 'add', '_eh_stripe_payment_charge', $charge_param, false);
             
             //$order_id  = version_compare(WC_VERSION, '2.7.0', '<') ? $order->id : $order->get_id();
-            $captured = ( isset( $charge_response->captured )) ? 'Captured' : 'Uncaptured';
+            $captured = (isset($charge_response->captured) && $charge_response->captured) ? 'Captured' : 'Uncaptured';
 
             // Stores charge capture data.
             if ( version_compare(WC_VERSION, '2.7.0', '<') ) {
@@ -716,17 +836,21 @@ class EH_Wechat extends WC_Payment_Gateway {
         if('succeeded' === $response->status || 'requires_capture' === $response->status){
             if (true === $charge_response->paid) {
 
-                if(true === $charge_response->captured && $order->needs_payment()){
+                if(true === $charge_response->captured && 'processing' !== $order->get_status() && 'completed' !== $order->get_status()){
                     $order->payment_complete( $charge_response->id );
-                    $order->add_order_note( __('Payment Status : ', 'payment-gateway-stripe-and-woocommerce-integration') . ucfirst($charge_response->status) .' [ ' . $order_time . ' ] . ' . __('Source : ', 'payment-gateway-stripe-and-woocommerce-integration') . $charge_response->payment_method_details->type . '. ' . __('Charge Status :', 'payment-gateway-stripe-and-woocommerce-integration') . $captured . (is_null($charge_response->balance_transaction) ? '' :'. Transaction ID : ' . $charge_response->balance_transaction) );
+                    $order->add_order_note( __('Payment Status : ', 'payment-gateway-stripe-and-woocommerce-integration') . ucfirst($charge_response->status) .' [ ' . $order_time . ' ] . ' . __('Source : ', 'payment-gateway-stripe-and-woocommerce-integration') . $charge_response->payment_method_details->type . '. ' . __('Charge Status :', 'payment-gateway-stripe-and-woocommerce-integration') . $captured . (is_null($charge_response->balance_transaction) ? '' :'. Transaction ID : ' . 
+                    (isset($charge_response->balance_transaction->id) ? $charge_response->balance_transaction->id : $charge_response->balance_transaction)) );
 
                 }
                 if (!$charge_response->captured && $order->get_status() !== 'on-hold') {
                     $order->update_status('on-hold');
-                    $order->add_order_note( __('Payment Status : ', 'payment-gateway-stripe-and-woocommerce-integration') . ucfirst($charge_response->status) .' [ ' . $order_time . ' ] . ' . __('Source : ', 'payment-gateway-stripe-and-woocommerce-integration') . $charge_response->payment_method_details->type . '. ' . __('Charge Status :', 'payment-gateway-stripe-and-woocommerce-integration') . $captured . (is_null($charge_response->balance_transaction) ? '' :'. Transaction ID : ' . $charge_response->balance_transaction) );
+                    $order->add_order_note( __('Payment Status : ', 'payment-gateway-stripe-and-woocommerce-integration') . ucfirst($charge_response->status) .' [ ' . $order_time . ' ] . ' . __('Source : ', 'payment-gateway-stripe-and-woocommerce-integration') . $charge_response->payment_method_details->type . '. ' . __('Charge Status :', 'payment-gateway-stripe-and-woocommerce-integration') . $captured . (is_null($charge_response->balance_transaction) ? '' :'. Transaction ID : ' . 
+                    (isset($charge_response->balance_transaction->id) ? $charge_response->balance_transaction->id : $charge_response->balance_transaction) ) );
 
                 }
-                WC()->cart->empty_cart();
+                if ( WC()->cart ) {
+                    WC()->cart->empty_cart();
+                }
                 EH_Stripe_Log::log_update('live', $charge_response, get_bloginfo('blogname') . ' - Charge - Order #' . $order->get_order_number());
                 return array(
                     'result' => 'success',
@@ -748,4 +872,31 @@ class EH_Wechat extends WC_Payment_Gateway {
         
     }
   
+}
+
+add_action('wc_ajax_wt_check_wechat_order_status', 'wt_check_wechat_order_status');
+add_action('wc_ajax_nopriv_wt_check_wechat_order_status', 'wt_check_wechat_order_status');
+
+function wt_check_wechat_order_status() {
+
+    if ( ! isset($_POST['nonce']) || 
+         ! wp_verify_nonce($_POST['nonce'], 'eh_wechat_poll_nonce') ) {
+        wp_send_json_error(['message' => 'Invalid nonce'], 403);
+    }
+
+    $order_id = isset($_POST['order_id']) ? absint($_POST['order_id']) : 0;
+
+    if (!$order_id) {
+        wp_send_json_error(['message' => 'Invalid order id']);
+    }
+
+    $order = wc_get_order($order_id);
+
+    if (!$order) {
+        wp_send_json_error(['message' => 'Order not found']);
+    }
+
+    wp_send_json_success([
+        'status' => $order->get_status()
+    ]);
 }

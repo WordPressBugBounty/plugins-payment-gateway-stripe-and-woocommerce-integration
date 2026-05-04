@@ -3,7 +3,12 @@ jQuery( function( $ ) {
     
 
 try {
-    var stripe = Stripe( eh_stripe_val.key, {apiVersion: eh_stripe_val.version,stripeAccount: eh_stripe_val.wt_stripe_account_id } );
+    //var stripe = Stripe( eh_stripe_val.key, {apiVersion: eh_stripe_val.version,stripeAccount: eh_stripe_val.wt_stripe_account_id } );
+    var stripeOptions = {};
+    if (eh_stripe_val.wt_stripe_account_id) {
+        stripeOptions.stripeAccount = eh_stripe_val.wt_stripe_account_id;
+    }
+    var stripe = Stripe(eh_stripe_val.key, stripeOptions);
 } catch( error ) {
     console.log( error );
     return;

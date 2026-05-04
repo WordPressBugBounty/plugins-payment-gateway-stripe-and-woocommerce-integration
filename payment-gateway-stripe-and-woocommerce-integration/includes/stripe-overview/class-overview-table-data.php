@@ -98,7 +98,7 @@ class Eh_Stripe_Order_Datatables extends WP_List_Table {
                                     . '<input type="checkbox" style="margin-left:3px;" checked class="' . $id . '" id="payment_refund_check" value="refund">' . __('Full', 'payment-gateway-stripe-and-woocommerce-integration');
                             break;
                         case 'Uncaptured':
-                            $actions = '<center<span style="width:100%%;text-align: center;" class="button payment_capture_button payment_act" id=' . $id . '>' . __('Capture ', 'payment-gateway-stripe-and-woocommerce-integration') . get_woocommerce_currency_symbol() . '<span class="amount_capture_main_' . $id . '">' . number_format((float) $item['order_total'], 2, '.', '') . ' </span>';
+                            $actions = '<center><span style="width:100%%;text-align: center;" class="button payment_capture_button payment_act" id=' . $id . '>' . __('Capture ', 'payment-gateway-stripe-and-woocommerce-integration') . get_woocommerce_currency_symbol() . '<span class="amount_capture_main_' . $id . '">' . number_format((float) $item['order_total'], 2, '.', '') . ' </span></span></center>';
                             break;
                     }
                 }
@@ -263,10 +263,8 @@ class Eh_Stripe_Datatables extends WP_List_Table {
               $charge_count = count(EH_Helper_Class::wt_stripe_order_db_operations($order_id[$i], null, 'get', '_eh_stripe_payment_charge',null, false));
             $refund_count = count(EH_Helper_Class::wt_stripe_order_db_operations($order_id[$i], null, 'get', '_eh_stripe_payment_refund',null, false));
             $balance_count = count(EH_Helper_Class::wt_stripe_order_db_operations($order_id[$i], null, 'get', '_eh_stripe_payment_balance',null, false));
+            $data =  EH_Helper_Class::wt_stripe_order_db_operations($order_id[$i], null, 'get', '_eh_stripe_payment_charge',null, false);
             for ($k = 0; $k < $charge_count; $k++) {
-                $data =  EH_Helper_Class::wt_stripe_order_db_operations($order_id[$i], null, 'get', '_eh_stripe_payment_charge',null, false);
-
-
                 if (isset($data[$k]->value) && is_object($data[$k])) {
                     $data[$k] = $data[$k]->value;
                 } 

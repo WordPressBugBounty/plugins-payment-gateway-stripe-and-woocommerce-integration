@@ -298,6 +298,7 @@ class Eh_Stripe_Checkout extends WC_Payment_Gateway {
         $query_args_success = array(
             'sessionid' => '{CHECKOUT_SESSION_ID}',
             'order_id' => $order_id,
+            'key' => $order->get_order_key(),
             '_wpnonce' => wp_create_nonce('eh_checkout_nonce')
         );
 
@@ -310,6 +311,7 @@ class Eh_Stripe_Checkout extends WC_Payment_Gateway {
         $query_args_cancel = array(
             'action' => 'cancel_checkout',
             'order_id' => $order_id,
+            'key' => $order->get_order_key(),
             '_wpnonce' => wp_create_nonce('eh_checkout_nonce')
         );
 
@@ -325,6 +327,7 @@ class Eh_Stripe_Checkout extends WC_Payment_Gateway {
         $session_data = array(
 
             'payment_method_types' => ['card'],
+            //'automatic_payment_methods' => ['enabled' => true],
             'mode' => 'payment',
             
             'payment_intent_data' => [
@@ -567,17 +570,21 @@ class Eh_Stripe_Checkout extends WC_Payment_Gateway {
         $user = wp_get_current_user();
         $logged_in_userid = $user->ID;
         //$customer_id = get_user_meta($logged_in_userid, '_stripe_ch_customer_id', true);
-        $customer_id = $this->validate_and_clean_stripe_ch_customer_id($logged_in_userid);
-        //create stripe customer 
-        if (empty($customer_id)) { 
-
-            $customer = $this->create_stripe_customer( $order, $user);
-
-            $customer_id = $customer->id;
-            //saved stripe customer for charging  cards later
-            update_user_meta($logged_in_userid, "_stripe_ch_customer_id", $customer_id);
+        if ($logged_in_userid > 0) {
+            $customer_id = $this->validate_and_clean_stripe_ch_customer_id($logged_in_userid);
+            if (empty($customer_id)) {
+                $customer    = $this->create_stripe_customer($order, $user);
+                $customer_id = $customer->id;
+                update_user_meta($logged_in_userid, '_stripe_ch_customer_id', $customer_id);
+            }
+            $session_data['customer'] = $customer_id;
+        } else {
+            // Guest — create customer without saving
+            $customer = $this->create_stripe_customer($order, $user);
+            if ($customer && !empty($customer->id)) {
+                $session_data['customer'] = $customer->id;
+            }
         }
-        $session_data['customer'] = $customer_id;
         
         //$session_data['payment_intent_data']['setup_future_usage'] = 'off_session';
 
@@ -669,7 +676,7 @@ class Eh_Stripe_Checkout extends WC_Payment_Gateway {
      * creates order after checkout session is completed.
      * @since 3.3.4
      */
-    public function eh_spg_stripe_checkout_order_callback() {
+    /*public function eh_spg_stripe_checkout_order_callback() {
         
         if(!EH_Helper_Class::verify_nonce(EH_STRIPE_PLUGIN_NAME, 'eh_checkout_nonce'))
         {
@@ -678,6 +685,18 @@ class Eh_Stripe_Checkout extends WC_Payment_Gateway {
         //phpcs:ignore WordPress.Security.NonceVerification.Recommended 
         $order_id = isset($_GET['order_id']) ? intval( sanitize_text_field(wp_unslash($_GET['order_id'])) ) : 0 ;
         $order = wc_get_order($order_id);
+
+        if ($order && $order->has_status(array('processing', 'completed'))) {
+            wp_safe_redirect($this->get_return_url($order));
+            exit;
+        }
+
+         $lock_key = 'stripe_checkout_processing_' . $order_id;
+        if (get_transient($lock_key)) {
+            wp_safe_redirect($this->get_return_url($order));
+            exit;
+        }
+        set_transient($lock_key, true, 5 * MINUTE_IN_SECONDS);
 
         //phpcs:ignore WordPress.Security.NonceVerification.Recommended 
         if(isset($_REQUEST['action']) && 'cancel_checkout' === sanitize_text_field(wp_unslash($_REQUEST['action']))){
@@ -694,18 +713,22 @@ class Eh_Stripe_Checkout extends WC_Payment_Gateway {
             //phpcs:ignore WordPress.DateTime.RestrictedFunctions.date_date
             $order_time = date('Y-m-d H:i:s', time() + get_option('gmt_offset') * 3600);
             
-            $session = \Stripe\Checkout\Session::retrieve($session_id);
-            $payment_intent_id = $session->payment_intent;
+            $session = \Stripe\Checkout\Session::retrieve([
+                'id' => $session_id,
+                'expand' => ['payment_intent.latest_charge']
+            ]);
 
-             EH_Helper_Class::wt_stripe_order_db_operations($order_id,  $order, 'add', '_eh_stripe_payment_intent', $payment_intent_id, false);  
+            $payment_intent = $session->payment_intent;
+            $payment_intent_id = $payment_intent->id;
+            $charge_response = $payment_intent->latest_charge; // single charge object
 
-            $payment_intent = \Stripe\PaymentIntent::retrieve($payment_intent_id);
-            $charge_details = $payment_intent->charges['data'];
-        
-            foreach($charge_details as $charge){
+            $data            = null;
+            $transaction_id  = null;
 
-                $charge_response = $charge;  
-            }
+            EH_Helper_Class::wt_stripe_order_db_operations(
+                $order_id, $order, 'add',
+                '_eh_stripe_payment_intent', $payment_intent_id, false
+            );
 
             $data = $obj->make_charge_params($charge_response, $order_id);
             
@@ -742,6 +765,210 @@ class Eh_Stripe_Checkout extends WC_Payment_Gateway {
                 EH_Stripe_Log::log_update('dead', $charge_response, get_bloginfo('blogname') . ' - Charge - Order #' . $order_id);
             }
        }
+    }*/
+
+    /**
+     * creates order after checkout session is completed.
+     * @since 5.0.8 - improved
+     */
+    public function eh_spg_stripe_checkout_order_callback() {
+        
+        if(!EH_Helper_Class::verify_nonce(EH_STRIPE_PLUGIN_NAME, 'eh_checkout_nonce'))
+        {
+            EH_Stripe_Log::log_update('dead',
+                array('order_id' => intval($_GET['order_id'] ?? 0), 'message' => 'Nonce verification failed'),
+                'debug code : 1063A  ' . get_bloginfo('blogname') . ' - Nonce Failed - Order #' . intval($_GET['order_id'] ?? 0));
+
+            $order_id = intval($_GET['order_id'] ?? 0);
+            if ($order_id) {
+                $order = wc_get_order($order_id);
+                if ($order && $order->has_status(array('processing', 'completed'))) {
+                    wp_safe_redirect($this->get_return_url($order));
+                    exit;
+                }
+            }
+            die(esc_html__('Access Denied', 'payment-gateway-stripe-and-woocommerce-integration'));
+        }
+
+         // cancel action
+        if (isset($_REQUEST['action']) && 'cancel_checkout' === sanitize_text_field(wp_unslash($_REQUEST['action']))) {
+            wc_add_notice(__('You have cancelled the Stripe Checkout session. Please try again.', 'payment-gateway-stripe-and-woocommerce-integration'), 'notice');
+            wp_safe_redirect(wc_get_checkout_url());
+            exit;
+        }
+
+        $session_id = $session_id = isset($_GET['sessionid']) ? sanitize_text_field(wp_unslash($_GET['sessionid'])) : '';
+        $order_id = intval( $_GET['order_id'] );
+        $order = wc_get_order($order_id);
+
+        $order_key = isset($_GET['key']) ? sanitize_text_field(wp_unslash($_GET['key'])) : '';
+        
+
+        if (empty($session_id)) {
+            wc_add_notice(__('Invalid session. Please try again.', 'payment-gateway-stripe-and-woocommerce-integration'), 'error');
+            wp_safe_redirect(wc_get_checkout_url());
+            exit;
+        }
+
+        if (!$order) {
+            wc_add_notice(__('Order not found.', 'payment-gateway-stripe-and-woocommerce-integration'), 'error');
+            wp_safe_redirect(wc_get_checkout_url());
+            exit;
+        }
+
+        if (! $order ||! hash_equals($order->get_order_key(), $order_key)) {
+            wc_add_notice(
+                __('Invalid order key.', 'payment-gateway-stripe-and-woocommerce-integration'),
+                'error'
+            );
+
+            wp_safe_redirect(wc_get_checkout_url());
+            exit;
+        }
+
+        if ($order->has_status(array('processing', 'completed'))) {
+            wp_safe_redirect($this->get_return_url($order));
+            exit;
+        }
+
+        $obj = new EH_Stripe_Payment();
+        //phpcs:ignore WordPress.DateTime.RestrictedFunctions.date_date
+        $order_time = date('Y-m-d H:i:s', time() + get_option('gmt_offset') * 3600);
+        $lock_key = 'stripe_checkout_processing_' . $order_id;
+        if (get_transient($lock_key)) {
+            wp_safe_redirect($this->get_return_url($order));
+            exit;
+        }
+        set_transient($lock_key, true, 5 * MINUTE_IN_SECONDS);
+        try {
+               
+            $session  = \Stripe\Checkout\Session::retrieve(array(
+                'id'     => $session_id,
+                'expand' => array('payment_intent.latest_charge.balance_transaction')
+            ));
+            if (! isset($session->metadata->order_id) || (int) $session->metadata->order_id !== $order_id
+            ) {
+
+                EH_Stripe_Log::log_update(
+                    'dead',
+                    array(
+                        'order_id'  => $order_id,
+                        'session_id'=> $session_id,
+                    ),
+                    'Invalid session ownership'
+                );
+
+                wc_add_notice(
+                    __('Invalid payment session.', 'payment-gateway-stripe-and-woocommerce-integration'),
+                    'error'
+                );
+
+                wp_safe_redirect(wc_get_checkout_url());
+                exit;
+            }
+
+            $payment_intent = $session->payment_intent;
+            $payment_intent_id = $payment_intent->id;
+
+            
+            EH_Helper_Class::wt_stripe_order_db_operations($order_id, $order, 'add', '_eh_stripe_payment_intent', $payment_intent_id, false); 
+
+            $charge_response = $payment_intent->latest_charge;
+            $data            = null;
+            $transaction_id  = null;
+
+            if (!empty($charge_response)) {
+                $data = $obj->make_charge_params($charge_response, $order_id);
+                $transaction_id = isset($data['transaction_id']->id)
+                    ? $data['transaction_id']->id
+                    : $data['transaction_id'];
+                $order->set_transaction_id($transaction_id);
+            }
+
+            switch ($payment_intent->status) {
+
+                case 'succeeded':
+                    if (empty($charge_response) || empty($data)) {
+                        EH_Stripe_Log::log_update('dead',
+                            array('order_id' => $order_id, 'session_id' => $session_id),
+                            'debug code : 1063B ' . get_bloginfo('blogname') . ' - No charge found - Order #' . $order_id);
+                        $order->update_status('failed');
+                        break;
+                    }
+
+                    if ($order->needs_payment() && true === $charge_response->captured) {
+                        $order->payment_complete($data['id']);
+                    } elseif (!$charge_response->captured && 'on-hold' !== $order->get_status()) {
+                        $order->update_status('on-hold');
+                    }
+
+                    $order->add_order_note(
+                        __('Payment Status : ', 'payment-gateway-stripe-and-woocommerce-integration') . ucfirst($data['status']) .
+                        ' [ ' . $order_time . ' ] . ' .
+                        __('Source : ', 'payment-gateway-stripe-and-woocommerce-integration') . $data['source_type'] . '. ' .
+                        __('Charge Status : ', 'payment-gateway-stripe-and-woocommerce-integration') . $data['captured'] .
+                        (is_null($transaction_id) ? '' : '.<br>' . __('Transaction ID : ', 'payment-gateway-stripe-and-woocommerce-integration') . $transaction_id)
+                    );
+                    
+                    if ( WC()->cart ) {
+                        WC()->cart->empty_cart();
+                    }
+                    EH_Helper_Class::wt_stripe_order_db_operations($order_id, $order, 'add', '_eh_stripe_payment_charge', $data, false);
+                    EH_Stripe_Log::log_update('live', $data, 'debug code : 1063 ' . get_bloginfo('blogname') . ' - Charge - Order #' . $order_id);
+                    break;
+
+                case 'requires_capture':
+                    if ('on-hold' !== $order->get_status()) {
+                        $order->update_status('on-hold');
+                    }
+                    $order->add_order_note(__('Payment Status : ', 'payment-gateway-stripe-and-woocommerce-integration') . 'Authorized, awaiting capture [ ' . $order_time . ' ].');
+                    EH_Stripe_Log::log_update('live', $payment_intent, 'debug code : 1063C ' . get_bloginfo('blogname') . ' - Requires Capture - Order #' . $order_id);
+                    break;
+
+                case 'processing':
+                    $order->update_status('on-hold');
+                    $order->add_order_note(__('Payment Status : ', 'payment-gateway-stripe-and-woocommerce-integration') . 'Processing async payment [ ' . $order_time . ' ].');
+                    EH_Stripe_Log::log_update('live', $payment_intent, 'debug code : 1063D ' . get_bloginfo('blogname') . ' - Processing - Order #' . $order_id);
+                    break;
+
+                default:
+                    $order->update_status('failed');
+                    $order->add_order_note(__('Payment Status : ', 'payment-gateway-stripe-and-woocommerce-integration') . ucfirst($payment_intent->status) . ' [ ' . $order_time . ' ].');
+                    EH_Stripe_Log::log_update('dead', $payment_intent, 'debug code : 1065 ' . get_bloginfo('blogname') . ' - Failed - Order #' . $order_id);
+                    break;
+            }
+            
+            delete_transient($lock_key);
+            $redirect_url = $this->get_return_url($order);
+            wp_safe_redirect($redirect_url);
+            exit;
+        }catch (\Stripe\Exception\InvalidRequestException $e) {
+            $msg = $e->getError()->message;
+            EH_Stripe_Log::log_update('dead',
+                array('order_id' => $order_id, 'message' => $msg),
+                'debug code : 1063F  ' . get_bloginfo('blogname') . ' - Stripe InvalidRequest - Order #' . $order_id);
+            $order->add_order_note($msg);
+            wc_add_notice( esc_html( $msg ), 'error' );
+            delete_transient($lock_key);
+            wp_safe_redirect(wc_get_checkout_url());
+            exit;
+
+        } catch (Exception $e) {
+
+            EH_Stripe_Log::log_update('dead',
+                array(
+                    'order_id' => $order_id,
+                    'message'  => $e->getMessage(),
+                    'file'     => $e->getFile(),
+                    'line'     => $e->getLine(),
+                ),
+                'debug code : 1063G  ' . get_bloginfo('blogname') . ' - Checkout Exception - Order #' . $order_id);
+
+            wc_add_notice(__('An error has occurred internally, due to which you are not redirected to the order received page. Please contact support for more assistance.', 'payment-gateway-stripe-and-woocommerce-integration'), 'error');
+            delete_transient($lock_key);
+            wp_safe_redirect(wc_get_checkout_url());
+            exit;
+        }
     }
 
 
@@ -772,6 +999,7 @@ class Eh_Stripe_Checkout extends WC_Payment_Gateway {
 					'reason' => 'requested_by_customer',
 					'metadata' => array(
 						'order_id' => $wc_order->get_id(),
+						'refund_initiated_from' => 'woocommerce',
 						'Total Tax' => $wc_order->get_total_tax(),
 						'Total Shipping' => (version_compare(WC()->version, '2.7.0', '<')) ? $wc_order->get_total_shipping() : $wc_order->get_shipping_total(),
 						'Customer IP' => $client['IP'],
@@ -782,8 +1010,10 @@ class Eh_Stripe_Checkout extends WC_Payment_Gateway {
 				);
 						
 				try {
-					$charge_response = \Stripe\Charge::retrieve($charge_id);
-					$refund_response = $charge_response->refunds->create($refund_params);
+					//$charge_response = \Stripe\Charge::retrieve($charge_id);
+					//$refund_response = $charge_response->refunds->create($refund_params);
+                    $refund_params['charge'] = $charge_id;
+                    $refund_response = \Stripe\Refund::create($refund_params);
 					if ($refund_response) {
                         //phpcs:ignore WordPress.DateTime.RestrictedFunctions.date_date
 						$refund_time = date('Y-m-d H:i:s', time() + get_option('gmt_offset') * 3600);
@@ -815,7 +1045,7 @@ class Eh_Stripe_Checkout extends WC_Payment_Gateway {
     }
 
     //process payment intent received via webhook
-    public function wt_process_payment_intent($order_id, $order, $payment_intent_id)
+    /*public function wt_process_payment_intent($order_id, $order, $payment_intent_id)
     {
         //check stripe vendor folder is exist
         if (!class_exists('Stripe\Stripe')) {
@@ -852,7 +1082,6 @@ class Eh_Stripe_Checkout extends WC_Payment_Gateway {
 
         if('succeeded' === $payment_intent->status){
             
-            /*true if the charge succeeded, or was successfully authorized for later capture.*/
             if (true === $charge_response->paid) {
 
                 if(true === $charge_response->captured && $order->needs_payment()){
@@ -892,6 +1121,99 @@ class Eh_Stripe_Checkout extends WC_Payment_Gateway {
             EH_Stripe_Log::log_update('dead', $payment_intent, get_bloginfo('blogname') . ' - Charge - Order #' . $order_id);
         }
 
+    }*/
+
+    public function wt_process_payment_intent($order_id, $order, $payment_intent_id){
+        if (!class_exists('Stripe\Stripe')) {
+            include(EH_STRIPE_MAIN_PATH . "vendor/autoload.php");
+        }
+
+        $payment_intent = \Stripe\PaymentIntent::retrieve(array(
+            'id'     => $payment_intent_id,
+            'expand' => array('latest_charge.balance_transaction')
+        ));
+
+        EH_Helper_Class::wt_stripe_order_db_operations($order_id, $order, 'update', '_eh_stripe_payment_intent', $payment_intent_id, false);
+
+        // Define early so all branches can use it
+        //phpcs:ignore WordPress.DateTime.RestrictedFunctions.date_date
+        $order_time     = date('Y-m-d H:i:s', time() + get_option('gmt_offset') * 3600);
+        $charge_response = $payment_intent->latest_charge;
+        $data            = null;
+        $transaction_id  = null;
+
+        if (!empty($charge_response)) {
+            $obj            = new EH_Stripe_Payment();
+            $data           = $obj->make_charge_params($charge_response, $order_id);
+            $transaction_id = isset($data['transaction_id']->id)
+                ? $data['transaction_id']->id
+                : $data['transaction_id'];
+            $order->set_transaction_id($transaction_id);
+        }
+
+        switch ($payment_intent->status) {
+
+            case 'succeeded':
+                if (empty($charge_response) || empty($data)) {
+                    $order->update_status('failed');
+                    $order->add_order_note('Payment succeeded but no charge data found [ ' . $order_time . ' ].');
+                    EH_Stripe_Log::log_update('dead',
+                        array('order_id' => $order_id, 'payment_intent_id' => $payment_intent_id),
+                        'debug code : 1072 ' . get_bloginfo('blogname') . ' - No Charge Data - Order #' . $order_id);
+                    break;
+                }
+
+                if ($order->needs_payment() && true === $charge_response->captured) {
+                    $order->payment_complete($data['id']);
+                } elseif (!$charge_response->captured && 'on-hold' !== $order->get_status()) {
+                    $order->update_status('on-hold');
+                }
+
+                $order->add_order_note(
+                    __('Payment Status : ', 'payment-gateway-stripe-and-woocommerce-integration') . ucfirst($data['status']) .
+                    ' [ ' . $order_time . ' ] . ' .
+                    __('Source : ', 'payment-gateway-stripe-and-woocommerce-integration') . $data['source_type'] . '. ' .
+                    __('Charge Status : ', 'payment-gateway-stripe-and-woocommerce-integration') . $data['captured'] .
+                    (is_null($transaction_id) ? '' : '.<br>' . __('Transaction ID : ', 'payment-gateway-stripe-and-woocommerce-integration') . $transaction_id)
+                );
+
+                if (!is_null(WC()->cart)) {
+                    WC()->cart->empty_cart();
+                }
+
+                EH_Helper_Class::wt_stripe_order_db_operations($order_id, $order, 'update', '_eh_stripe_payment_charge', $data, false);
+                EH_Stripe_Log::log_update('live', $data, 'debug code : 1071 ' . get_bloginfo('blogname') . ' - Charge - Order #' . $order_id);
+                break;
+
+            case 'requires_capture':
+                if ('on-hold' !== $order->get_status()) {
+                    $order->update_status('on-hold');
+                }
+                $order->add_order_note(
+                    __('Payment Status : ', 'payment-gateway-stripe-and-woocommerce-integration') . 'Authorized, awaiting capture [ ' . $order_time . ' ].'
+                );
+                EH_Stripe_Log::log_update('live', $payment_intent, 'debug code : 1073 ' . get_bloginfo('blogname') . ' - Requires Capture - Order #' . $order_id);
+                break;
+
+            case 'processing':
+                // Async payment method (e.g. bank transfer) - not a failure
+                if ('on-hold' !== $order->get_status()) {
+                    $order->update_status('on-hold');
+                }
+                $order->add_order_note(
+                    __('Payment Status : ', 'payment-gateway-stripe-and-woocommerce-integration') . 'Processing async payment [ ' . $order_time . ' ].'
+                );
+                EH_Stripe_Log::log_update('live', $payment_intent, 'debug code : 1073B ' . get_bloginfo('blogname') . ' - Processing - Order #' . $order_id);
+                break;
+
+            default:
+                $order->update_status('failed');
+                $order->add_order_note(
+                    __('Payment Status : ', 'payment-gateway-stripe-and-woocommerce-integration') . ucfirst($payment_intent->status) . ' [ ' . $order_time . ' ].'
+                );
+                EH_Stripe_Log::log_update('dead', $payment_intent, 'debug code : 1074 ' . get_bloginfo('blogname') . ' - Failed - Order #' . $order_id);
+                break;
+        }
     }
 
     /**

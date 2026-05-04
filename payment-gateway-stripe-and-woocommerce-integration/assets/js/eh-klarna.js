@@ -3,7 +3,8 @@ jQuery( function( $ ) {
     
 
 try {
-    var stripe = Stripe( eh_klarna_val.key, {apiVersion: eh_klarna_val.version} );
+    //var stripe = Stripe( eh_klarna_val.key, {apiVersion: eh_klarna_val.version} );
+    var stripe = Stripe( eh_klarna_val.key );
 } catch( error ) {
     console.log( error );
     return;

@@ -77,6 +77,7 @@ class Eh_Stripe_Payment_Request_Class {
         if( ( isset($this->eh_stripe_option['eh_payment_request']) && ($this->eh_stripe_option['eh_payment_request'] === 'yes') ) || ( isset($this->eh_stripe_option['eh_stripe_apple_pay']) && ($this->eh_stripe_option['eh_stripe_apple_pay'] === 'yes') ) ){
            
             if($this->is_payment_request_button_enabled() || $this->is_apple_pay_enabled() ){
+                wp_register_script( 'stripe_v3_js', 'https://js.stripe.com/basil/stripe.js');
                 //phpcs:ignore WordPress.WP.EnqueuedResourceParameters.MissingVersion, WordPress.WP.EnqueuedResourceParameters.NotInFooter
                 wp_enqueue_style('eh_apple_pay_style', EH_STRIPE_MAIN_URL_PATH . 'assets/css/apple-pay.css',EH_STRIPE_VERSION);
                 //phpcs:ignore WordPress.WP.EnqueuedResourceParameters.MissingVersion, WordPress.WP.EnqueuedResourceParameters.NotInFooter
@@ -142,7 +143,19 @@ class Eh_Stripe_Payment_Request_Class {
                     'product_data'                                  => $this->product_data(),
                     'product'                                       => is_product(),
                 );
-                $eh_payment_request_params['version'] = EH_Stripe_Token_Handler::wt_get_api_version();  
+                //$eh_payment_request_params['version'] = EH_Stripe_Token_Handler::wt_get_api_version(); 
+                $eh_payment_request_params = apply_filters("wt_stripe_payment_request_script_params", $eh_payment_request_params);
+
+                $verify_url = add_query_arg(
+                    array(
+                        'order'    => 'ORDER_ID', // placeholder, replace in JS
+                        '_wpnonce' => wp_create_nonce('eh_stripe_confirm_payment_intent'),
+                    ),
+                    WC_AJAX::get_endpoint('eh_stripe_verify_payment_intent')
+                );
+
+                $eh_payment_request_params['verify_intent_url'] = $verify_url;
+                 
                 wp_localize_script( 'eh_payment_request', 'eh_payment_request_params', $eh_payment_request_params);
             }
            
@@ -443,7 +456,9 @@ class Eh_Stripe_Payment_Request_Class {
         $product_type = (version_compare(WC()->version, '3.0', '<')) ? $product->product_type : $product->get_type();
 
         // First empty the cart to prevent wrong calculation.
-        WC()->cart->empty_cart();
+        if ( WC()->cart ) {
+            WC()->cart->empty_cart();
+        }
 
 
         if ('variable' === $product_type ) {

@@ -3,7 +3,8 @@ jQuery( function( $ ) {
     
 
 try {
-    var stripe = Stripe( eh_affirm_val.key, {apiVersion: eh_affirm_val.version} );
+    //var stripe = Stripe( eh_affirm_val.key, {apiVersion: eh_affirm_val.version} );
+    var stripe = Stripe( eh_affirm_val.key );
 } catch( error ) {
     console.log( error );
     return;
