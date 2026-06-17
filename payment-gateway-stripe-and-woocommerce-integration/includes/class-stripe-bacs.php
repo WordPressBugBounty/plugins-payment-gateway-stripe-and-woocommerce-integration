@@ -228,9 +228,9 @@ class Eh_Bacs extends WC_Payment_Gateway {
         }
 
         if(is_checkout()){ 
-            //phpcs:ignore WordPress.WP.EnqueuedResourceParameters.MissingVersion, WordPress.WP.EnqueuedResourceParameters.NotInFooter            
+            //phpcs:ignore WordPress.WP.EnqueuedResourceParameters.MissingVersion, WordPress.WP.EnqueuedResourceParameters.NotInFooter    
+            wp_register_script( 'stripe_v3_js', 'https://js.stripe.com/basil/stripe.js');        
             //wp_register_script('stripe_v3_js', 'https://js.stripe.com/v3/');
-            wp_register_script( 'stripe_v3_js', 'https://js.stripe.com/basil/stripe.js');
             wp_enqueue_script('eh_checkout_script', EH_STRIPE_MAIN_URL_PATH . 'assets/js/eh-checkout.js',array('stripe_v3_js','jquery'),EH_STRIPE_VERSION ,true);
             
             $stripe_settings = get_option("woocommerce_eh_stripe_pay_settings");
@@ -411,7 +411,7 @@ class Eh_Bacs extends WC_Payment_Gateway {
         if (isset($_REQUEST['action']) && 'cancel_order' == $_REQUEST['action']) { 
             
             wc_add_notice(__('You have cancelled Bacs Direct Debit Session. Please try to process your order again.', 'payment-gateway-stripe-and-woocommerce-integration'), 'notice');
-            wp_redirect(wc_get_checkout_url());
+            wp_safe_redirect(wc_get_checkout_url());
             exit;        
         }
         else{ 

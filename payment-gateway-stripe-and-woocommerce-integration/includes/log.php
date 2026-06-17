@@ -18,9 +18,12 @@ class EH_Stripe_Log
     }
     public static function log_update($type,$msg,$title)
     {
-        $check=  get_option('woocommerce_eh_stripe_pay_settings');
-        if('yes' === $check['eh_stripe_logging'])
-        {
+        $check = get_option( 'woocommerce_eh_stripe_pay_settings', array() );
+        if ( ! is_array( $check ) ) {
+            $check = array();
+        }
+        $logging_enabled = isset( $check['eh_stripe_logging'] )? $check['eh_stripe_logging']: 'no';
+        if ( 'yes' === $logging_enabled ){
             if(WC()->version >= '2.7.0')
             {
                 $log = wc_get_logger();

@@ -158,29 +158,32 @@ class Eh_Stripe_Admin_Handler  {
                     echo wp_kses_post("<div class='notice notice-warning is-dismissible' id='wtst-oauth-notice' ><p>$message</p></div>"); 
                 }           
 
-            } 
+	            } 
+	            $notice_nonce = wp_create_nonce( 'eh_stripe_oauth_connect' );
 
-            ?><script type="text/javascript">
-                jQuery("#wtst-oauth-notice").on("click", '.notice-dismiss', function () { 
-                    jQuery.ajax({
-                        url: ajaxurl,
-                        type: 'post',
-                        data: {
-                            action: 'wtst_dismiss_oauth_notice'
-                        },
-                      
-                    });
+	            ?><script type="text/javascript">
+	                jQuery("#wtst-oauth-notice").on("click", '.notice-dismiss', function () { 
+	                    jQuery.ajax({
+	                        url: ajaxurl,
+	                        type: 'post',
+	                        data: {
+	                            action: 'wtst_dismiss_oauth_notice',
+	                            _wpnonce: '<?php echo esc_js( $notice_nonce ); ?>'
+	                        },
+	                      
+	                    });
                 });
 
                 jQuery("#sofort-notice").on("click", '.notice-dismiss', function () { 
-                    jQuery.ajax({
-                        url: ajaxurl,
-                        type: 'post',
-                        data: {
-                            action: 'wtst_dismiss_sofort_notice'
-                        },
-                      
-                    });
+	                    jQuery.ajax({
+	                        url: ajaxurl,
+	                        type: 'post',
+	                        data: {
+	                            action: 'wtst_dismiss_sofort_notice',
+	                            _wpnonce: '<?php echo esc_js( $notice_nonce ); ?>'
+	                        },
+	                      
+	                    });
                 });
 
                 
@@ -299,13 +302,17 @@ class Eh_Stripe_Admin_Handler  {
                                         <?php
                                         WC_Admin_Settings::get_settings_pages(); 
                                         $obj = new EH_Stripe_General_Settings();
-                                        //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing
+                                        wp_nonce_field( 'eh_stripe_save_settings', '_eh_settings_nonce' );
                                         if( ! empty( $_POST ) ) {
+                                            if ( ! isset( $_POST['_eh_settings_nonce'] ) ||
+                                                 ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['_eh_settings_nonce'] ) ), 'eh_stripe_save_settings' ) ) {
+                                                wp_die( esc_html__( 'Security check failed.', 'payment-gateway-stripe-and-woocommerce-integration' ) );
+                                            }
                                         
                                             $obj->process_admin_options();
                                             //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotValidated, WordPress.Security.ValidatedSanitizedInput.MissingUnslash
                                             $redirect_url = isset($_SERVER['REQUEST_URI']) ? esc_url_raw(wp_unslash($_SERVER['REQUEST_URI'].'&msg=1')) : '';
-                                            wp_redirect($redirect_url);
+                                            wp_safe_redirect($redirect_url);
                                             exit;
                                         }
                                         $obj->admin_options();
@@ -393,14 +400,18 @@ class Eh_Stripe_Admin_Handler  {
                                             
                                             <?php
                                             WC_Admin_Settings::get_settings_pages(); 
-                                            //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing
+                                            wp_nonce_field( 'eh_stripe_save_settings', '_eh_settings_nonce' );
                                             if( ! empty( $_POST ) ) {
+                                                if ( ! isset( $_POST['_eh_settings_nonce'] ) ||
+                                                     ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['_eh_settings_nonce'] ) ), 'eh_stripe_save_settings' ) ) {
+                                                    wp_die( esc_html__( 'Security check failed.', 'payment-gateway-stripe-and-woocommerce-integration' ) );
+                                                }
                                             
                                                 $gateways = WC()->payment_gateways()->payment_gateways();
                                                 $gateways[ 'eh_stripe_pay']->process_admin_options();
                                                 //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotValidated, WordPress.Security.ValidatedSanitizedInput.MissingUnslash
                                                 $redirect_url = isset($_SERVER['REQUEST_URI']) ? esc_url_raw(wp_unslash($_SERVER['REQUEST_URI'].'&msg=1')) : '';
-                                                wp_redirect($redirect_url);
+                                                wp_safe_redirect($redirect_url);
                                                 exit;
                                             }
                                             
@@ -434,13 +445,17 @@ class Eh_Stripe_Admin_Handler  {
                                             <?php
                                             WC_Admin_Settings::get_settings_pages();
                                             $obj = new EH_Stripe_Applepay(); 
-                                            //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing
+                                            wp_nonce_field( 'eh_stripe_save_settings', '_eh_settings_nonce' );
                                             if( ! empty( $_POST ) ) {
+                                                if ( ! isset( $_POST['_eh_settings_nonce'] ) ||
+                                                     ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['_eh_settings_nonce'] ) ), 'eh_stripe_save_settings' ) ) {
+                                                    wp_die( esc_html__( 'Security check failed.', 'payment-gateway-stripe-and-woocommerce-integration' ) );
+                                                }
                                                
                                                 $obj->process_admin_options();
                                                 //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotValidated, WordPress.Security.ValidatedSanitizedInput.MissingUnslash
                                                 $redirect_url = isset($_SERVER['REQUEST_URI']) ? esc_url_raw(wp_unslash($_SERVER['REQUEST_URI'].'&msg=1')) : '';
-                                                wp_redirect($redirect_url);
+                                                wp_safe_redirect($redirect_url);
                                                 exit;
                                             }
                                             
@@ -473,13 +488,17 @@ class Eh_Stripe_Admin_Handler  {
                                             <?php
                                             WC_Admin_Settings::get_settings_pages();
                                             $obj = new EH_Stripe_Payment_Request(); 
-                                            //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing
+                                            wp_nonce_field( 'eh_stripe_save_settings', '_eh_settings_nonce' );
                                             if( ! empty( $_POST ) ) {
+                                                if ( ! isset( $_POST['_eh_settings_nonce'] ) ||
+                                                     ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['_eh_settings_nonce'] ) ), 'eh_stripe_save_settings' ) ) {
+                                                    wp_die( esc_html__( 'Security check failed.', 'payment-gateway-stripe-and-woocommerce-integration' ) );
+                                                }
                                                
                                                 $obj->process_admin_options();
                                                 //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotValidated, WordPress.Security.ValidatedSanitizedInput.MissingUnslash
                                                 $redirect_url = isset($_SERVER['REQUEST_URI']) ? esc_url_raw(wp_unslash($_SERVER['REQUEST_URI'].'&msg=1')) : '';
-                                                wp_redirect($redirect_url);
+                                                wp_safe_redirect($redirect_url);
                                                 exit;
                                             }
                                             
@@ -513,14 +532,18 @@ class Eh_Stripe_Admin_Handler  {
                                             
                                             <?php
                                             WC_Admin_Settings::get_settings_pages(); 
-                                            //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing
+                                            wp_nonce_field( 'eh_stripe_save_settings', '_eh_settings_nonce' );
                                             if( ! empty( $_POST ) ) {
+                                                if ( ! isset( $_POST['_eh_settings_nonce'] ) ||
+                                                     ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['_eh_settings_nonce'] ) ), 'eh_stripe_save_settings' ) ) {
+                                                    wp_die( esc_html__( 'Security check failed.', 'payment-gateway-stripe-and-woocommerce-integration' ) );
+                                                }
                                             
                                                 $gateways = WC()->payment_gateways()->payment_gateways();
                                                 $gateways[ 'eh_alipay_stripe']->process_admin_options();
                                                 //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotValidated, WordPress.Security.ValidatedSanitizedInput.MissingUnslash
                                                 $redirect_url = isset($_SERVER['REQUEST_URI']) ? esc_url_raw(wp_unslash($_SERVER['REQUEST_URI'].'&msg=1')) : '';
-                                                wp_redirect($redirect_url);
+                                                wp_safe_redirect($redirect_url);
                                                 exit;
                                             }
                                             
@@ -554,14 +577,18 @@ class Eh_Stripe_Admin_Handler  {
                                             
                                             <?php
                                             WC_Admin_Settings::get_settings_pages(); 
-                                            //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing
+                                            wp_nonce_field( 'eh_stripe_save_settings', '_eh_settings_nonce' );
                                             if( ! empty( $_POST ) ) {
+                                                if ( ! isset( $_POST['_eh_settings_nonce'] ) ||
+                                                     ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['_eh_settings_nonce'] ) ), 'eh_stripe_save_settings' ) ) {
+                                                    wp_die( esc_html__( 'Security check failed.', 'payment-gateway-stripe-and-woocommerce-integration' ) );
+                                                }
                                             
                                                 $gateways = WC()->payment_gateways()->payment_gateways();
                                                 $gateways[ 'eh_stripe_checkout']->process_admin_options();
                                                 //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotValidated, WordPress.Security.ValidatedSanitizedInput.MissingUnslash
                                                 $redirect_url = isset($_SERVER['REQUEST_URI']) ? esc_url_raw(wp_unslash($_SERVER['REQUEST_URI'].'&msg=1')) : '';
-                                                wp_redirect($redirect_url);
+                                                wp_safe_redirect($redirect_url);
                                                 exit;
                                             }
                                             $obj = new Eh_Stripe_Checkout();
@@ -596,14 +623,18 @@ class Eh_Stripe_Admin_Handler  {
                                         
                                         <?php
                                         WC_Admin_Settings::get_settings_pages(); 
-                                        //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing
+                                        wp_nonce_field( 'eh_stripe_save_settings', '_eh_settings_nonce' );
                                         if( ! empty( $_POST ) ) {
+                                            if ( ! isset( $_POST['_eh_settings_nonce'] ) ||
+                                                 ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['_eh_settings_nonce'] ) ), 'eh_stripe_save_settings' ) ) {
+                                                wp_die( esc_html__( 'Security check failed.', 'payment-gateway-stripe-and-woocommerce-integration' ) );
+                                            }
                                         
                                             $gateways = WC()->payment_gateways()->payment_gateways();
                                             $gateways[ 'eh_sepa_stripe']->process_admin_options();
                                             //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotValidated, WordPress.Security.ValidatedSanitizedInput.MissingUnslash
                                             $redirect_url = isset($_SERVER['REQUEST_URI']) ? esc_url_raw(wp_unslash($_SERVER['REQUEST_URI'].'&msg=1')) : '';
-                                            wp_redirect($redirect_url);
+                                            wp_safe_redirect($redirect_url);
                                             exit;
                                         }
                                         
@@ -637,14 +668,18 @@ class Eh_Stripe_Admin_Handler  {
                                         
                                         <?php
                                         WC_Admin_Settings::get_settings_pages(); 
-                                        //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing
+                                        wp_nonce_field( 'eh_stripe_save_settings', '_eh_settings_nonce' );
                                         if( ! empty( $_POST ) ) {
+                                            if ( ! isset( $_POST['_eh_settings_nonce'] ) ||
+                                                 ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['_eh_settings_nonce'] ) ), 'eh_stripe_save_settings' ) ) {
+                                                wp_die( esc_html__( 'Security check failed.', 'payment-gateway-stripe-and-woocommerce-integration' ) );
+                                            }
                                         
                                             $gateways = WC()->payment_gateways()->payment_gateways();
                                             $gateways['eh_klarna_stripe']->process_admin_options();
                                             //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotValidated, WordPress.Security.ValidatedSanitizedInput.MissingUnslash
                                             $redirect_url = isset($_SERVER['REQUEST_URI']) ? esc_url_raw(wp_unslash($_SERVER['REQUEST_URI'].'&msg=1')) : '';
-                                            wp_redirect($redirect_url);
+                                            wp_safe_redirect($redirect_url);
                                             exit;
                                         }
                                         
@@ -710,14 +745,18 @@ class Eh_Stripe_Admin_Handler  {
                                         
                                         <?php
                                         WC_Admin_Settings::get_settings_pages(); 
-                                        //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing
+                                        wp_nonce_field( 'eh_stripe_save_settings', '_eh_settings_nonce' );
                                         if( ! empty( $_POST ) ) {
+                                            if ( ! isset( $_POST['_eh_settings_nonce'] ) ||
+                                                 ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['_eh_settings_nonce'] ) ), 'eh_stripe_save_settings' ) ) {
+                                                wp_die( esc_html__( 'Security check failed.', 'payment-gateway-stripe-and-woocommerce-integration' ) );
+                                            }
                                         
                                             $gateways = WC()->payment_gateways()->payment_gateways();
                                             $gateways['eh_afterpay_stripe']->process_admin_options();
                                             //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotValidated, WordPress.Security.ValidatedSanitizedInput.MissingUnslash
                                             $redirect_url = isset($_SERVER['REQUEST_URI']) ? esc_url_raw(wp_unslash($_SERVER['REQUEST_URI'].'&msg=1')) : '';
-                                            wp_redirect($redirect_url);
+                                            wp_safe_redirect($redirect_url);
                                             exit;
                                         }
                                         
@@ -750,14 +789,18 @@ class Eh_Stripe_Admin_Handler  {
                                         
                                         <?php
                                         WC_Admin_Settings::get_settings_pages(); 
-                                        //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing
+                                        wp_nonce_field( 'eh_stripe_save_settings', '_eh_settings_nonce' );
                                         if( ! empty( $_POST ) ) {
+                                            if ( ! isset( $_POST['_eh_settings_nonce'] ) ||
+                                                 ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['_eh_settings_nonce'] ) ), 'eh_stripe_save_settings' ) ) {
+                                                wp_die( esc_html__( 'Security check failed.', 'payment-gateway-stripe-and-woocommerce-integration' ) );
+                                            }
                                         
                                             $gateways = WC()->payment_gateways()->payment_gateways();
                                             $gateways['eh_wechat_stripe']->process_admin_options();
                                             //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotValidated, WordPress.Security.ValidatedSanitizedInput.MissingUnslash
                                             $redirect_url = isset($_SERVER['REQUEST_URI']) ? esc_url_raw(wp_unslash($_SERVER['REQUEST_URI'].'&msg=1')) : '';
-                                            wp_redirect($redirect_url);
+                                            wp_safe_redirect($redirect_url);
                                             exit;
                                         }
                                         
@@ -791,14 +834,18 @@ class Eh_Stripe_Admin_Handler  {
                                     
                                     <?php
                                     WC_Admin_Settings::get_settings_pages(); 
-                                    //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing
+                                    wp_nonce_field( 'eh_stripe_save_settings', '_eh_settings_nonce' );
                                     if( ! empty( $_POST ) ) {
+                                        if ( ! isset( $_POST['_eh_settings_nonce'] ) ||
+                                             ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['_eh_settings_nonce'] ) ), 'eh_stripe_save_settings' ) ) {
+                                            wp_die( esc_html__( 'Security check failed.', 'payment-gateway-stripe-and-woocommerce-integration' ) );
+                                        }
                                     
                                         $gateways = WC()->payment_gateways()->payment_gateways();
                                         $gateways['eh_ideal_stripe']->process_admin_options();
                                         //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotValidated, WordPress.Security.ValidatedSanitizedInput.MissingUnslash
                                         $redirect_url = isset($_SERVER['REQUEST_URI']) ? esc_url_raw(wp_unslash($_SERVER['REQUEST_URI'].'&msg=1')) : '';
-                                        wp_redirect($redirect_url);
+                                        wp_safe_redirect($redirect_url);
                                         exit;
                                     }
                                     
@@ -830,14 +877,18 @@ class Eh_Stripe_Admin_Handler  {
                                     
                                     <?php
                                     WC_Admin_Settings::get_settings_pages(); 
-                                    //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing
+                                    wp_nonce_field( 'eh_stripe_save_settings', '_eh_settings_nonce' );
                                     if( ! empty( $_POST ) ) {
+                                        if ( ! isset( $_POST['_eh_settings_nonce'] ) ||
+                                             ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['_eh_settings_nonce'] ) ), 'eh_stripe_save_settings' ) ) {
+                                            wp_die( esc_html__( 'Security check failed.', 'payment-gateway-stripe-and-woocommerce-integration' ) );
+                                        }
                                     
                                         $gateways = WC()->payment_gateways()->payment_gateways();
                                         $gateways['eh_bancontact_stripe']->process_admin_options();
                                         //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotValidated, WordPress.Security.ValidatedSanitizedInput.MissingUnslash
                                         $redirect_url = isset($_SERVER['REQUEST_URI']) ? esc_url_raw(wp_unslash($_SERVER['REQUEST_URI'].'&msg=1')) : '';
-                                        wp_redirect($redirect_url);
+                                        wp_safe_redirect($redirect_url);
                                         exit;
                                     }
                                     
@@ -870,14 +921,18 @@ class Eh_Stripe_Admin_Handler  {
                                     
                                     <?php
                                     WC_Admin_Settings::get_settings_pages(); 
-                                    //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing
+                                    wp_nonce_field( 'eh_stripe_save_settings', '_eh_settings_nonce' );
                                     if( ! empty( $_POST ) ) {
+                                        if ( ! isset( $_POST['_eh_settings_nonce'] ) ||
+                                             ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['_eh_settings_nonce'] ) ), 'eh_stripe_save_settings' ) ) {
+                                            wp_die( esc_html__( 'Security check failed.', 'payment-gateway-stripe-and-woocommerce-integration' ) );
+                                        }
                                     
                                         $gateways = WC()->payment_gateways()->payment_gateways();
                                         $gateways['eh_eps_stripe']->process_admin_options();
                                         //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotValidated, WordPress.Security.ValidatedSanitizedInput.MissingUnslash
                                         $redirect_url = isset($_SERVER['REQUEST_URI']) ? esc_url_raw(wp_unslash($_SERVER['REQUEST_URI'].'&msg=1')) : '';
-                                        wp_redirect($redirect_url);
+                                        wp_safe_redirect($redirect_url);
                                         exit;
                                     }
                                     
@@ -910,14 +965,18 @@ class Eh_Stripe_Admin_Handler  {
                                     
                                     <?php
                                     WC_Admin_Settings::get_settings_pages(); 
-                                    //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing
+                                    wp_nonce_field( 'eh_stripe_save_settings', '_eh_settings_nonce' );
                                     if( ! empty( $_POST ) ) {
+                                        if ( ! isset( $_POST['_eh_settings_nonce'] ) ||
+                                             ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['_eh_settings_nonce'] ) ), 'eh_stripe_save_settings' ) ) {
+                                            wp_die( esc_html__( 'Security check failed.', 'payment-gateway-stripe-and-woocommerce-integration' ) );
+                                        }
                                     
                                         $gateways = WC()->payment_gateways()->payment_gateways();
                                         $gateways['eh_p24_stripe']->process_admin_options();
                                         //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotValidated, WordPress.Security.ValidatedSanitizedInput.MissingUnslash
                                         $redirect_url = isset($_SERVER['REQUEST_URI']) ? esc_url_raw(wp_unslash($_SERVER['REQUEST_URI'].'&msg=1')) : '';
-                                        wp_redirect($redirect_url);
+                                        wp_safe_redirect($redirect_url);
                                         exit;
                                     }
                                     
@@ -951,14 +1010,18 @@ class Eh_Stripe_Admin_Handler  {
                                     
                                     <?php
                                     WC_Admin_Settings::get_settings_pages(); 
-                                    //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing
+                                    wp_nonce_field( 'eh_stripe_save_settings', '_eh_settings_nonce' );
                                     if( ! empty( $_POST ) ) {
+                                        if ( ! isset( $_POST['_eh_settings_nonce'] ) ||
+                                             ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['_eh_settings_nonce'] ) ), 'eh_stripe_save_settings' ) ) {
+                                            wp_die( esc_html__( 'Security check failed.', 'payment-gateway-stripe-and-woocommerce-integration' ) );
+                                        }
                                     
                                         $gateways = WC()->payment_gateways()->payment_gateways();
                                         $gateways['eh_bacs']->process_admin_options();
                                         //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotValidated, WordPress.Security.ValidatedSanitizedInput.MissingUnslash
                                         $redirect_url = isset($_SERVER['REQUEST_URI']) ? esc_url_raw(wp_unslash($_SERVER['REQUEST_URI'].'&msg=1')) : '';
-                                        wp_redirect($redirect_url);
+                                        wp_safe_redirect($redirect_url);
                                         exit;
                                     }
                                     
@@ -991,14 +1054,18 @@ class Eh_Stripe_Admin_Handler  {
                                     
                                     <?php
                                     WC_Admin_Settings::get_settings_pages(); 
-                                    //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing
+                                    wp_nonce_field( 'eh_stripe_save_settings', '_eh_settings_nonce' );
                                     if( ! empty( $_POST ) ) {
+                                        if ( ! isset( $_POST['_eh_settings_nonce'] ) ||
+                                             ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['_eh_settings_nonce'] ) ), 'eh_stripe_save_settings' ) ) {
+                                            wp_die( esc_html__( 'Security check failed.', 'payment-gateway-stripe-and-woocommerce-integration' ) );
+                                        }
                                     
                                         $gateways = WC()->payment_gateways()->payment_gateways();
                                         $gateways['eh_becs_stripe']->process_admin_options();
                                         //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotValidated, WordPress.Security.ValidatedSanitizedInput.MissingUnslash
                                         $redirect_url = isset($_SERVER['REQUEST_URI']) ? esc_url_raw(wp_unslash($_SERVER['REQUEST_URI'].'&msg=1')) : '';
-                                        wp_redirect($redirect_url);
+                                        wp_safe_redirect($redirect_url);
                                         exit;
                                     }
                                     
@@ -1031,14 +1098,18 @@ class Eh_Stripe_Admin_Handler  {
                                     
                                     <?php
                                     WC_Admin_Settings::get_settings_pages(); 
-                                    //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing
+                                    wp_nonce_field( 'eh_stripe_save_settings', '_eh_settings_nonce' );
                                     if( ! empty( $_POST ) ) {
+                                        if ( ! isset( $_POST['_eh_settings_nonce'] ) ||
+                                             ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['_eh_settings_nonce'] ) ), 'eh_stripe_save_settings' ) ) {
+                                            wp_die( esc_html__( 'Security check failed.', 'payment-gateway-stripe-and-woocommerce-integration' ) );
+                                        }
                                     
                                         $gateways = WC()->payment_gateways()->payment_gateways();
                                         $gateways['eh_fpx_stripe']->process_admin_options();
                                         //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotValidated, WordPress.Security.ValidatedSanitizedInput.MissingUnslash
                                         $redirect_url = isset($_SERVER['REQUEST_URI']) ? esc_url_raw(wp_unslash($_SERVER['REQUEST_URI'].'&msg=1')) : '';
-                                        wp_redirect($redirect_url);
+                                        wp_safe_redirect($redirect_url);
                                         exit;
                                     }
                                     
@@ -1071,14 +1142,18 @@ class Eh_Stripe_Admin_Handler  {
                                     
                                     <?php
                                     WC_Admin_Settings::get_settings_pages(); 
-                                    //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing
+                                    wp_nonce_field( 'eh_stripe_save_settings', '_eh_settings_nonce' );
                                     if( ! empty( $_POST ) ) {
+                                        if ( ! isset( $_POST['_eh_settings_nonce'] ) ||
+                                             ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['_eh_settings_nonce'] ) ), 'eh_stripe_save_settings' ) ) {
+                                            wp_die( esc_html__( 'Security check failed.', 'payment-gateway-stripe-and-woocommerce-integration' ) );
+                                        }
                                     
                                         $gateways = WC()->payment_gateways()->payment_gateways();
                                         $gateways['eh_boleto_stripe']->process_admin_options();
                                         //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotValidated, WordPress.Security.ValidatedSanitizedInput.MissingUnslash
                                         $redirect_url = isset($_SERVER['REQUEST_URI']) ? esc_url_raw(wp_unslash($_SERVER['REQUEST_URI'].'&msg=1')) : '';
-                                        wp_redirect($redirect_url);
+                                        wp_safe_redirect($redirect_url);
                                         exit;
                                     }
                                     
@@ -1111,14 +1186,18 @@ class Eh_Stripe_Admin_Handler  {
                                     
                                     <?php
                                     WC_Admin_Settings::get_settings_pages(); 
-                                    //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing
+                                    wp_nonce_field( 'eh_stripe_save_settings', '_eh_settings_nonce' );
                                     if( ! empty( $_POST ) ) {
+                                        if ( ! isset( $_POST['_eh_settings_nonce'] ) ||
+                                             ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['_eh_settings_nonce'] ) ), 'eh_stripe_save_settings' ) ) {
+                                            wp_die( esc_html__( 'Security check failed.', 'payment-gateway-stripe-and-woocommerce-integration' ) );
+                                        }
                                     
                                         $gateways = WC()->payment_gateways()->payment_gateways();
                                         $gateways['eh_oxxo_stripe']->process_admin_options();
                                         //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotValidated, WordPress.Security.ValidatedSanitizedInput.MissingUnslash
                                         $redirect_url = isset($_SERVER['REQUEST_URI']) ? esc_url_raw(wp_unslash($_SERVER['REQUEST_URI'].'&msg=1')) : '';
-                                        wp_redirect($redirect_url);
+                                        wp_safe_redirect($redirect_url);
                                         exit;
                                     }
                                     
@@ -1151,14 +1230,18 @@ class Eh_Stripe_Admin_Handler  {
                                     
                                     <?php
                                     WC_Admin_Settings::get_settings_pages(); 
-                                    //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing
+                                    wp_nonce_field( 'eh_stripe_save_settings', '_eh_settings_nonce' );
                                     if( ! empty( $_POST ) ) {
+                                        if ( ! isset( $_POST['_eh_settings_nonce'] ) ||
+                                             ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['_eh_settings_nonce'] ) ), 'eh_stripe_save_settings' ) ) {
+                                            wp_die( esc_html__( 'Security check failed.', 'payment-gateway-stripe-and-woocommerce-integration' ) );
+                                        }
                                     
                                         $gateways = WC()->payment_gateways()->payment_gateways();
                                         $gateways['eh_grabpay_stripe']->process_admin_options();
                                         //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing,WordPress.Security.ValidatedSanitizedInput.InputNotValidated
                                         $redirect_url = isset($_SERVER['REQUEST_URI']) ? esc_url_raw(wp_unslash($_SERVER['REQUEST_URI'].'&msg=1')) : '';
-                                        wp_redirect($redirect_url);
+                                        wp_safe_redirect($redirect_url);
                                         exit;
                                     }
                                     
@@ -1191,11 +1274,17 @@ class Eh_Stripe_Admin_Handler  {
                                     
                                     <?php
                                     WC_Admin_Settings::get_settings_pages(); 
+                                    wp_nonce_field( 'eh_stripe_save_settings', '_eh_settings_nonce' );
                                     if( ! empty( $_POST ) ) {
+                                        if ( ! isset( $_POST['_eh_settings_nonce'] ) ||
+                                             ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['_eh_settings_nonce'] ) ), 'eh_stripe_save_settings' ) ) {
+                                            wp_die( esc_html__( 'Security check failed.', 'payment-gateway-stripe-and-woocommerce-integration' ) );
+                                        }
                                     
                                         $gateways = WC()->payment_gateways()->payment_gateways();
                                         $gateways['eh_multibanco_stripe']->process_admin_options();
-                                        wp_redirect($_SERVER['REQUEST_URI'].'&msg=1'); 
+                                        wp_safe_redirect(isset($_SERVER['REQUEST_URI']) ? esc_url_raw(wp_unslash($_SERVER['REQUEST_URI']).'&msg=1') : '');
+                                        exit;
                                     }
                                     
                                     $obj = new EH_Multibanco();
@@ -1227,14 +1316,18 @@ class Eh_Stripe_Admin_Handler  {
                                     
                                     <?php
                                     WC_Admin_Settings::get_settings_pages(); 
-                                    //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing
+                                    wp_nonce_field( 'eh_stripe_save_settings', '_eh_settings_nonce' );
                                     if( ! empty( $_POST ) ) {
+                                        if ( ! isset( $_POST['_eh_settings_nonce'] ) ||
+                                             ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['_eh_settings_nonce'] ) ), 'eh_stripe_save_settings' ) ) {
+                                            wp_die( esc_html__( 'Security check failed.', 'payment-gateway-stripe-and-woocommerce-integration' ) );
+                                        }
                                     
                                         $gateways = WC()->payment_gateways()->payment_gateways();
                                         $gateways['eh_affirm_stripe']->process_admin_options();
                                         //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotValidated
                                         $redirect_url = isset($_SERVER['REQUEST_URI']) ? esc_url_raw(wp_unslash($_SERVER['REQUEST_URI'].'&msg=1')) : '';
-                                        wp_redirect($redirect_url);
+                                        wp_safe_redirect($redirect_url);
                                         exit;
                                     }
                                     
@@ -1353,6 +1446,7 @@ class Eh_Stripe_Admin_Handler  {
     static function wt_get_install_link($mode, $test_mode_type = false)
     {
         if ( is_admin() ) {
+            // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Not processing form data; only unsetting OAuth error/status keys from superglobals to prevent them from appearing in redirect URLs
             if ( isset( $_REQUEST['oauth_error'] ) || isset( $_REQUEST['oauth_status'] ) ) {
 
             unset(
@@ -1490,30 +1584,39 @@ class Eh_Stripe_Admin_Handler  {
      * Function to set transient when oAuth notice is dismissed and to identify the no of times user dismissed the notice 
      * 
      * */    
-    public function wtst_dismiss_oauth_notice()
-    {
-        //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing
-        if(isset($_REQUEST['action']) && 'wtst_dismiss_oauth_notice' === sanitize_text_field(wp_unslash($_REQUEST['action']))){
-            set_transient("wtst_dismiss_oauth_notice", "yes", 2 * DAY_IN_SECONDS);
-            $dismissible_count = get_transient("wtst_oauth_notice_dismissable_count");
-            $dismissible_count = (int) (false !== $dismissible_count) ? ($dismissible_count + 1) : 1;
-            set_transient("wtst_oauth_notice_dismissable_count", $dismissible_count);
-        }
-    }
+	    public function wtst_dismiss_oauth_notice()
+	    {
+	        check_ajax_referer( 'eh_stripe_oauth_connect' );
+
+	        if ( ! current_user_can( 'manage_options' ) ) {
+	            wp_die( esc_html__( 'You are not allowed to perform this action.', 'payment-gateway-stripe-and-woocommerce-integration' ) );
+	        }
+
+	        set_transient( 'wtst_dismiss_oauth_notice', 'yes', 2 * DAY_IN_SECONDS );
+	        $dismissible_count = get_transient( 'wtst_oauth_notice_dismissable_count' );
+	        $dismissible_count = ( false !== $dismissible_count ) ? ( (int) $dismissible_count + 1 ) : 1;
+	        set_transient( 'wtst_oauth_notice_dismissable_count', $dismissible_count );
+
+	        wp_send_json_success();
+	    }
 
     /**
      * Function to set transient when Sofort notice is dismissed
      * 
      * 
      * */
-    public function wtst_dismiss_sofort_notice()
-    {
-        //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing
-        if(isset($_REQUEST['action']) && 'wtst_dismiss_sofort_notice' === sanitize_text_field(wp_unslash($_REQUEST['action']))){
-            set_transient("wtst_dismiss_sofort_notice", "yes");
+	    public function wtst_dismiss_sofort_notice()
+	    {
+	        check_ajax_referer( 'eh_stripe_oauth_connect' );
 
-        }
-    }
+	        if ( ! current_user_can( 'manage_options' ) ) {
+	            wp_die( esc_html__( 'You are not allowed to perform this action.', 'payment-gateway-stripe-and-woocommerce-integration' ) );
+	        }
+
+	        set_transient( 'wtst_dismiss_sofort_notice', 'yes' );
+
+	        wp_send_json_success();
+	    }
 
 
     /**

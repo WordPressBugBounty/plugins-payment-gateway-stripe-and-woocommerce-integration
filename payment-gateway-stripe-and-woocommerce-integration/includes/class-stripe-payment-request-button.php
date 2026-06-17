@@ -77,6 +77,7 @@ class Eh_Stripe_Payment_Request_Class {
         if( ( isset($this->eh_stripe_option['eh_payment_request']) && ($this->eh_stripe_option['eh_payment_request'] === 'yes') ) || ( isset($this->eh_stripe_option['eh_stripe_apple_pay']) && ($this->eh_stripe_option['eh_stripe_apple_pay'] === 'yes') ) ){
            
             if($this->is_payment_request_button_enabled() || $this->is_apple_pay_enabled() ){
+                //phpcs:ignore WordPress.WP.EnqueuedResourceParameters.MissingVersion, WordPress.WP.EnqueuedResourceParameters.NotInFooter
                 wp_register_script( 'stripe_v3_js', 'https://js.stripe.com/basil/stripe.js');
                 //phpcs:ignore WordPress.WP.EnqueuedResourceParameters.MissingVersion, WordPress.WP.EnqueuedResourceParameters.NotInFooter
                 wp_enqueue_style('eh_apple_pay_style', EH_STRIPE_MAIN_URL_PATH . 'assets/css/apple-pay.css',EH_STRIPE_VERSION);

@@ -50,87 +50,118 @@ class Eh_Stripe_Order_Datatables extends WP_List_Table {
     //Checkbox column for selection
     function column_cb($item) {
         return sprintf(
-                '<input type="checkbox" name="%1$s[]" value="%2$s" />', $this->_args['plural'], $item['order_id']
+                '<input type="checkbox" name="%1$s[]" value="%2$s" />',
+                esc_attr( $this->_args['plural'] ),
+                absint( $item['order_id'] )
         );
     }
     
     //Column to display order status
     function column_order_status($item) {
-        return sprintf('<mark class="' . $item['order_status'] . ' tips"  ><span>' . ucfirst($item['order_status']) . '</span></mark>');
+        return sprintf(
+            '<mark class="%1$s tips"><span>%2$s</span></mark>',
+            esc_attr( $item['order_status'] ),
+            esc_html( ucfirst( $item['order_status'] ) )
+        );
     }
     
     //Column to display order details
     function column_order($item) {
-        return sprintf('<span><a href="' . get_admin_url() . 'post.php?post=' . $item['order_id'] . '&action=edit"><strong>#' . $item['order_number'] . '</strong></a> by <a href="' . get_admin_url() . 'user-edit.php?user_id=' . $item['user_id'] . '">' . $item['user_name'] . '</a><br>' . $item['user_email'] . '</span>');
+        $order_url = add_query_arg(
+            array(
+                'post'   => absint( $item['order_id'] ),
+                'action' => 'edit',
+            ),
+            admin_url( 'post.php' )
+        );
+
+        $user_name = esc_html( $item['user_name'] );
+        if ( 'guest' !== $item['user_id'] ) {
+            $user_name = sprintf(
+                '<a href="%1$s">%2$s</a>',
+                esc_url( add_query_arg( 'user_id', absint( $item['user_id'] ), admin_url( 'user-edit.php' ) ) ),
+                esc_html( $item['user_name'] )
+            );
+        }
+
+        return sprintf(
+            '<span><a href="%1$s"><strong>#%2$s</strong></a> by %3$s<br>%4$s</span>',
+            esc_url( $order_url ),
+            esc_html( $item['order_number'] ),
+            wp_kses_post( $user_name ),
+            esc_html( $item['user_email'] )
+        );
     }
     
     //Column to display order shipping details
     function column_ship($item) {
         
        
-        $shiptoaddr = (!empty($item['ship']['first_name']) || !empty($item['ship']['last_name']))? $item['ship']['first_name'] . ' ' . $item['ship']['last_name'].',' : '';
-        $shiptoaddr.= (!empty($item['ship']['company']))? $item['ship']['company'].',' : '';
-        $shiptoaddr.= (!empty($item['ship']['address_1']))? $item['ship']['address_1'].',' : '';
-        $shiptoaddr.= (!empty($item['ship']['address_2']))? $item['ship']['address_2'].',' : '';
-        $shiptoaddr.= (!empty($item['ship']['city']))? $item['ship']['city'].',' : '';
-        $shiptoaddr.= (!empty($item['ship']['state']))? $item['ship']['state'].'-' : '';
-        $shiptoaddr.= (!empty($item['ship']['postcode']))? $item['ship']['postcode'].',' : '';
-        $shiptoaddr.= (!empty($item['ship']['country']))? $item['ship']['country'].',' : '';
-        return sprintf('<span>' .$shiptoaddr. '</span>');
+        $shiptoaddr = ( ! empty( $item['ship']['first_name'] ) || ! empty( $item['ship']['last_name'] ) ) ? esc_html( $item['ship']['first_name'] . ' ' . $item['ship']['last_name'] ) . ',' : '';
+        $shiptoaddr.= ( ! empty( $item['ship']['company'] ) ) ? esc_html( $item['ship']['company'] ) . ',' : '';
+        $shiptoaddr.= ( ! empty( $item['ship']['address_1'] ) ) ? esc_html( $item['ship']['address_1'] ) . ',' : '';
+        $shiptoaddr.= ( ! empty( $item['ship']['address_2'] ) ) ? esc_html( $item['ship']['address_2'] ) . ',' : '';
+        $shiptoaddr.= ( ! empty( $item['ship']['city'] ) ) ? esc_html( $item['ship']['city'] ) . ',' : '';
+        $shiptoaddr.= ( ! empty( $item['ship']['state'] ) ) ? esc_html( $item['ship']['state'] ) . '-' : '';
+        $shiptoaddr.= ( ! empty( $item['ship']['postcode'] ) ) ? esc_html( $item['ship']['postcode'] ) . ',' : '';
+        $shiptoaddr.= ( ! empty( $item['ship']['country'] ) ) ? esc_html( $item['ship']['country'] ) . ',' : '';
+        return '<span>' . $shiptoaddr . '</span>';
     }
     
     //Column to display order price
     function column_price($item) {
-        return sprintf('<span>' . $item['price'] . '</span>');
+        return '<span>' . wp_kses_post( $item['price'] ) . '</span>';
     }
     
     //Column to display refund button for full and partial refunds
     function column_p_actions($item) {
         $actions = '';
         if (in_array($item['order_status'], array('pending', 'on-hold', 'processing', 'completed', 'cancelled'), true)) {
-            $id = $item['order_id'];
+            $id = absint( $item['order_id'] );
             $data = EH_Helper_Class::wt_stripe_order_db_operations($id, null, 'get', '_eh_stripe_payment_charge');
             if ($data !== '') {
                 if ('succeeded' === $data['status']) {
                     switch ($data['captured']) {
                         case 'Captured':
-                            $actions = '<span style="text-align: center;" class="button payment_refund_button payment_act" id=' . $id . '>' . __('Refund ', 'payment-gateway-stripe-and-woocommerce-integration') .get_woocommerce_currency_symbol(). '<span class="amount_refund_main_' . $id . '" >' .$item['refund_rem']. '</span><span class="amount_refund_place_' . $id . '" hidden> ' . $item['refund_rem'] . '</span><span id="' . $id . '_loader"></span></span><input type="number" id=' . $id . ' class="payment_refund_text_' . $id . '" style="float:left; width:89%%; margin-top:3px; margin-left:3px" placeholder="Amount" hidden>'
-                                    . '<input type="checkbox" style="margin-left:3px;" checked class="' . $id . '" id="payment_refund_check" value="refund">' . __('Full', 'payment-gateway-stripe-and-woocommerce-integration');
+                            $refund_amount = wc_format_decimal( $item['refund_rem'] );
+                            $actions = '<span style="text-align: center;" class="button payment_refund_button payment_act" id="' . esc_attr( $id ) . '">' . esc_html__( 'Refund ', 'payment-gateway-stripe-and-woocommerce-integration' ) . esc_html( get_woocommerce_currency_symbol() ) . '<span class="amount_refund_main_' . esc_attr( $id ) . '">' . esc_html( $refund_amount ) . '</span><span class="amount_refund_place_' . esc_attr( $id ) . '" hidden> ' . esc_html( $refund_amount ) . '</span><span id="' . esc_attr( $id ) . '_loader"></span></span><input type="number" id="' . esc_attr( $id ) . '" class="payment_refund_text_' . esc_attr( $id ) . '" style="float:left; width:89%; margin-top:3px; margin-left:3px" placeholder="' . esc_attr__( 'Amount', 'payment-gateway-stripe-and-woocommerce-integration' ) . '" hidden>'
+                                    . '<input type="checkbox" style="margin-left:3px;" checked class="' . esc_attr( $id ) . '" id="payment_refund_check" value="refund">' . esc_html__( 'Full', 'payment-gateway-stripe-and-woocommerce-integration' );
                             break;
                         case 'Uncaptured':
-                            $actions = '<center><span style="width:100%%;text-align: center;" class="button payment_capture_button payment_act" id=' . $id . '>' . __('Capture ', 'payment-gateway-stripe-and-woocommerce-integration') . get_woocommerce_currency_symbol() . '<span class="amount_capture_main_' . $id . '">' . number_format((float) $item['order_total'], 2, '.', '') . ' </span></span></center>';
+                            $actions = '<center><span style="width:100%;text-align: center;" class="button payment_capture_button payment_act" id="' . esc_attr( $id ) . '">' . esc_html__( 'Capture ', 'payment-gateway-stripe-and-woocommerce-integration' ) . esc_html( get_woocommerce_currency_symbol() ) . '<span class="amount_capture_main_' . esc_attr( $id ) . '">' . esc_html( number_format( (float) $item['order_total'], 2, '.', '' ) ) . ' </span></span></center>';
                             break;
                     }
                 }
             }
         }
-        return sprintf($actions);
+        return $actions;
     }
     
     //Column to display order actions
     function column_order_actions($item) {
         $actions = '';
+        $order_id = absint( $item['order_id'] );
         switch ($item['order_status']) {
             case 'pending':
             case 'on-hold':
-                $actions = '<p><span style="width:98%%; margin-bottom: 2px;" class="button processing order_act processing_button" id="' . $item['order_id'] . '" title="'. __('Mark as processed', 'payment-gateway-stripe-and-woocommerce-integration') .'">' . __('Processing', 'payment-gateway-stripe-and-woocommerce-integration') . '</span><span style="width:98%%" class="button complete order_act complete_button" id="' . $item['order_id'] . '" title="'.__('Mark as completed','payment-gateway-stripe-and-woocommerce-integration').'">' . __('Completed', 'payment-gateway-stripe-and-woocommerce-integration') . '</span></p>';
+                $actions = '<p><span style="width:98%; margin-bottom: 2px;" class="button processing order_act processing_button" id="' . esc_attr( $order_id ) . '" title="' . esc_attr__( 'Mark as processed', 'payment-gateway-stripe-and-woocommerce-integration' ) . '">' . esc_html__( 'Processing', 'payment-gateway-stripe-and-woocommerce-integration' ) . '</span><span style="width:98%" class="button complete order_act complete_button" id="' . esc_attr( $order_id ) . '" title="' . esc_attr__( 'Mark as completed', 'payment-gateway-stripe-and-woocommerce-integration' ) . '">' . esc_html__( 'Completed', 'payment-gateway-stripe-and-woocommerce-integration' ) . '</span></p>';
                 break;
             case 'processing':
-                $actions = '<span style="width:98%%" class="button complete_button complete order_act" id="' . $item['order_id'] . '" title="'.__('Mark as completed','payment-gateway-stripe-and-woocommerce-integration').'">' . __('Completed', 'payment-gateway-stripe-and-woocommerce-integration') . '</span>';
+                $actions = '<span style="width:98%" class="button complete_button complete order_act" id="' . esc_attr( $order_id ) . '" title="' . esc_attr__( 'Mark as completed', 'payment-gateway-stripe-and-woocommerce-integration' ) . '">' . esc_html__( 'Completed', 'payment-gateway-stripe-and-woocommerce-integration' ) . '</span>';
                 break;
             default :
                 $actions = '<span></span>';
         }
-        return sprintf($actions);
+        return $actions;
     }
     
     //Column to display order date with order mode
     function column_date($item) {
         $actions = '';
         if ($item['order_mode'] === 'Test') {
-            $actions = '<br><strong style="color:orangered">' . __('TEST MODE', 'payment-gateway-stripe-and-woocommerce-integration') . '</strong>';
+            $actions = '<br><strong style="color:orangered">' . esc_html__( 'TEST MODE', 'payment-gateway-stripe-and-woocommerce-integration' ) . '</strong>';
         }
-        return sprintf('<span>' . $item['date'] . '</span>' . $actions);
+        return '<span>' . esc_html( $item['date'] ) . '</span>' . $actions;
     }
     
     //Gets columns for the list table
@@ -138,13 +169,13 @@ class Eh_Stripe_Order_Datatables extends WP_List_Table {
 
         return $columns = array(
             'cb' => '<input type="checkbox" />',
-            'order_status' => '<span class="status_head tips">' . __('Status', 'payment-gateway-stripe-and-woocommerce-integration') . '</span>',
-            'order' => __('Order', 'payment-gateway-stripe-and-woocommerce-integration'),
-            'ship' => __('Ship to', 'payment-gateway-stripe-and-woocommerce-integration'),
-            'price' => __('Price', 'payment-gateway-stripe-and-woocommerce-integration'),
-            'p_actions' => __('Payment Action', 'payment-gateway-stripe-and-woocommerce-integration'),
-            'order_actions' => __('Actions', 'payment-gateway-stripe-and-woocommerce-integration'),
-            'date' => __('Date', 'payment-gateway-stripe-and-woocommerce-integration')
+            'order_status' => '<span class="status_head tips">' . esc_html__( 'Status', 'payment-gateway-stripe-and-woocommerce-integration' ) . '</span>',
+            'order' => esc_html__( 'Order', 'payment-gateway-stripe-and-woocommerce-integration' ),
+            'ship' => esc_html__( 'Ship to', 'payment-gateway-stripe-and-woocommerce-integration' ),
+            'price' => esc_html__( 'Price', 'payment-gateway-stripe-and-woocommerce-integration' ),
+            'p_actions' => esc_html__( 'Payment Action', 'payment-gateway-stripe-and-woocommerce-integration' ),
+            'order_actions' => esc_html__( 'Actions', 'payment-gateway-stripe-and-woocommerce-integration' ),
+            'date' => esc_html__( 'Date', 'payment-gateway-stripe-and-woocommerce-integration' )
         );
     }
     
@@ -157,9 +188,9 @@ class Eh_Stripe_Order_Datatables extends WP_List_Table {
     //Gets functions in bulk action drop down
     function get_bulk_actions() {
         $actions = array(
-            'processing' => __('Mark Processing', 'payment-gateway-stripe-and-woocommerce-integration'),
-            'on-hold' => __('Mark On-Hold', 'payment-gateway-stripe-and-woocommerce-integration'),
-            'completed' => __('Mark Completed', 'payment-gateway-stripe-and-woocommerce-integration')
+            'processing' => esc_html__( 'Mark Processing', 'payment-gateway-stripe-and-woocommerce-integration' ),
+            'on-hold' => esc_html__( 'Mark On-Hold', 'payment-gateway-stripe-and-woocommerce-integration' ),
+            'completed' => esc_html__( 'Mark Completed', 'payment-gateway-stripe-and-woocommerce-integration' )
         );
         return $actions;
     }
@@ -360,72 +391,101 @@ class Eh_Stripe_Datatables extends WP_List_Table {
     
     //Column to display order status
     function column_order_status($item) {
-        return sprintf('<mark class="' . $item['order_status'] . ' tips"  ><span>' . ucfirst($item['order_status']) . '</span></mark>');
+        return sprintf(
+            '<mark class="%1$s tips"><span>%2$s</span></mark>',
+            esc_attr( $item['order_status'] ),
+            esc_html( ucfirst( $item['order_status'] ) )
+        );
     }
     
     //Column to display order details
     function column_order($item) {
-        return sprintf('<span><a href="' . get_admin_url() . 'post.php?post=' . $item['order_id'] . '&action=edit"><strong>#' . $item['order_number'] . '</strong></a> by <a href="' . get_admin_url() . 'user-edit.php?user_id=' . $item['user_id'] . '">' . $item['user_name'] . '</a><br>' . $item['user_email'] . '</span>');
+        $order_url = add_query_arg(
+            array(
+                'post'   => absint( $item['order_id'] ),
+                'action' => 'edit',
+            ),
+            admin_url( 'post.php' )
+        );
+
+        $user_name = esc_html( $item['user_name'] );
+        if ( 'guest' !== $item['user_id'] ) {
+            $user_name = sprintf(
+                '<a href="%1$s">%2$s</a>',
+                esc_url( add_query_arg( 'user_id', absint( $item['user_id'] ), admin_url( 'user-edit.php' ) ) ),
+                esc_html( $item['user_name'] )
+            );
+        }
+
+        return sprintf(
+            '<span><a href="%1$s"><strong>#%2$s</strong></a> by %3$s<br>%4$s</span>',
+            esc_url( $order_url ),
+            esc_html( $item['order_number'] ),
+            wp_kses_post( $user_name ),
+            esc_html( $item['user_email'] )
+        );
     }
     
     //Column to display transaction id
     function column_id($item) {
         $action = '';
         if ($item['stripe_way'] === 'Balance' && floatval($item['amount']) != 0) {
-            $action = '<span style="width:80%%;text-align: center;" class="button stripe_refund_button" id=' . $item['order_id'] . '>' . __('Refund ', 'payment-gateway-stripe-and-woocommerce-integration') . get_woocommerce_currency_symbol(strtoupper($item['currency'])) . $item['amount'] . ' ' . '</span>';
+            $action = '<span style="width:80%;text-align: center;" class="button stripe_refund_button" id="' . esc_attr( absint( $item['order_id'] ) ) . '">' . esc_html__( 'Refund ', 'payment-gateway-stripe-and-woocommerce-integration' ) . esc_html( get_woocommerce_currency_symbol( strtoupper( $item['currency'] ) ) ) . esc_html( $item['amount'] ) . ' ' . '</span>';
         }
-        return sprintf('<span>' . (is_null($item['transaction_id']) ? '-' : $item['transaction_id']) . '</span>' . $action);
+        return '<span>' . ( is_null( $item['transaction_id'] ) ? '-' : esc_html( $item['transaction_id'] ) ) . '</span>' . $action;
     }
     
     // Column to display transaction status
     function column_status($item) {
+        $actions = '';
         switch ($item['stripe_way']) {
             case 'Charge':
                 if ($item['type'] === 'Captured') {
-                    $actions = '<span class="table-type-text" style="color:#7ad03a !important">' . __('Payment Complete', 'payment-gateway-stripe-and-woocommerce-integration') . '</span>';
+                    $actions = '<span class="table-type-text" style="color:#7ad03a !important">' . esc_html__( 'Payment Complete', 'payment-gateway-stripe-and-woocommerce-integration' ) . '</span>';
                 } else {
-                    $actions = '<span class="table-type-text" style="color:#39beef !important">' . __('Capture Pending', 'payment-gateway-stripe-and-woocommerce-integration') . '</span>';
+                    $actions = '<span class="table-type-text" style="color:#39beef !important">' . esc_html__( 'Capture Pending', 'payment-gateway-stripe-and-woocommerce-integration' ) . '</span>';
                 }
                 break;
             case 'Refund':
                 
-                $order_id = $item['order_id'];
+                $order_id = absint( $item['order_id'] );
                 $ord = new WC_Order($order_id);
                 $total_refund = $ord->get_total_refunded();
                 
                 
                 if ($item['amount'] === floatval($item['order_total']) || $total_refund == floatval($item['order_total'])) {
-                    $actions = '<span class="table-type-text" style="color:#39beef !important">' . __('Fully Refunded', 'payment-gateway-stripe-and-woocommerce-integration') . '</span>';
+                    $actions = '<span class="table-type-text" style="color:#39beef !important">' . esc_html__( 'Fully Refunded', 'payment-gateway-stripe-and-woocommerce-integration' ) . '</span>';
                 } else {
-                    $actions = '<span class="table-type-text">' . __('Partially Refunded', 'payment-gateway-stripe-and-woocommerce-integration') . '</span>';
+                    $actions = '<span class="table-type-text">' . esc_html__( 'Partially Refunded', 'payment-gateway-stripe-and-woocommerce-integration' ) . '</span>';
                 }
                 break;
             case 'Balance':
-                $actions = '<span class="table-type-text" style="color:#7ad03a !important">' . __('Transaction Successful', 'payment-gateway-stripe-and-woocommerce-integration') . '</span>';
+                $actions = '<span class="table-type-text" style="color:#7ad03a !important">' . esc_html__( 'Transaction Successful', 'payment-gateway-stripe-and-woocommerce-integration' ) . '</span>';
                 break;
         }
-        return sprintf($actions);
+        return $actions;
     }
     
     //Column to display order amount
     function column_amount($item) {
+        $actions = '';
         switch ($item['stripe_way']) {
             case 'Charge':
-                $actions = '<span class="table-type-text">' . __('Amount ', 'payment-gateway-stripe-and-woocommerce-integration') . '</span><br> ' . get_woocommerce_currency_symbol(strtoupper($item['currency'])) .$item['amount'] . (($item['amount_refunded'] != 0) ? '<br><span class="table-type-text">' . __('Refunded : ', 'payment-gateway-stripe-and-woocommerce-integration') . '</span> ' . get_woocommerce_currency_symbol(strtoupper($item['currency'])) . $item['amount_refunded'] : '');
+                $actions = '<span class="table-type-text">' . esc_html__( 'Amount ', 'payment-gateway-stripe-and-woocommerce-integration' ) . '</span><br> ' . esc_html( get_woocommerce_currency_symbol( strtoupper( $item['currency'] ) ) ) . esc_html( $item['amount'] ) . ( ( $item['amount_refunded'] != 0 ) ? '<br><span class="table-type-text">' . esc_html__( 'Refunded : ', 'payment-gateway-stripe-and-woocommerce-integration' ) . '</span> ' . esc_html( get_woocommerce_currency_symbol( strtoupper( $item['currency'] ) ) ) . esc_html( $item['amount_refunded'] ) : '' );
                 break;
             case 'Refund':
-                $actions = '<span class="table-type-text">' . __('Refund ', 'payment-gateway-stripe-and-woocommerce-integration') . '</span><br>' . get_woocommerce_currency_symbol(strtoupper($item['currency'])) .$item['amount'];
+                $actions = '<span class="table-type-text">' . esc_html__( 'Refund ', 'payment-gateway-stripe-and-woocommerce-integration' ) . '</span><br>' . esc_html( get_woocommerce_currency_symbol( strtoupper( $item['currency'] ) ) ) . esc_html( $item['amount'] );
                 break;
             case 'Balance':
-                $actions = '<span class="table-type-text">' . __('Balance ', 'payment-gateway-stripe-and-woocommerce-integration') . '</span><br>' . get_woocommerce_currency_symbol(strtoupper($item['currency'])) .$item['amount'];
+                $actions = '<span class="table-type-text">' . esc_html__( 'Balance ', 'payment-gateway-stripe-and-woocommerce-integration' ) . '</span><br>' . esc_html( get_woocommerce_currency_symbol( strtoupper( $item['currency'] ) ) ) . esc_html( $item['amount'] );
                 break;
         }
-        return sprintf($actions);
+        return $actions;
     }
     
     //Column to display order date
     function column_date($item) {
-        return sprintf('<span>' . $item['created'] . '</span>');
+        return '<span>' . esc_html( $item['created'] ) . '</span>';
     }
     
     //Column to display image of payment method
@@ -435,42 +495,42 @@ class Eh_Stripe_Datatables extends WP_List_Table {
         $icon = '';
         if ($item['stripe_way'] === 'Charge') {
             if ((strpos($item['source'], 'Visa') !== false) || (strpos($item['source'], 'visa') !== false) ){
-                $icon = '<img src="' . WC_HTTPS::force_https_url(WC()->plugin_url() . '/assets/images/icons/credit-cards/visa' . $ext) . '" alt="Visa" width="32" title="VISA" ' . $style . ' />';
+                $icon = '<img src="' . esc_url( WC_HTTPS::force_https_url(WC()->plugin_url() . '/assets/images/icons/credit-cards/visa' . $ext) ) . '" alt="' . esc_attr__( 'Visa', 'payment-gateway-stripe-and-woocommerce-integration' ) . '" width="32" title="' . esc_attr__( 'VISA', 'payment-gateway-stripe-and-woocommerce-integration' ) . '" ' . $style . ' />';
             }
             if ((strpos($item['source'], 'MasterCard') !== false) || (strpos($item['source'], 'mastercard') !== false) ){
-                $icon = '<img src="' . WC_HTTPS::force_https_url(WC()->plugin_url() . '/assets/images/icons/credit-cards/mastercard' . $ext) . '" alt="Mastercard" width="32" title="Master Card" ' . $style . ' />';
+                $icon = '<img src="' . esc_url( WC_HTTPS::force_https_url(WC()->plugin_url() . '/assets/images/icons/credit-cards/mastercard' . $ext) ) . '" alt="' . esc_attr__( 'Mastercard', 'payment-gateway-stripe-and-woocommerce-integration' ) . '" width="32" title="' . esc_attr__( 'Master Card', 'payment-gateway-stripe-and-woocommerce-integration' ) . '" ' . $style . ' />';
             }
             if ((strpos($item['source'], 'American Express') !== false) || (strpos($item['source'], 'amex') !== false) ){
-                $icon = '<img src="' . WC_HTTPS::force_https_url(WC()->plugin_url() . '/assets/images/icons/credit-cards/amex' . $ext) . '" alt="Amex" width="32" title="American Express" ' . $style . ' />';
+                $icon = '<img src="' . esc_url( WC_HTTPS::force_https_url(WC()->plugin_url() . '/assets/images/icons/credit-cards/amex' . $ext) ) . '" alt="' . esc_attr__( 'Amex', 'payment-gateway-stripe-and-woocommerce-integration' ) . '" width="32" title="' . esc_attr__( 'American Express', 'payment-gateway-stripe-and-woocommerce-integration' ) . '" ' . $style . ' />';
             }
             if ((strpos($item['source'], 'Discover') !== false) || (strpos($item['source'], 'discover') !== false) ){    
-                $icon = '<img src="' . WC_HTTPS::force_https_url(WC()->plugin_url() . '/assets/images/icons/credit-cards/discover' . $ext) . '" alt="Discover" width="32" title="Discover" ' . $style . ' />';
+                $icon = '<img src="' . esc_url( WC_HTTPS::force_https_url(WC()->plugin_url() . '/assets/images/icons/credit-cards/discover' . $ext) ) . '" alt="' . esc_attr__( 'Discover', 'payment-gateway-stripe-and-woocommerce-integration' ) . '" width="32" title="' . esc_attr__( 'Discover', 'payment-gateway-stripe-and-woocommerce-integration' ) . '" ' . $style . ' />';
             }
             if ((strpos($item['source'], 'JCB') !== false) || (strpos($item['source'], 'jcb') !== false) ){ 
-                $icon = '<img src="' . WC_HTTPS::force_https_url(WC()->plugin_url() . '/assets/images/icons/credit-cards/jcb' . $ext) . '" alt="JCB" width="32" title="JCB" ' . $style . ' />';
+                $icon = '<img src="' . esc_url( WC_HTTPS::force_https_url(WC()->plugin_url() . '/assets/images/icons/credit-cards/jcb' . $ext) ) . '" alt="' . esc_attr__( 'JCB', 'payment-gateway-stripe-and-woocommerce-integration' ) . '" width="32" title="' . esc_attr__( 'JCB', 'payment-gateway-stripe-and-woocommerce-integration' ) . '" ' . $style . ' />';
             }
             if ((strpos($item['source'], 'Diners Club') !== false) || (strpos($item['source'], 'diners') !== false) ){   
-                $icon = '<img src="' . WC_HTTPS::force_https_url(WC()->plugin_url() . '/assets/images/icons/credit-cards/diners' . $ext) . '" alt="Diners" width="32" title="Diners Club" ' . $style . ' />';
+                $icon = '<img src="' . esc_url( WC_HTTPS::force_https_url(WC()->plugin_url() . '/assets/images/icons/credit-cards/diners' . $ext) ) . '" alt="' . esc_attr__( 'Diners', 'payment-gateway-stripe-and-woocommerce-integration' ) . '" width="32" title="' . esc_attr__( 'Diners Club', 'payment-gateway-stripe-and-woocommerce-integration' ) . '" ' . $style . ' />';
             }
 
             if (strpos($item['source'], 'Alipay') !== false) {
-                $icon = '<img src="' . WC_HTTPS::force_https_url(EH_STRIPE_MAIN_URL_PATH . 'assets/img/alipay.png') . '" alt="Alipay" width="52" title="Alipay" ' . $style . ' />';
+                $icon = '<img src="' . esc_url( WC_HTTPS::force_https_url(EH_STRIPE_MAIN_URL_PATH . 'assets/img/alipay.png') ) . '" alt="' . esc_attr__( 'Alipay', 'payment-gateway-stripe-and-woocommerce-integration' ) . '" width="52" title="' . esc_attr__( 'Alipay', 'payment-gateway-stripe-and-woocommerce-integration' ) . '" ' . $style . ' />';
             }
         }
-        return sprintf($icon);
+        return $icon;
     }
     
     //Gets columns for the list table
     function get_columns() {
 
         return $columns = array(
-            'thumb' => '<span class="wc-image">Image</span>',
-            'order_status' => '<span class="status_head tips">' . __('Status', 'payment-gateway-stripe-and-woocommerce-integration') . '</span>',
-            'order' => __('Order', 'payment-gateway-stripe-and-woocommerce-integration'),
-            'id' => __('Transaction ID', 'payment-gateway-stripe-and-woocommerce-integration'),
-            'status' => __('Status', 'payment-gateway-stripe-and-woocommerce-integration'),
-            'amount' => __('Amount', 'payment-gateway-stripe-and-woocommerce-integration'),
-            'date' => __('Date', 'payment-gateway-stripe-and-woocommerce-integration')
+            'thumb' => '<span class="wc-image">' . esc_html__( 'Image', 'payment-gateway-stripe-and-woocommerce-integration' ) . '</span>',
+            'order_status' => '<span class="status_head tips">' . esc_html__( 'Status', 'payment-gateway-stripe-and-woocommerce-integration' ) . '</span>',
+            'order' => esc_html__( 'Order', 'payment-gateway-stripe-and-woocommerce-integration' ),
+            'id' => esc_html__( 'Transaction ID', 'payment-gateway-stripe-and-woocommerce-integration' ),
+            'status' => esc_html__( 'Status', 'payment-gateway-stripe-and-woocommerce-integration' ),
+            'amount' => esc_html__( 'Amount', 'payment-gateway-stripe-and-woocommerce-integration' ),
+            'date' => esc_html__( 'Date', 'payment-gateway-stripe-and-woocommerce-integration' )
         );
     }
     

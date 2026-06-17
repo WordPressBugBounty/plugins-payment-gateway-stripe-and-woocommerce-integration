@@ -1,5 +1,4 @@
 <?php
-
 if (!defined('ABSPATH')) {
     exit;
 }  
@@ -16,7 +15,7 @@ class EH_Stripe_Oauth {
     public function __construct() { 
         //handle the redirection after installing Stripe app
         add_action( 'woocommerce_api_wt_stripe_oauth_update', array( $this, 'wt_stripe_oauth_update' ) );
-        add_action('eh_stripe_refresh_oauth_token', array('EH_Stripe_Token_Handler', 'eh_stripe_refresh_oauth_token'));
+        add_action('eh_stripe_refresh_oauth_token', array('EH_Stripe_Token_Handler', 'eh_stripe_refresh_oauth_token'), 10, 2);
         add_action('init', array($this, 'check_and_remove_scheduled_actions'));
     }
 
@@ -114,6 +113,7 @@ class EH_Stripe_Oauth {
                                 'value' => 'yes'
                             ));
                         }
+                        $oauth_status = 'success';
                         $stripe_settings['eh_stripe_mode'] = 'test';
                         update_option("woocommerce_eh_stripe_pay_settings", $stripe_settings);
                     }
@@ -216,7 +216,8 @@ class EH_Stripe_Oauth {
         if('test' === $mode){ 
             $test_mode = EH_Stripe_Token_Handler::get_stripe_test_mode_type();
             if($test_mode === 'sandbox'){
-                if(isset($_REQUEST['expire']) && 'access_token' === sanitize_text_field($_REQUEST['expire']) ){ 
+                //phpcs:ignore WordPress.Security.NonceVerification.Recommended
+                if(isset($_REQUEST['expire']) && 'access_token' === sanitize_text_field(wp_unslash($_REQUEST['expire'])) ){ 
                     EH_Stripe_Token_Handler::wtst_get_site_option('delete', array('name' => 'wtst_oauth_expriy_sandbox')); 
                     EH_Stripe_Token_Handler::wtst_get_site_option('delete', null, array('name' => 'wtst_refresh_token_calling'));                   
                 }else{
@@ -281,16 +282,21 @@ class EH_Stripe_Oauth {
     }
     public static function eh_stripe_schedule_oauth_refresh() {
         if (!as_next_scheduled_action('eh_stripe_refresh_oauth_token')) {
-				as_schedule_recurring_action(time(), 50 * MINUTE_IN_SECONDS, 'eh_stripe_refresh_oauth_token');
+            $refresh_interval = max( MINUTE_IN_SECONDS, absint( apply_filters( 'wtst_oauth_token_refresh_interval', 40 * MINUTE_IN_SECONDS ) ) );
+            as_schedule_recurring_action(time(), $refresh_interval, 'eh_stripe_refresh_oauth_token');
         }
     }  
   
     public function check_and_remove_scheduled_actions() {
         // Check if the connection is disabled
-        $settings = get_option("woocommerce_eh_stripe_pay_settings");
+        $settings = get_option( "woocommerce_eh_stripe_pay_settings", array() );
+        if ( ! is_array( $settings ) ) {
+            $settings = array();
+        }
+
         $mode = isset($settings['eh_stripe_mode']) ? $settings['eh_stripe_mode'] : 'live';
         $test_mode = EH_Stripe_Token_Handler::get_stripe_test_mode_type();
-        $mode = ($settings['eh_stripe_mode']==='test' && $test_mode === 'sandbox') ? 'sandbox' : $mode; 
+        $mode = ( 'test' === $mode && $test_mode === 'sandbox' ) ? 'sandbox' : $mode;
         $connection_key = 'wt_stripe_oauth_connected_' . $mode;
 
         // Check if the connection is established

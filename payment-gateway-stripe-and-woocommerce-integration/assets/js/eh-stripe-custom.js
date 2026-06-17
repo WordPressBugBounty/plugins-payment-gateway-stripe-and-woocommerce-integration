@@ -246,7 +246,6 @@ jQuery(function() {
                     jQuery('.tablenav.top .tablenav-pages').html(jQuery(response.pagination.top).html());
                 if (response.pagination.top.length)
                     jQuery('.tablenav.bottom .tablenav-pages').html(jQuery(response.pagination.bottom).html());
-                list.init('order_section' , 'eh_spg_order_ajax_table_data');
             },
             error: function(jqXHR, textStatus, errorThrown) {
                 console.log(textStatus, errorThrown);
@@ -274,7 +273,6 @@ jQuery(function() {
                     jQuery('.tablenav.top .tablenav-pages').html(jQuery(response.pagination.top).html());
                 if (response.pagination.top.length)
                     jQuery('.tablenav.bottom .tablenav-pages').html(jQuery(response.pagination.bottom).html());
-                list.init('stripe_section' , 'eh_spg_stripe_ajax_table_data');
             },
             error: function(jqXHR, textStatus, errorThrown) {
                 console.log(textStatus, errorThrown);

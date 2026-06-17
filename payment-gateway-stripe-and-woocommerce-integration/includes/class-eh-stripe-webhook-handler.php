@@ -21,7 +21,7 @@ class EH_Stripe_Webhook_Handler {
 
     /**
      * Show an admin notice when the webhook secret is not configured.
-     * Signature verification is skipped in that case, which is a security risk.
+     * Webhook requests are rejected until the secret is configured.
      */
     public static function maybe_show_webhook_secret_notice() {
         if ( ! current_user_can( 'manage_options' ) ) {
@@ -45,7 +45,7 @@ class EH_Stripe_Webhook_Handler {
             . '<strong style="color:#cc0000;">%s</strong> %s <a href="%s">%s</a>'
             . '</p></div>',
             esc_html__( 'Stripe Gateway — Security Warning:', 'payment-gateway-stripe-and-woocommerce-integration' ),
-            esc_html__( 'Webhook signature verification is currently disabled because no webhook secret has been configured. To protect your store from forged webhook requests, please set your Stripe webhook secret in', 'payment-gateway-stripe-and-woocommerce-integration' ),
+            esc_html__( 'Webhook requests are currently blocked because no webhook secret has been configured. To receive Stripe webhook events securely, please set your Stripe webhook secret in', 'payment-gateway-stripe-and-woocommerce-integration' ),
             esc_url( $settings_url ),
             esc_html__( 'Stripe Payment Settings.', 'payment-gateway-stripe-and-woocommerce-integration' )
         );
@@ -71,7 +71,7 @@ class EH_Stripe_Webhook_Handler {
                 'dead',
                 array(
                     'message' => 'php://input returned empty',
-                    'content_type' => $_SERVER['CONTENT_TYPE'] ?? 'missing'
+                    'content_type' => isset($_SERVER['CONTENT_TYPE']) ? sanitize_text_field(wp_unslash($_SERVER['CONTENT_TYPE'])) : 'missing'
                 ),
                 'Webhook Debug: RAW BODY EMPTY'
             );
@@ -85,44 +85,86 @@ class EH_Stripe_Webhook_Handler {
             : '';
         $eh_stripe_option = get_option("woocommerce_eh_stripe_pay_settings");
         $endpoint_secret = isset($eh_stripe_option["eh_stripe_webhook_secret"]) 
-            ? $eh_stripe_option["eh_stripe_webhook_secret"] 
+            ? trim( $eh_stripe_option["eh_stripe_webhook_secret"] )
             : '';
 
+        if ( empty( $endpoint_secret ) ) {
+            EH_Stripe_Log::log_update(
+                'dead',
+                array(
+                    'message' => 'Webhook secret is not configured.',
+                ),
+                'Webhook Debug: Signature secret missing'
+            );
+
+            status_header( 400 );
+            exit();
+        }
+
+        if ( empty( $sig_header ) ) {
+            EH_Stripe_Log::log_update(
+                'dead',
+                array(
+                    'message' => 'Stripe-Signature header is missing.',
+                ),
+                'Webhook Debug: Signature header missing'
+            );
+
+            status_header( 400 );
+            exit();
+        }
+
         try {
+            $event = \Stripe\Webhook::constructEvent(
+                $raw_post,
+                $sig_header,
+                $endpoint_secret,
+                1000
+            );
 
-            if (!empty($endpoint_secret)) {
-
-                $event = \Stripe\Webhook::constructEvent(
-                    $raw_post,
-                    $sig_header,
-                    $endpoint_secret,
-                    1000
-                );
-
-                if (empty($event)) {
-
-                    throw new Exception("Error Processing Request", 1);
-                }
-
+            if ( empty( $event ) ) {
+                throw new Exception( 'Error Processing Request', 1 );
             }
-
-        } catch (\Stripe\Exception\SignatureVerificationException $e) {
+        } catch ( \Stripe\Exception\SignatureVerificationException $e ) {
 
             EH_Stripe_Log::log_update(
                 'dead',
                 array(
                     'error' => $e->getMessage(),
                     'sig_header_sample' => substr($sig_header, 0, 50),
-                    'secret_prefix' => substr($endpoint_secret, 0, 12),
                 ),
                 'Webhook Debug: Signature FAILED'
             );
 
-            http_response_code(400);
+            status_header( 400 );
+            exit();
+        } catch ( \Stripe\Exception\UnexpectedValueException $e ) {
+
+            EH_Stripe_Log::log_update(
+                'dead',
+                array(
+                    'error' => $e->getMessage(),
+                ),
+                'Webhook Debug: Invalid payload'
+            );
+
+            status_header( 400 );
+            exit();
+        } catch ( Exception $e ) {
+
+            EH_Stripe_Log::log_update(
+                'dead',
+                array(
+                    'error' => $e->getMessage(),
+                ),
+                'Webhook Debug: Event construction failed'
+            );
+
+            status_header( 400 );
             exit();
         }
 
-        $decoded = json_decode( $raw_post, true );
+        $decoded = $event->toArray();
         if ( empty( $decoded ) ) {
             http_response_code( 200 );
             die;
@@ -393,18 +435,30 @@ class EH_Stripe_Webhook_Handler {
             include EH_STRIPE_MAIN_PATH . 'vendor/autoload.php';
         }
 
-        // Get refund data — Stripe API v2022-08-01 and before returns refunds inline
+        // Always retrieve refund data from Stripe so webhook payload data is not trusted directly.
         $refund_data = array();
-        if ( isset( $decoded['data']['object']['refunds'] ) ) {
-            $refund_data = $decoded['data']['object']['refunds'];
-        } elseif ( isset( $decoded['data']['object']['id'] ) ) {
-            $expanded_charge = \Stripe\Charge::retrieve( array(
-                'id'     => $decoded['data']['object']['id'],
-                'expand' => array( 'refunds' ),
-            ) );
-            $refund_data = isset( $expanded_charge->refunds )
-                ? json_decode( json_encode( $expanded_charge->refunds ), true )
-                : array();
+        if ( isset( $decoded['data']['object']['id'] ) ) {
+            try {
+                $expanded_charge = \Stripe\Charge::retrieve( array(
+                    'id'     => $decoded['data']['object']['id'],
+                    'expand' => array( 'refunds' ),
+                ) );
+                $refund_data     = isset( $expanded_charge->refunds )
+                    ? json_decode( json_encode( $expanded_charge->refunds ), true )
+                    : array();
+            } catch ( Exception $e ) {
+                EH_Stripe_Log::log_update(
+                    'dead',
+                    array(
+                        'charge_id' => $decoded['data']['object']['id'],
+                        'message'   => $e->getMessage(),
+                    ),
+                    'Webhook Debug: Charge retrieve failed'
+                );
+
+                status_header( 500 );
+                exit();
+            }
         }
         $order_need_processing = apply_filters('wt_stripe_order_need_processing_on_charge_refunded',true, $decoded);
         if ( empty( $refund_data ) || ! $order_need_processing ) {
@@ -755,7 +809,6 @@ class EH_Stripe_Webhook_Handler {
         if ( ! empty( $decoded['data']['object']['metadata']['order_id'] ) ) {
             $order_id = absint( $decoded['data']['object']['metadata']['order_id'] );
             $order    = wc_get_order( $order_id );
-
             if ( ! $order && class_exists( 'Wt_Advanced_Order_Number' ) ) {
                 // $query = new WP_Query( array(
                 //     'post_type'   => 'shop_order',
@@ -769,12 +822,13 @@ class EH_Stripe_Webhook_Handler {
                 // if ( ! empty( $query->posts ) ) {
                 //     $order = wc_get_order( $query->posts[0]->ID );
                 // }
-
+                // phpcs:disable WordPress.DB.SlowDBQuery.slow_db_query_meta_key,WordPress.DB.SlowDBQuery.slow_db_query_meta_value,WordPress.DB.SlowDBQuery.slow_db_query_meta_query -- WebToffee Sequential Order Numbers for WooCommerce plugin compatibility
                 $orders = wc_get_orders( array(
                     'limit'      => 1,
                     'meta_key'   => '_order_number',
                     'meta_value' => $order_id,
                 ) );
+                // phpcs:enable WordPress.DB.SlowDBQuery.slow_db_query_meta_key,WordPress.DB.SlowDBQuery.slow_db_query_meta_value,WordPress.DB.SlowDBQuery.slow_db_query_meta_query
                 if ( ! empty( $orders ) ) {
                     $order = $orders[0];
                 }
@@ -808,12 +862,14 @@ class EH_Stripe_Webhook_Handler {
          global $wpdb;
 
         if ( true === EH_Stripe_Payment::wt_stripe_is_HPOS_compatibile() ) {
+            //phpcs:ignore WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.DirectQuery -- No WC API for HPOS meta lookup by value.
             $result = $wpdb->get_var( $wpdb->prepare(
                 "SELECT order_id FROM {$wpdb->prefix}wc_orders_meta WHERE meta_key = %s AND meta_value = %s LIMIT 1",
                 $meta_key,
                 $meta_value
             ) );
         } else {
+            //phpcs:ignore WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.DirectQuery -- No WC API for postmeta lookup by value
             $result = $wpdb->get_var( $wpdb->prepare(
                 "SELECT post_id FROM {$wpdb->postmeta} WHERE meta_key = %s AND meta_value = %s LIMIT 1",
                 $meta_key,

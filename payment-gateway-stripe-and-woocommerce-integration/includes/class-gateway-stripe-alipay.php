@@ -166,11 +166,11 @@ class EH_Alipay_Stripe_Gateway extends WC_Payment_Gateway {
 
         if ( (is_checkout()  && !is_order_received_page())) {
             $stripe_settings   = get_option( 'woocommerce_eh_stripe_pay_settings' );
-            $mode = isset($stripe_settings['eh_stripe_mode']) ? $stripe_settings['eh_stripe_mode'] : 'live';
-            //phpcs:ignore WordPress.WP.EnqueuedResourceParameters.MissingVersion, WordPress.WP.EnqueuedResourceParameters.NotInFooter            
+            $mode = isset($stripe_settings['eh_stripe_mode']) ? $stripe_settings['eh_stripe_mode'] : 'live';         
             //wp_register_script('stripe_v3_js', 'https://js.stripe.com/v3/');
-			 wp_register_script( 'stripe_v3_js', 'https://js.stripe.com/basil/stripe.js');
-           wp_enqueue_script('eh_alipay', plugins_url('assets/js/eh-alipay.js', EH_STRIPE_MAIN_FILE), array('stripe_v3_js','jquery'),EH_STRIPE_VERSION, true);
+			//phpcs:ignore WordPress.WP.EnqueuedResourceParameters.MissingVersion, WordPress.WP.EnqueuedResourceParameters.NotInFooter
+			wp_register_script( 'stripe_v3_js', 'https://js.stripe.com/basil/stripe.js');
+            wp_enqueue_script('eh_alipay', plugins_url('assets/js/eh-alipay.js', EH_STRIPE_MAIN_FILE), array('stripe_v3_js','jquery'),EH_STRIPE_VERSION, true);
 
             if(Eh_Stripe_Admin_Handler::wtst_oauth_compatible($mode)){
                 $tokens = EH_Stripe_Token_Handler::wtst_get_stripe_tokens($mode);  
@@ -404,7 +404,8 @@ class EH_Alipay_Stripe_Gateway extends WC_Payment_Gateway {
 
             if ( $intent->status === 'succeeded' ) {
                 wc_add_notice(__('An error has occurred internally, due to which you are not redirected to the order received page. Please contact support for more assistance.', 'payment-gateway-stripe-and-woocommerce-integration'), $notice_type = 'error');
-                wp_redirect(wc_get_checkout_url());
+                wp_safe_redirect(wc_get_checkout_url());
+                exit;
             }else{
                 $intent = \Stripe\PaymentIntent::create( $payment_intent_args , array(
                     'idempotency_key' => $wc_order->get_order_key() . '-' . $payment_method

@@ -196,7 +196,11 @@ jQuery(function ($) {
             attempts++;
 
             if (attempts > maxAttempts) {
-                window.location.href = eh_wechat_poll.redirect;
+                $('.eh-wechat-errors').html(
+                    $('<ul class="woocommerce_error woocommerce-error eh-stripe-error"></ul>').append(
+                        $('<li></li>').text(eh_wechat_poll.timeout_message)
+                    )
+                );
                 return;
             }
             $.post(
@@ -204,6 +208,7 @@ jQuery(function ($) {
                 {
                    // action: "wt_check_wechat_order_status",
                     order_id: eh_wechat_poll.order_id,
+                    order_key: eh_wechat_poll.order_key,
                     nonce: eh_wechat_poll.nonce
                 },
                 function (res) {
@@ -217,7 +222,9 @@ jQuery(function ($) {
                             status === "completed" ||
                             status === "on-hold"
                         ) {
-                            window.location.href = eh_wechat_poll.redirect;
+                            if (res.data.redirect) {
+                                window.location.href = res.data.redirect;
+                            }
                             return;
                         }
                     }

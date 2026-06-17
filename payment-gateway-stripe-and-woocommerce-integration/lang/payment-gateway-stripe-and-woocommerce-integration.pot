@@ -1,0 +1,3205 @@
+# Copyright (C) 2026 ThemeHigh
+# This file is distributed under the GPLv3.
+msgid ""
+msgstr ""
+"Project-Id-Version: Payment Gateway of Stripe for WooCommerce 5.0.9\n"
+"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/payment-gateway-stripe-and-woocommerce-integration\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"POT-Creation-Date: 2026-06-04T13:32:04+00:00\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"X-Generator: WP-CLI 2.11.0\n"
+"X-Domain: payment-gateway-stripe-and-woocommerce-integration\n"
+
+#. Plugin Name of the plugin
+#: payment-gateway-stripe-and-woocommerce-integration.php
+msgid "Payment Gateway of Stripe for WooCommerce"
+msgstr ""
+
+#. Plugin URI of the plugin
+#: payment-gateway-stripe-and-woocommerce-integration.php
+msgid "https://wordpress.org/plugins/payment-gateway-stripe-and-woocommerce-integration/"
+msgstr ""
+
+#. Description of the plugin
+#: payment-gateway-stripe-and-woocommerce-integration.php
+msgid "Accept payments from your WooCommerce store via Credit/Debit Cards, Stripe Checkout, Apple Pay, Google Pay, Alipay, SEPA Pay, Klarna, Afterpay, WeChat Pay, iDEAL, Bancontact, EPS, P24, Bacs Debit, BECS Debit, FPX, Boleto, OXXO, GrabPay, Multibanco and Affirm using Stripe."
+msgstr ""
+
+#. Author of the plugin
+#: payment-gateway-stripe-and-woocommerce-integration.php
+msgid "ThemeHigh"
+msgstr ""
+
+#. Author URI of the plugin
+#: payment-gateway-stripe-and-woocommerce-integration.php
+msgid "https://www.themehigh.com"
+msgstr ""
+
+#: includes/admin/banner/class-wtst-bfcm-twenty-twenty-four.php:67
+msgid "Never Miss This Deal"
+msgstr ""
+
+#. translators: %1$s: Discount percentage with OFF text wrapped in span
+#: includes/admin/banner/class-wtst-bfcm-twenty-twenty-four.php:72
+msgid "Your Last Chance to Avail %1$s on WebToffee Plugins. Grab the deal before it`s gone!"
+msgstr ""
+
+#: includes/admin/banner/class-wtst-bfcm-twenty-twenty-four.php:73
+msgid "OFF"
+msgstr ""
+
+#: includes/admin/banner/class-wtst-bfcm-twenty-twenty-four.php:78
+msgid "View plugins"
+msgstr ""
+
+#: includes/admin/class-stripe-admin-handler.php:69
+#: includes/admin/class-stripe-admin-handler.php:70
+msgid "ThemeHigh Stripe"
+msgstr ""
+
+#: includes/admin/class-stripe-admin-handler.php:81
+#: includes/admin/class-stripe-admin-handler.php:82
+#: includes/admin/class-stripe-admin-handler.php:250
+msgid "General Settings"
+msgstr ""
+
+#: includes/admin/class-stripe-admin-handler.php:94
+#: includes/admin/class-stripe-admin-handler.php:95
+msgid "Stripe Overview"
+msgstr ""
+
+#: includes/admin/class-stripe-admin-handler.php:124
+msgid "Your settings have been saved."
+msgstr ""
+
+#. translators: %1$s: Opening paragraph and h2 tags, %2$s: Closing h2 tag, %3$s: Opening paragraph tag, %4$s: Bold tag opening, %5$s: Bold tag closing, %6$s: Link opening, %7$s: Link closing, %8$s: Button opening, %9$s: Button closing
+#: includes/admin/class-stripe-admin-handler.php:142
+msgid "%1$sUrgent: Switch to OAuth for Secure Stripe Integration%2$sWe are enhancing security and requires you to switch from using API keys to OAuth 2.0 for connecting with Stripe account. OAuth provides better control and limits access to only the necessary data, protecting your business from unauthorized access. %3$sEnsure to connect your Stripe account using the new authentication method before the year ends. %4$sClick %5$s\"Connect Now\"%6$s to update your integration today! Need help? Check out our %7$sintegration article%8$s. Please upgrade soon to avoid service disruptions.%9$sConnect Now%10$s"
+msgstr ""
+
+#. translators: %1$s: Opening paragraph and h2 tags, %2$s: Closing h2 tag, %3$s: Bold tag opening, %4$s: Bold tag closing, %5$s: Link opening, %6$s: Link closing, %7$s: Button opening, %8$s: Button closing
+#: includes/admin/class-stripe-admin-handler.php:145
+msgid "%1$sUpdate: SOFORT Payments Discontinued%2$sStarting %3$sNovember 29, 2024,%4$s %5$sbusinesses will no longer be able to accept SOFORT payments%6$s as it is being consolidated into Klarna. To continue offering bank transfer payments, please switch to %3$sKlarna's \"Pay Now\"%4$s option or other methods like %3$sSEPA Direct Debit%4$s. Any existing SEPA Direct Debit mandates will remain active."
+msgstr ""
+
+#: includes/admin/class-stripe-admin-handler.php:202
+msgid "Switching to test mode disables live payments. Switch to live mode to receive payments."
+msgstr ""
+
+#: includes/admin/class-stripe-admin-handler.php:203
+#: includes/class-stripe-general-settings.php:461
+msgid "Switch to test mode"
+msgstr ""
+
+#: includes/admin/class-stripe-admin-handler.php:205
+#: includes/class-stripe-general-settings.php:381
+#: includes/class-stripe-general-settings.php:411
+msgid "Disconnect"
+msgstr ""
+
+#: includes/admin/class-stripe-admin-handler.php:206
+msgid "Cancel"
+msgstr ""
+
+#: includes/admin/class-stripe-admin-handler.php:207
+msgid "Are you sure?"
+msgstr ""
+
+#: includes/admin/class-stripe-admin-handler.php:208
+msgid "Disconnecting your Stripe account from ThemeHigh stops payments. To fully remove the ThemeHigh app, head to 'Installed apps' in your Stripe dashboard."
+msgstr ""
+
+#: includes/admin/class-stripe-admin-handler.php:225
+msgid "Stripe payment"
+msgstr ""
+
+#: includes/admin/class-stripe-admin-handler.php:251
+#: includes/class-stripe-api.php:13
+msgid "Credit/Debit Cards"
+msgstr ""
+
+#: includes/admin/class-stripe-admin-handler.php:252
+#: includes/class-stripe-apple-pay.php:26
+#: includes/class-stripe-apple-pay.php:35
+msgid "Apple Pay"
+msgstr ""
+
+#: includes/admin/class-stripe-admin-handler.php:253
+msgid "G Pay/Payment Request Button"
+msgstr ""
+
+#: includes/admin/class-stripe-admin-handler.php:254
+#: includes/class-stripe-checkout.php:21
+#: includes/class-stripe-checkout.php:78
+#: includes/class-stripe-checkout.php:88
+msgid "Stripe Checkout"
+msgstr ""
+
+#: includes/admin/class-stripe-admin-handler.php:255
+msgid "Local Gateways"
+msgstr ""
+
+#: includes/admin/class-stripe-admin-handler.php:257
+msgid "Help Guide"
+msgstr ""
+
+#: includes/admin/class-stripe-admin-handler.php:284
+msgid "You haven't connected your Stripe account yet. Connect now to start receiving payments"
+msgstr ""
+
+#: includes/admin/class-stripe-admin-handler.php:285
+#: includes/class-stripe-general-settings.php:394
+#: includes/class-stripe-general-settings.php:422
+#: includes/class-stripe-general-settings.php:461
+#: templates/template-oauth-connect-settings.php:16
+msgid "Connect to Stripe"
+msgstr ""
+
+#. translators: %1$s: Opening paragraph and h2 tags, %2$s: Closing h2 tag, %3$s: Opening paragraph tag, %4$s: Bold tag opening, %5$s: Bold tag closing, %6$s: Link opening, %7$s: Link closing, %8$s: Button opening, %9$s: Button closing
+#: includes/admin/class-stripe-admin-handler.php:292
+msgid "%1$sUrgent: Switch to OAuth for Secure Stripe Integration%2$sWe are enhancing security and requires you to switch from using API keys to OAuth 2.0 for connecting with Stripe account. OAuth provides better control and limits access to only the necessary data, protecting your business from unauthorized access. %3$sEnsure to connect your Stripe account using the new authentication method before the year ends.%4$sClick %5$s\"Connect Now\"%6$s to update your integration today! Need help? Check out our %7$sintegration article%8$s. Please upgrade soon to avoid service disruptions.%9$sConnect Now%10$s"
+msgstr ""
+
+#: includes/admin/class-stripe-admin-handler.php:373
+#: includes/admin/class-stripe-admin-handler.php:420
+#: includes/admin/class-stripe-admin-handler.php:458
+#: includes/admin/class-stripe-admin-handler.php:497
+#: includes/admin/class-stripe-admin-handler.php:541
+#: includes/admin/class-stripe-admin-handler.php:584
+#: includes/admin/class-stripe-admin-handler.php:624
+#: includes/admin/class-stripe-admin-handler.php:665
+#: includes/admin/class-stripe-admin-handler.php:738
+#: includes/admin/class-stripe-admin-handler.php:778
+#: includes/admin/class-stripe-admin-handler.php:819
+#: includes/admin/class-stripe-admin-handler.php:858
+#: includes/admin/class-stripe-admin-handler.php:898
+#: includes/admin/class-stripe-admin-handler.php:938
+#: includes/admin/class-stripe-admin-handler.php:979
+#: includes/admin/class-stripe-admin-handler.php:1019
+#: includes/admin/class-stripe-admin-handler.php:1059
+#: includes/admin/class-stripe-admin-handler.php:1099
+#: includes/admin/class-stripe-admin-handler.php:1139
+#: includes/admin/class-stripe-admin-handler.php:1179
+#: includes/admin/class-stripe-admin-handler.php:1215
+#: includes/admin/class-stripe-admin-handler.php:1255
+msgid "Save changes"
+msgstr ""
+
+#: includes/admin/class-stripe-admin-handler.php:680
+msgid "Help Links"
+msgstr ""
+
+#: includes/admin/class-stripe-admin-handler.php:684
+#: includes/admin/class-stripe-admin-handler.php:687
+#: payment-gateway-stripe-and-woocommerce-integration.php:119
+msgid "Documentation"
+msgstr ""
+
+#: includes/admin/class-stripe-admin-handler.php:685
+msgid "Refer to our documentation to set up and get started."
+msgstr ""
+
+#: includes/admin/class-stripe-admin-handler.php:692
+#: includes/class-stripe-apple-pay.php:99
+#: payment-gateway-stripe-and-woocommerce-integration.php:121
+msgid "Support"
+msgstr ""
+
+#: includes/admin/class-stripe-admin-handler.php:693
+msgid "We would love to help you on any queries or issues."
+msgstr ""
+
+#: includes/admin/class-stripe-admin-handler.php:695
+msgid "Contact us"
+msgstr ""
+
+#: includes/admin/class-stripe-admin-handler.php:1301
+#: includes/class-gateway-stripe-alipay.php:21
+#: includes/class-gateway-stripe-alipay.php:76
+#: includes/class-gateway-stripe-alipay.php:86
+msgid "Alipay"
+msgstr ""
+
+#: includes/admin/class-stripe-admin-handler.php:1303
+#: includes/class-stripe-sepa-pay.php:21
+msgid "SEPA"
+msgstr ""
+
+#: includes/admin/class-stripe-admin-handler.php:1305
+#: includes/class-stripe-klarna.php:21
+#: includes/class-stripe-klarna.php:77
+#: includes/class-stripe-klarna.php:87
+msgid "Klarna"
+msgstr ""
+
+#: includes/admin/class-stripe-admin-handler.php:1307
+#: includes/class-stripe-afterpay.php:21
+#: includes/class-stripe-afterpay.php:76
+#: includes/class-stripe-afterpay.php:87
+msgid "Afterpay"
+msgstr ""
+
+#: includes/admin/class-stripe-admin-handler.php:1308
+#: includes/class-stripe-wechat.php:21
+#: includes/class-stripe-wechat.php:88
+#: includes/class-stripe-wechat.php:99
+msgid "WeChat"
+msgstr ""
+
+#: includes/admin/class-stripe-admin-handler.php:1309
+#: includes/class-stripe-ideal.php:21
+msgid "iDEAL"
+msgstr ""
+
+#: includes/admin/class-stripe-admin-handler.php:1310
+#: includes/class-stripe-bancontact.php:21
+msgid "Bancontact"
+msgstr ""
+
+#: includes/admin/class-stripe-admin-handler.php:1311
+#: includes/class-stripe-eps.php:21
+msgid "EPS"
+msgstr ""
+
+#: includes/admin/class-stripe-admin-handler.php:1312
+#: includes/class-stripe-p24.php:21
+msgid "Przelewy24"
+msgstr ""
+
+#: includes/admin/class-stripe-admin-handler.php:1314
+msgid "Bacs"
+msgstr ""
+
+#: includes/admin/class-stripe-admin-handler.php:1315
+msgid "BECS"
+msgstr ""
+
+#: includes/admin/class-stripe-admin-handler.php:1316
+#: includes/class-stripe-fpx.php:21
+#: includes/class-stripe-fpx.php:80
+#: includes/class-stripe-fpx.php:90
+msgid "FPX"
+msgstr ""
+
+#: includes/admin/class-stripe-admin-handler.php:1317
+#: includes/class-stripe-boleto.php:21
+#: includes/class-stripe-boleto.php:78
+#: includes/class-stripe-boleto.php:89
+msgid "Boleto"
+msgstr ""
+
+#: includes/admin/class-stripe-admin-handler.php:1318
+#: includes/class-stripe-oxxo.php:21
+#: includes/class-stripe-oxxo.php:78
+#: includes/class-stripe-oxxo.php:89
+msgid "OXXO"
+msgstr ""
+
+#: includes/admin/class-stripe-admin-handler.php:1319
+#: includes/class-stripe-grabpay.php:77
+#: includes/class-stripe-grabpay.php:87
+msgid "GrabPay"
+msgstr ""
+
+#: includes/admin/class-stripe-admin-handler.php:1320
+#: includes/class-stripe-multibanco.php:21
+msgid "Multibanco"
+msgstr ""
+
+#: includes/admin/class-stripe-admin-handler.php:1321
+#: includes/class-stripe-affirm.php:21
+#: includes/class-stripe-affirm.php:75
+#: includes/class-stripe-affirm.php:86
+msgid "Affirm"
+msgstr ""
+
+#: includes/admin/class-wt-promotion-banner.php:42
+msgid "Biggest sale of the year is here!"
+msgstr ""
+
+#: includes/admin/class-wt-promotion-banner.php:43
+msgid "Black Friday & Cyber Monday sale is now live! Get any WebToffee plugins at an exclusive 30% discount."
+msgstr ""
+
+#: includes/admin/class-wt-promotion-banner.php:44
+msgid "Grab this deal"
+msgstr ""
+
+#: includes/class-eh-stripe-token-handler.php:619
+msgid "Please try again after some time"
+msgstr ""
+
+#. translators: Error message asking user to try again later
+#: includes/class-eh-stripe-token-handler.php:892
+msgid "Please try again after some time."
+msgstr ""
+
+#: includes/class-eh-stripe-webhook-handler.php:47
+msgid "Stripe Gateway — Security Warning:"
+msgstr ""
+
+#: includes/class-eh-stripe-webhook-handler.php:48
+msgid "Webhook requests are currently blocked because no webhook secret has been configured. To receive Stripe webhook events securely, please set your Stripe webhook secret in"
+msgstr ""
+
+#: includes/class-eh-stripe-webhook-handler.php:50
+msgid "Stripe Payment Settings."
+msgstr ""
+
+#: includes/class-eh-stripe-webhook-handler.php:373
+#: includes/class-eh-stripe-webhook-handler.php:664
+#: includes/class-gateway-stripe-alipay.php:688
+#: includes/class-gateway-stripe-alipay.php:700
+#: includes/class-stripe-affirm.php:649
+#: includes/class-stripe-affirm.php:655
+#: includes/class-stripe-affirm.php:678
+#: includes/class-stripe-afterpay.php:699
+#: includes/class-stripe-afterpay.php:705
+#: includes/class-stripe-afterpay.php:728
+#: includes/class-stripe-api.php:1164
+#: includes/class-stripe-api.php:1169
+#: includes/class-stripe-bacs.php:493
+#: includes/class-stripe-bacs.php:499
+#: includes/class-stripe-bancontact.php:769
+#: includes/class-stripe-bancontact.php:774
+#: includes/class-stripe-bancontact.php:797
+#: includes/class-stripe-becs.php:762
+#: includes/class-stripe-becs.php:766
+#: includes/class-stripe-checkout.php:907
+#: includes/class-stripe-checkout.php:925
+#: includes/class-stripe-checkout.php:931
+#: includes/class-stripe-checkout.php:937
+#: includes/class-stripe-checkout.php:1174
+#: includes/class-stripe-checkout.php:1194
+#: includes/class-stripe-checkout.php:1205
+#: includes/class-stripe-checkout.php:1213
+#: includes/class-stripe-eps.php:749
+#: includes/class-stripe-eps.php:754
+#: includes/class-stripe-eps.php:777
+#: includes/class-stripe-fpx.php:746
+#: includes/class-stripe-fpx.php:750
+#: includes/class-stripe-giropay.php:594
+#: includes/class-stripe-giropay.php:599
+#: includes/class-stripe-grabpay.php:718
+#: includes/class-stripe-grabpay.php:722
+#: includes/class-stripe-ideal.php:723
+#: includes/class-stripe-klarna.php:693
+#: includes/class-stripe-klarna.php:698
+#: includes/class-stripe-klarna.php:720
+#: includes/class-stripe-multibanco.php:702
+#: includes/class-stripe-oxxo.php:621
+#: includes/class-stripe-oxxo.php:625
+#: includes/class-stripe-p24.php:748
+#: includes/class-stripe-p24.php:753
+#: includes/class-stripe-p24.php:776
+#: includes/class-stripe-wechat.php:841
+#: includes/class-stripe-wechat.php:847
+msgid "Payment Status : "
+msgstr ""
+
+#: includes/class-eh-stripe-webhook-handler.php:375
+#: includes/class-eh-stripe-webhook-handler.php:666
+#: includes/class-gateway-stripe-alipay.php:690
+#: includes/class-gateway-stripe-alipay.php:700
+#: includes/class-stripe-affirm.php:649
+#: includes/class-stripe-affirm.php:655
+#: includes/class-stripe-affirm.php:678
+#: includes/class-stripe-afterpay.php:699
+#: includes/class-stripe-afterpay.php:705
+#: includes/class-stripe-afterpay.php:728
+#: includes/class-stripe-api.php:1164
+#: includes/class-stripe-api.php:1169
+#: includes/class-stripe-bacs.php:493
+#: includes/class-stripe-bacs.php:499
+#: includes/class-stripe-bancontact.php:769
+#: includes/class-stripe-bancontact.php:774
+#: includes/class-stripe-bancontact.php:797
+#: includes/class-stripe-becs.php:762
+#: includes/class-stripe-becs.php:766
+#: includes/class-stripe-checkout.php:909
+#: includes/class-stripe-checkout.php:1176
+#: includes/class-stripe-eps.php:749
+#: includes/class-stripe-eps.php:754
+#: includes/class-stripe-eps.php:777
+#: includes/class-stripe-fpx.php:746
+#: includes/class-stripe-fpx.php:750
+#: includes/class-stripe-giropay.php:594
+#: includes/class-stripe-giropay.php:599
+#: includes/class-stripe-grabpay.php:718
+#: includes/class-stripe-grabpay.php:722
+#: includes/class-stripe-ideal.php:723
+#: includes/class-stripe-klarna.php:693
+#: includes/class-stripe-klarna.php:698
+#: includes/class-stripe-klarna.php:720
+#: includes/class-stripe-multibanco.php:704
+#: includes/class-stripe-oxxo.php:621
+#: includes/class-stripe-oxxo.php:625
+#: includes/class-stripe-p24.php:748
+#: includes/class-stripe-p24.php:753
+#: includes/class-stripe-p24.php:776
+#: includes/class-stripe-wechat.php:841
+#: includes/class-stripe-wechat.php:847
+#: includes/stripe-overview/class-stripe-overview.php:191
+#: payment-gateway-stripe-and-woocommerce-integration.php:389
+msgid "Source : "
+msgstr ""
+
+#: includes/class-eh-stripe-webhook-handler.php:376
+#: includes/class-eh-stripe-webhook-handler.php:667
+#: includes/class-gateway-stripe-alipay.php:691
+#: includes/class-gateway-stripe-alipay.php:700
+#: includes/class-stripe-affirm.php:649
+#: includes/class-stripe-affirm.php:655
+#: includes/class-stripe-affirm.php:678
+#: includes/class-stripe-afterpay.php:699
+#: includes/class-stripe-afterpay.php:705
+#: includes/class-stripe-afterpay.php:728
+#: includes/class-stripe-api.php:1164
+#: includes/class-stripe-api.php:1169
+#: includes/class-stripe-bacs.php:493
+#: includes/class-stripe-bacs.php:499
+#: includes/class-stripe-bancontact.php:769
+#: includes/class-stripe-bancontact.php:774
+#: includes/class-stripe-bancontact.php:797
+#: includes/class-stripe-becs.php:762
+#: includes/class-stripe-becs.php:766
+#: includes/class-stripe-eps.php:749
+#: includes/class-stripe-eps.php:754
+#: includes/class-stripe-eps.php:777
+#: includes/class-stripe-fpx.php:746
+#: includes/class-stripe-fpx.php:750
+#: includes/class-stripe-giropay.php:594
+#: includes/class-stripe-giropay.php:599
+#: includes/class-stripe-grabpay.php:718
+#: includes/class-stripe-grabpay.php:722
+#: includes/class-stripe-ideal.php:723
+#: includes/class-stripe-klarna.php:693
+#: includes/class-stripe-klarna.php:698
+#: includes/class-stripe-klarna.php:720
+#: includes/class-stripe-multibanco.php:705
+#: includes/class-stripe-oxxo.php:621
+#: includes/class-stripe-oxxo.php:625
+#: includes/class-stripe-p24.php:748
+#: includes/class-stripe-p24.php:753
+#: includes/class-stripe-p24.php:776
+#: includes/class-stripe-wechat.php:841
+#: includes/class-stripe-wechat.php:847
+msgid "Charge Status :"
+msgstr ""
+
+#: includes/class-eh-stripe-webhook-handler.php:377
+msgid ". Transaction ID : "
+msgstr ""
+
+#: includes/class-eh-stripe-webhook-handler.php:378
+#: includes/class-eh-stripe-webhook-handler.php:669
+msgid ". via webhook - "
+msgstr ""
+
+#: includes/class-eh-stripe-webhook-handler.php:381
+#: includes/class-eh-stripe-webhook-handler.php:422
+#: includes/class-eh-stripe-webhook-handler.php:591
+#: includes/class-eh-stripe-webhook-handler.php:609
+msgid "Payment failed."
+msgstr ""
+
+#: includes/class-eh-stripe-webhook-handler.php:418
+msgid "A dispute was created for this order : "
+msgstr ""
+
+#: includes/class-eh-stripe-webhook-handler.php:420
+#: includes/class-eh-stripe-webhook-handler.php:542
+msgid ". via webhook"
+msgstr ""
+
+#: includes/class-eh-stripe-webhook-handler.php:531
+msgid "Refunded."
+msgstr ""
+
+#: includes/class-eh-stripe-webhook-handler.php:538
+#: includes/class-stripe-affirm.php:472
+#: includes/class-stripe-affirm.php:477
+#: includes/class-stripe-affirm.php:483
+#: includes/class-stripe-afterpay.php:516
+#: includes/class-stripe-afterpay.php:521
+#: includes/class-stripe-afterpay.php:531
+#: includes/class-stripe-api.php:1245
+#: includes/class-stripe-api.php:1250
+#: includes/class-stripe-api.php:1256
+#: includes/class-stripe-bacs.php:592
+#: includes/class-stripe-bacs.php:597
+#: includes/class-stripe-bacs.php:603
+#: includes/class-stripe-bancontact.php:581
+#: includes/class-stripe-bancontact.php:590
+#: includes/class-stripe-bancontact.php:596
+#: includes/class-stripe-becs.php:566
+#: includes/class-stripe-becs.php:571
+#: includes/class-stripe-becs.php:577
+#: includes/class-stripe-checkout.php:1026
+#: includes/class-stripe-checkout.php:1031
+#: includes/class-stripe-checkout.php:1037
+#: includes/class-stripe-eps.php:574
+#: includes/class-stripe-eps.php:579
+#: includes/class-stripe-eps.php:585
+#: includes/class-stripe-fpx.php:539
+#: includes/class-stripe-fpx.php:544
+#: includes/class-stripe-fpx.php:550
+#: includes/class-stripe-giropay.php:461
+#: includes/class-stripe-giropay.php:466
+#: includes/class-stripe-giropay.php:472
+#: includes/class-stripe-grabpay.php:539
+#: includes/class-stripe-grabpay.php:544
+#: includes/class-stripe-grabpay.php:550
+#: includes/class-stripe-multibanco.php:808
+#: includes/class-stripe-multibanco.php:813
+#: includes/class-stripe-multibanco.php:819
+#: includes/class-stripe-oxxo.php:479
+#: includes/class-stripe-oxxo.php:484
+#: includes/class-stripe-oxxo.php:490
+#: includes/class-stripe-p24.php:576
+#: includes/class-stripe-p24.php:581
+#: includes/class-stripe-p24.php:587
+#: includes/class-stripe-wechat.php:655
+#: includes/class-stripe-wechat.php:660
+#: includes/class-stripe-wechat.php:666
+#: includes/stripe-overview/class-stripe-overview.php:64
+#: includes/stripe-overview/class-stripe-overview.php:107
+#: includes/stripe-overview/class-stripe-overview.php:113
+#: includes/stripe-overview/class-stripe-overview.php:266
+#: includes/stripe-overview/class-stripe-overview.php:312
+#: includes/stripe-overview/class-stripe-overview.php:318
+msgid "Reason : "
+msgstr ""
+
+#: includes/class-eh-stripe-webhook-handler.php:539
+#: includes/class-stripe-affirm.php:472
+#: includes/class-stripe-affirm.php:477
+#: includes/class-stripe-affirm.php:483
+#: includes/class-stripe-afterpay.php:516
+#: includes/class-stripe-afterpay.php:521
+#: includes/class-stripe-afterpay.php:531
+#: includes/class-stripe-api.php:1245
+#: includes/class-stripe-api.php:1250
+#: includes/class-stripe-api.php:1256
+#: includes/class-stripe-bacs.php:592
+#: includes/class-stripe-bacs.php:597
+#: includes/class-stripe-bacs.php:603
+#: includes/class-stripe-bancontact.php:582
+#: includes/class-stripe-bancontact.php:590
+#: includes/class-stripe-bancontact.php:596
+#: includes/class-stripe-becs.php:566
+#: includes/class-stripe-becs.php:571
+#: includes/class-stripe-becs.php:577
+#: includes/class-stripe-checkout.php:1026
+#: includes/class-stripe-checkout.php:1031
+#: includes/class-stripe-checkout.php:1037
+#: includes/class-stripe-eps.php:574
+#: includes/class-stripe-eps.php:579
+#: includes/class-stripe-eps.php:585
+#: includes/class-stripe-fpx.php:539
+#: includes/class-stripe-fpx.php:544
+#: includes/class-stripe-fpx.php:550
+#: includes/class-stripe-giropay.php:461
+#: includes/class-stripe-giropay.php:466
+#: includes/class-stripe-giropay.php:472
+#: includes/class-stripe-grabpay.php:539
+#: includes/class-stripe-grabpay.php:544
+#: includes/class-stripe-grabpay.php:550
+#: includes/class-stripe-multibanco.php:808
+#: includes/class-stripe-multibanco.php:813
+#: includes/class-stripe-multibanco.php:819
+#: includes/class-stripe-oxxo.php:479
+#: includes/class-stripe-oxxo.php:484
+#: includes/class-stripe-oxxo.php:490
+#: includes/class-stripe-p24.php:576
+#: includes/class-stripe-p24.php:581
+#: includes/class-stripe-p24.php:587
+#: includes/class-stripe-wechat.php:655
+#: includes/class-stripe-wechat.php:660
+#: includes/class-stripe-wechat.php:666
+#: includes/stripe-overview/class-stripe-overview.php:64
+#: includes/stripe-overview/class-stripe-overview.php:107
+#: includes/stripe-overview/class-stripe-overview.php:113
+#: includes/stripe-overview/class-stripe-overview.php:266
+#: includes/stripe-overview/class-stripe-overview.php:312
+#: includes/stripe-overview/class-stripe-overview.php:318
+msgid "Amount : "
+msgstr ""
+
+#: includes/class-eh-stripe-webhook-handler.php:540
+#: includes/class-stripe-affirm.php:483
+#: includes/class-stripe-afterpay.php:531
+#: includes/class-stripe-api.php:1245
+#: includes/class-stripe-api.php:1250
+#: includes/class-stripe-api.php:1256
+#: includes/class-stripe-bacs.php:603
+#: includes/class-stripe-bancontact.php:583
+#: includes/class-stripe-bancontact.php:596
+#: includes/class-stripe-becs.php:577
+#: includes/class-stripe-checkout.php:1037
+#: includes/class-stripe-eps.php:585
+#: includes/class-stripe-fpx.php:550
+#: includes/class-stripe-giropay.php:472
+#: includes/class-stripe-grabpay.php:550
+#: includes/class-stripe-multibanco.php:819
+#: includes/class-stripe-oxxo.php:490
+#: includes/class-stripe-p24.php:587
+#: includes/class-stripe-wechat.php:666
+#: includes/stripe-overview/class-stripe-overview.php:64
+#: includes/stripe-overview/class-stripe-overview.php:113
+#: includes/stripe-overview/class-stripe-overview.php:266
+#: includes/stripe-overview/class-stripe-overview.php:318
+msgid "Status : "
+msgstr ""
+
+#. translators: %1$s: Reason, %2$s: Amount with currency symbol, %3$s: Status, %4$s: Refund time, %5$s: Transaction ID (optional)
+#. translators: %1$s: Reason, %2$s: Amount with currency symbol, %3$s: Refund time, %4$s: Transaction ID (optional)
+#: includes/class-eh-stripe-webhook-handler.php:542
+#: includes/class-eh-stripe-webhook-handler.php:668
+#: includes/class-gateway-stripe-alipay.php:501
+#: includes/class-stripe-affirm.php:472
+#: includes/class-stripe-afterpay.php:516
+#: includes/class-stripe-api.php:1164
+#: includes/class-stripe-api.php:1169
+#: includes/class-stripe-api.php:1245
+#: includes/class-stripe-bacs.php:493
+#: includes/class-stripe-bacs.php:499
+#: includes/class-stripe-bacs.php:592
+#: includes/class-stripe-bancontact.php:584
+#: includes/class-stripe-becs.php:566
+#: includes/class-stripe-checkout.php:911
+#: includes/class-stripe-checkout.php:1026
+#: includes/class-stripe-checkout.php:1178
+#: includes/class-stripe-eps.php:574
+#: includes/class-stripe-fpx.php:539
+#: includes/class-stripe-giropay.php:461
+#: includes/class-stripe-grabpay.php:539
+#: includes/class-stripe-ideal.php:545
+#: includes/class-stripe-klarna.php:509
+#: includes/class-stripe-multibanco.php:808
+#: includes/class-stripe-oxxo.php:479
+#: includes/class-stripe-p24.php:576
+#: includes/class-stripe-wechat.php:655
+#: includes/stripe-overview/class-stripe-overview.php:64
+#: includes/stripe-overview/class-stripe-overview.php:191
+#: includes/stripe-overview/class-stripe-overview.php:266
+#: payment-gateway-stripe-and-woocommerce-integration.php:389
+msgid "Transaction ID : "
+msgstr ""
+
+#: includes/class-eh-stripe-webhook-handler.php:788
+msgid "Stripe checkout abandoned."
+msgstr ""
+
+#: includes/class-gateway-stripe-alipay.php:22
+msgid "Accepts Alipay payments via Stripe."
+msgstr ""
+
+#. translators: %1$s: Opening HTML div and list tags, %2$s: Bold tag opening, %3$s: Bold tag closing, %4$s: Bold tag opening, %5$s: Bold tag closing, %6$s: Closing HTML list and div tags, %7$s: Documentation link opening, %8$s: Documentation link closing
+#: includes/class-gateway-stripe-alipay.php:69
+msgid "%1$sSupported currencies: %2$s CNY, AUD, CAD, EUR, GBP, HKD, JPY, MYR, NZD, SGD, USD %3$s.%4$sStripe accounts in the following countries can accept the payment: %5$sAustralia, Austria, Belgium, Bulgaria, Canada, Cyprus, Czech Republic, Denmark, Estonia, Finland, France, Germany, Greece, Hong Kong, Hungary, Ireland, Italy, Japan, Latvia, Lithuania, Luxembourg, Malaysia, Malta, Netherlands, New Zealand, Norway, Portugal, Romania, Singapore, Slovakia, Slovenia, Spain, Sweden, Switzerland, United Kingdom, United States%6$s %7$s Read documentation %8$s "
+msgstr ""
+
+#: includes/class-gateway-stripe-alipay.php:77
+#: includes/class-stripe-affirm.php:76
+#: includes/class-stripe-afterpay.php:77
+#: includes/class-stripe-apple-pay.php:36
+#: includes/class-stripe-bacs.php:79
+#: includes/class-stripe-bancontact.php:79
+#: includes/class-stripe-becs.php:88
+#: includes/class-stripe-boleto.php:79
+#: includes/class-stripe-checkout.php:79
+#: includes/class-stripe-checkout.php:174
+#: includes/class-stripe-eps.php:79
+#: includes/class-stripe-fpx.php:81
+#: includes/class-stripe-general-settings.php:104
+#: includes/class-stripe-general-settings.php:112
+#: includes/class-stripe-general-settings.php:121
+#: includes/class-stripe-general-settings.php:163
+#: includes/class-stripe-general-settings.php:170
+#: includes/class-stripe-general-settings.php:222
+#: includes/class-stripe-general-settings.php:230
+#: includes/class-stripe-general-settings.php:239
+#: includes/class-stripe-general-settings.php:281
+#: includes/class-stripe-general-settings.php:288
+#: includes/class-stripe-giropay.php:76
+#: includes/class-stripe-grabpay.php:78
+#: includes/class-stripe-ideal.php:81
+#: includes/class-stripe-klarna.php:78
+#: includes/class-stripe-multibanco.php:81
+#: includes/class-stripe-oxxo.php:79
+#: includes/class-stripe-p24.php:78
+#: includes/class-stripe-payment-request-tab.php:36
+#: includes/class-stripe-sepa-pay.php:87
+#: includes/class-stripe-wechat.php:89
+#: includes/eh-stripe-settings-page.php:18
+#: includes/eh-stripe-settings-page.php:79
+msgid "Enable"
+msgstr ""
+
+#: includes/class-gateway-stripe-alipay.php:80
+msgid "Enable to accept Alipay payments through Stripe."
+msgstr ""
+
+#: includes/class-gateway-stripe-alipay.php:83
+#: includes/class-stripe-affirm.php:83
+#: includes/class-stripe-afterpay.php:84
+#: includes/class-stripe-bacs.php:85
+#: includes/class-stripe-bancontact.php:85
+#: includes/class-stripe-becs.php:94
+#: includes/class-stripe-boleto.php:86
+#: includes/class-stripe-checkout.php:85
+#: includes/class-stripe-eps.php:85
+#: includes/class-stripe-fpx.php:87
+#: includes/class-stripe-giropay.php:83
+#: includes/class-stripe-grabpay.php:84
+#: includes/class-stripe-ideal.php:87
+#: includes/class-stripe-klarna.php:84
+#: includes/class-stripe-multibanco.php:87
+#: includes/class-stripe-oxxo.php:86
+#: includes/class-stripe-p24.php:84
+#: includes/class-stripe-sepa-pay.php:93
+#: includes/class-stripe-wechat.php:96
+#: includes/eh-stripe-settings-page.php:25
+msgid "Title"
+msgstr ""
+
+#: includes/class-gateway-stripe-alipay.php:85
+#: includes/class-stripe-affirm.php:85
+#: includes/class-stripe-afterpay.php:86
+#: includes/class-stripe-bacs.php:87
+#: includes/class-stripe-bancontact.php:87
+#: includes/class-stripe-becs.php:96
+#: includes/class-stripe-boleto.php:88
+#: includes/class-stripe-checkout.php:87
+#: includes/class-stripe-eps.php:87
+#: includes/class-stripe-fpx.php:89
+#: includes/class-stripe-giropay.php:85
+#: includes/class-stripe-grabpay.php:86
+#: includes/class-stripe-ideal.php:89
+#: includes/class-stripe-klarna.php:86
+#: includes/class-stripe-multibanco.php:89
+#: includes/class-stripe-oxxo.php:88
+#: includes/class-stripe-p24.php:86
+#: includes/class-stripe-sepa-pay.php:95
+#: includes/class-stripe-wechat.php:98
+#: includes/eh-stripe-settings-page.php:27
+msgid "Input title for the payment gateway displayed at the checkout."
+msgstr ""
+
+#: includes/class-gateway-stripe-alipay.php:90
+#: includes/class-stripe-affirm.php:90
+#: includes/class-stripe-afterpay.php:91
+#: includes/class-stripe-bacs.php:92
+#: includes/class-stripe-bancontact.php:92
+#: includes/class-stripe-becs.php:101
+#: includes/class-stripe-boleto.php:93
+#: includes/class-stripe-checkout.php:92
+#: includes/class-stripe-eps.php:92
+#: includes/class-stripe-fpx.php:94
+#: includes/class-stripe-giropay.php:90
+#: includes/class-stripe-grabpay.php:91
+#: includes/class-stripe-ideal.php:94
+#: includes/class-stripe-klarna.php:91
+#: includes/class-stripe-multibanco.php:94
+#: includes/class-stripe-oxxo.php:93
+#: includes/class-stripe-p24.php:91
+#: includes/class-stripe-sepa-pay.php:100
+#: includes/class-stripe-wechat.php:103
+#: includes/eh-stripe-settings-page.php:32
+msgid "Description"
+msgstr ""
+
+#: includes/class-gateway-stripe-alipay.php:93
+#: includes/class-stripe-affirm.php:93
+#: includes/class-stripe-afterpay.php:94
+#: includes/class-stripe-bacs.php:95
+#: includes/class-stripe-bancontact.php:95
+#: includes/class-stripe-becs.php:104
+#: includes/class-stripe-boleto.php:96
+#: includes/class-stripe-checkout.php:95
+#: includes/class-stripe-eps.php:95
+#: includes/class-stripe-fpx.php:97
+#: includes/class-stripe-giropay.php:93
+#: includes/class-stripe-grabpay.php:94
+#: includes/class-stripe-ideal.php:97
+#: includes/class-stripe-klarna.php:94
+#: includes/class-stripe-multibanco.php:97
+#: includes/class-stripe-oxxo.php:96
+#: includes/class-stripe-p24.php:94
+#: includes/class-stripe-sepa-pay.php:103
+#: includes/class-stripe-wechat.php:106
+#: includes/eh-stripe-settings-page.php:35
+msgid "Input texts for the payment gateway displayed at the checkout."
+msgstr ""
+
+#: includes/class-gateway-stripe-alipay.php:94
+msgid "Secure payment via Alipay."
+msgstr ""
+
+#: includes/class-gateway-stripe-alipay.php:99
+#: includes/class-stripe-affirm.php:99
+#: includes/class-stripe-afterpay.php:100
+#: includes/class-stripe-bacs.php:101
+#: includes/class-stripe-bancontact.php:101
+#: includes/class-stripe-becs.php:110
+#: includes/class-stripe-boleto.php:102
+#: includes/class-stripe-checkout.php:101
+#: includes/class-stripe-eps.php:101
+#: includes/class-stripe-fpx.php:103
+#: includes/class-stripe-giropay.php:99
+#: includes/class-stripe-grabpay.php:100
+#: includes/class-stripe-ideal.php:103
+#: includes/class-stripe-klarna.php:100
+#: includes/class-stripe-multibanco.php:103
+#: includes/class-stripe-oxxo.php:102
+#: includes/class-stripe-p24.php:100
+#: includes/class-stripe-sepa-pay.php:109
+#: includes/class-stripe-wechat.php:112
+#: includes/eh-stripe-settings-page.php:40
+msgid "Order button text"
+msgstr ""
+
+#: includes/class-gateway-stripe-alipay.php:101
+#: includes/class-stripe-affirm.php:101
+#: includes/class-stripe-afterpay.php:102
+#: includes/class-stripe-bacs.php:103
+#: includes/class-stripe-bancontact.php:103
+#: includes/class-stripe-becs.php:112
+#: includes/class-stripe-boleto.php:104
+#: includes/class-stripe-checkout.php:103
+#: includes/class-stripe-eps.php:103
+#: includes/class-stripe-fpx.php:105
+#: includes/class-stripe-giropay.php:101
+#: includes/class-stripe-grabpay.php:102
+#: includes/class-stripe-ideal.php:105
+#: includes/class-stripe-klarna.php:102
+#: includes/class-stripe-multibanco.php:105
+#: includes/class-stripe-oxxo.php:104
+#: includes/class-stripe-p24.php:102
+#: includes/class-stripe-sepa-pay.php:111
+#: includes/class-stripe-wechat.php:114
+#: includes/eh-stripe-settings-page.php:42
+msgid "Input a text that will appear on the order button to place order at the checkout."
+msgstr ""
+
+#: includes/class-gateway-stripe-alipay.php:102
+msgid "Pay via Alipay"
+msgstr ""
+
+#: includes/class-gateway-stripe-alipay.php:406
+#: includes/class-stripe-affirm.php:259
+#: includes/class-stripe-afterpay.php:260
+#: includes/class-stripe-api.php:943
+#: includes/class-stripe-bancontact.php:321
+#: includes/class-stripe-becs.php:353
+#: includes/class-stripe-boleto.php:278
+#: includes/class-stripe-checkout.php:968
+#: includes/class-stripe-eps.php:318
+#: includes/class-stripe-fpx.php:335
+#: includes/class-stripe-giropay.php:257
+#: includes/class-stripe-grabpay.php:327
+#: includes/class-stripe-ideal.php:336
+#: includes/class-stripe-klarna.php:251
+#: includes/class-stripe-multibanco.php:480
+#: includes/class-stripe-oxxo.php:264
+#: includes/class-stripe-sepa-pay.php:364
+msgid "An error has occurred internally, due to which you are not redirected to the order received page. Please contact support for more assistance."
+msgstr ""
+
+#. translators: %1$s: Reason, %2$s: Amount with currency symbol, %3$s: Status, %4$s: Refund time, %5$s: Transaction ID (optional)
+#: includes/class-gateway-stripe-alipay.php:501
+msgid "Reason : %1$s.<br>Amount : %2$s.<br>Status : %3$s [ %4$s ] %5$s"
+msgstr ""
+
+#. translators: %1$s: Reason, %2$s: Amount with currency symbol
+#: includes/class-gateway-stripe-alipay.php:517
+#: includes/class-stripe-ideal.php:551
+#: includes/class-stripe-klarna.php:515
+msgid "Reason : %1$s.<br>Amount : %2$s.<br>Status : Failed"
+msgstr ""
+
+#. translators: %1$s: Reason, %2$s: Amount with currency symbol, %3$s: Error message
+#: includes/class-gateway-stripe-alipay.php:525
+#: includes/class-stripe-ideal.php:558
+#: includes/class-stripe-klarna.php:522
+msgid "Reason : %1$s.<br>Amount : %2$s.<br>Status : %3$s"
+msgstr ""
+
+#: includes/class-gateway-stripe-alipay.php:529
+#: includes/class-stripe-affirm.php:487
+#: includes/class-stripe-afterpay.php:535
+#: includes/class-stripe-api.php:1260
+#: includes/class-stripe-bacs.php:607
+#: includes/class-stripe-bancontact.php:600
+#: includes/class-stripe-becs.php:581
+#: includes/class-stripe-boleto.php:517
+#: includes/class-stripe-checkout.php:1041
+#: includes/class-stripe-eps.php:589
+#: includes/class-stripe-fpx.php:554
+#: includes/class-stripe-giropay.php:476
+#: includes/class-stripe-grabpay.php:554
+#: includes/class-stripe-ideal.php:562
+#: includes/class-stripe-klarna.php:526
+#: includes/class-stripe-multibanco.php:823
+#: includes/class-stripe-oxxo.php:494
+#: includes/class-stripe-p24.php:591
+#: includes/class-stripe-sepa-pay.php:636
+#: includes/class-stripe-wechat.php:670
+#: includes/stripe-overview/class-stripe-overview.php:117
+#: includes/stripe-overview/class-stripe-overview.php:322
+msgid "Uncaptured Amount cannot be refunded"
+msgstr ""
+
+#: includes/class-gateway-stripe-alipay.php:545
+#: includes/class-stripe-affirm.php:525
+#: includes/class-stripe-afterpay.php:574
+#: includes/class-stripe-bacs.php:405
+#: includes/class-stripe-bancontact.php:639
+#: includes/class-stripe-becs.php:645
+#: includes/class-stripe-boleto.php:556
+#: includes/class-stripe-eps.php:628
+#: includes/class-stripe-fpx.php:625
+#: includes/class-stripe-grabpay.php:592
+#: includes/class-stripe-ideal.php:600
+#: includes/class-stripe-klarna.php:566
+#: includes/class-stripe-multibanco.php:886
+#: includes/class-stripe-p24.php:630
+#: includes/class-stripe-wechat.php:709
+msgid "Invalid order."
+msgstr ""
+
+#: includes/class-gateway-stripe-alipay.php:553
+#: includes/class-stripe-affirm.php:534
+#: includes/class-stripe-afterpay.php:583
+#: includes/class-stripe-bancontact.php:647
+#: includes/class-stripe-becs.php:652
+#: includes/class-stripe-boleto.php:564
+#: includes/class-stripe-checkout.php:822
+#: includes/class-stripe-eps.php:634
+#: includes/class-stripe-fpx.php:631
+#: includes/class-stripe-grabpay.php:601
+#: includes/class-stripe-ideal.php:606
+#: includes/class-stripe-klarna.php:574
+#: includes/class-stripe-multibanco.php:895
+#: includes/class-stripe-p24.php:639
+#: includes/class-stripe-wechat.php:718
+msgid "Invalid order key."
+msgstr ""
+
+#: includes/class-gateway-stripe-alipay.php:571
+#: includes/class-stripe-affirm.php:554
+#: includes/class-stripe-afterpay.php:607
+#: includes/class-stripe-bacs.php:442
+#: includes/class-stripe-bancontact.php:671
+#: includes/class-stripe-becs.php:674
+#: includes/class-stripe-boleto.php:582
+#: includes/class-stripe-eps.php:657
+#: includes/class-stripe-fpx.php:654
+#: includes/class-stripe-giropay.php:526
+#: includes/class-stripe-giropay.php:535
+#: includes/class-stripe-grabpay.php:625
+#: includes/class-stripe-ideal.php:629
+#: includes/class-stripe-klarna.php:598
+#: includes/class-stripe-multibanco.php:919
+#: includes/class-stripe-oxxo.php:554
+#: includes/class-stripe-oxxo.php:563
+#: includes/class-stripe-p24.php:663
+#: includes/class-stripe-sepa-pay.php:691
+#: includes/class-stripe-sepa-pay.php:700
+#: includes/class-stripe-wechat.php:744
+msgid "Unable to process this payment."
+msgstr ""
+
+#: includes/class-gateway-stripe-alipay.php:587
+#: includes/class-stripe-bancontact.php:687
+#: includes/class-stripe-becs.php:696
+#: includes/class-stripe-eps.php:675
+#: includes/class-stripe-fpx.php:672
+#: includes/class-stripe-grabpay.php:643
+#: includes/class-stripe-ideal.php:647
+msgid "Unable to verify payment."
+msgstr ""
+
+#: includes/class-gateway-stripe-alipay.php:596
+#: includes/class-stripe-affirm.php:574
+#: includes/class-stripe-bancontact.php:696
+#: includes/class-stripe-boleto.php:599
+#: includes/class-stripe-klarna.php:622
+#: includes/class-stripe-wechat.php:773
+msgid "Unable to verify payment. Please try again."
+msgstr ""
+
+#: includes/class-gateway-stripe-alipay.php:607
+#: includes/class-stripe-affirm.php:586
+#: includes/class-stripe-afterpay.php:634
+#: includes/class-stripe-bancontact.php:707
+#: includes/class-stripe-boleto.php:610
+#: includes/class-stripe-eps.php:689
+#: includes/class-stripe-fpx.php:686
+#: includes/class-stripe-grabpay.php:658
+#: includes/class-stripe-ideal.php:661
+#: includes/class-stripe-klarna.php:632
+#: includes/class-stripe-multibanco.php:944
+#: includes/class-stripe-p24.php:689
+#: includes/class-stripe-wechat.php:783
+msgid "Your payment is pending. You will receive a confirmation shortly."
+msgstr ""
+
+#: includes/class-gateway-stripe-alipay.php:671
+#: includes/class-stripe-affirm.php:667
+#: includes/class-stripe-affirm.php:683
+#: includes/class-stripe-afterpay.php:717
+#: includes/class-stripe-afterpay.php:733
+#: includes/class-stripe-bancontact.php:786
+#: includes/class-stripe-bancontact.php:802
+#: includes/class-stripe-becs.php:777
+#: includes/class-stripe-becs.php:787
+#: includes/class-stripe-boleto.php:689
+#: includes/class-stripe-boleto.php:695
+#: includes/class-stripe-eps.php:766
+#: includes/class-stripe-eps.php:782
+#: includes/class-stripe-fpx.php:761
+#: includes/class-stripe-fpx.php:767
+#: includes/class-stripe-giropay.php:611
+#: includes/class-stripe-giropay.php:617
+#: includes/class-stripe-grabpay.php:733
+#: includes/class-stripe-grabpay.php:739
+#: includes/class-stripe-ideal.php:735
+#: includes/class-stripe-ideal.php:741
+#: includes/class-stripe-klarna.php:709
+#: includes/class-stripe-klarna.php:725
+#: includes/class-stripe-multibanco.php:719
+#: includes/class-stripe-oxxo.php:636
+#: includes/class-stripe-oxxo.php:653
+#: includes/class-stripe-p24.php:765
+#: includes/class-stripe-p24.php:781
+#: includes/class-stripe-sepa-pay.php:782
+#: includes/class-stripe-sepa-pay.php:799
+#: includes/class-stripe-wechat.php:860
+#: includes/class-stripe-wechat.php:866
+msgid "Stripe payment failed."
+msgstr ""
+
+#. translators: %s: Charge ID
+#: includes/class-gateway-stripe-alipay.php:711
+msgid "Stripe alipay order meta (Charge ID: %s). Process order to take payment, or cancel to remove the pre-authorization."
+msgstr ""
+
+#. translators: %1$s: Preview link opening, %2$s: Preview link closing
+#: includes/class-stripe-affirm.php:24
+msgid "Affirm is a ‘Buy Now, Pay Later’ method that enables customers in the US to pay in installments. %1$s[Preview] %2$s"
+msgstr ""
+
+#. translators: %1$s: Opening HTML div and list tags, %2$s: Bold tag opening, %3$s: Bold tag closing, %4$s: Bold tag opening, %5$s: Bold tag closing, %6$s: Closing HTML list and div tags
+#: includes/class-stripe-affirm.php:68
+msgid "%1$sSupported currency: %2$sUSD%3$s %4$sStripe accounts in the following country can accept the payment: %5$sUnited States%6$s"
+msgstr ""
+
+#: includes/class-stripe-affirm.php:79
+msgid "Enables to accept payments using Affirm."
+msgstr ""
+
+#: includes/class-stripe-affirm.php:94
+msgid "Accept payments using Affirm."
+msgstr ""
+
+#: includes/class-stripe-affirm.php:102
+msgid "Pay via Affirm"
+msgstr ""
+
+#: includes/class-stripe-affirm.php:238
+#: includes/class-stripe-affirm.php:288
+#: includes/class-stripe-afterpay.php:239
+#: includes/class-stripe-afterpay.php:289
+#: includes/class-stripe-bancontact.php:300
+#: includes/class-stripe-bancontact.php:350
+#: includes/class-stripe-becs.php:391
+#: includes/class-stripe-boleto.php:324
+#: includes/class-stripe-eps.php:297
+#: includes/class-stripe-eps.php:347
+#: includes/class-stripe-fpx.php:366
+#: includes/class-stripe-giropay.php:236
+#: includes/class-stripe-giropay.php:287
+#: includes/class-stripe-grabpay.php:306
+#: includes/class-stripe-grabpay.php:357
+#: includes/class-stripe-ideal.php:375
+#: includes/class-stripe-klarna.php:230
+#: includes/class-stripe-klarna.php:280
+#: includes/class-stripe-oxxo.php:301
+#: includes/class-stripe-p24.php:297
+#: includes/class-stripe-p24.php:349
+#: includes/class-stripe-sepa-pay.php:343
+#: includes/class-stripe-sepa-pay.php:395
+#: includes/class-stripe-wechat.php:370
+#: includes/class-stripe-wechat.php:434
+msgid "Unable to process this payment, please try again."
+msgstr ""
+
+#. translators: %s: Error message
+#: includes/class-stripe-affirm.php:294
+msgid "Affirm payment failed: %s"
+msgstr ""
+
+#. translators: %1$s: Site name, %2$s: Order number
+#: includes/class-stripe-affirm.php:368
+#: includes/class-stripe-checkout.php:335
+msgid "%1$s Order #%2$s"
+msgstr ""
+
+#. translators: %1$s: Products list, %2$s: Site name, %3$s: Order number
+#: includes/class-stripe-affirm.php:382
+msgid "%1$s %2$s Order #%3$s"
+msgstr ""
+
+#: includes/class-stripe-affirm.php:472
+#: includes/class-stripe-afterpay.php:516
+#: includes/class-stripe-bacs.php:592
+#: includes/class-stripe-becs.php:566
+#: includes/class-stripe-checkout.php:1026
+#: includes/class-stripe-eps.php:574
+#: includes/class-stripe-fpx.php:539
+#: includes/class-stripe-giropay.php:461
+#: includes/class-stripe-grabpay.php:539
+#: includes/class-stripe-multibanco.php:808
+#: includes/class-stripe-oxxo.php:479
+#: includes/class-stripe-p24.php:576
+#: includes/class-stripe-wechat.php:655
+msgid "Status : refunded "
+msgstr ""
+
+#: includes/class-stripe-affirm.php:477
+#: includes/class-stripe-afterpay.php:521
+#: includes/class-stripe-bacs.php:597
+#: includes/class-stripe-bancontact.php:590
+#: includes/class-stripe-becs.php:571
+#: includes/class-stripe-checkout.php:1031
+#: includes/class-stripe-eps.php:579
+#: includes/class-stripe-fpx.php:544
+#: includes/class-stripe-giropay.php:466
+#: includes/class-stripe-grabpay.php:544
+#: includes/class-stripe-multibanco.php:813
+#: includes/class-stripe-oxxo.php:484
+#: includes/class-stripe-p24.php:581
+#: includes/class-stripe-wechat.php:660
+#: includes/stripe-overview/class-stripe-overview.php:107
+#: includes/stripe-overview/class-stripe-overview.php:312
+msgid " Status : Failed "
+msgstr ""
+
+#: includes/class-stripe-affirm.php:673
+#: includes/class-stripe-afterpay.php:723
+#: includes/class-stripe-bancontact.php:792
+#: includes/class-stripe-eps.php:772
+#: includes/class-stripe-klarna.php:715
+#: includes/class-stripe-multibanco.php:712
+#: includes/class-stripe-multibanco.php:716
+#: includes/class-stripe-p24.php:771
+#: includes/class-stripe-sepa-pay.php:788
+msgid "Waiting for the payment to succeed or fail."
+msgstr ""
+
+#: includes/class-stripe-affirm.php:677
+#: includes/class-stripe-afterpay.php:727
+#: includes/class-stripe-bancontact.php:796
+#: includes/class-stripe-eps.php:776
+#: includes/class-stripe-klarna.php:719
+#: includes/class-stripe-p24.php:775
+#: includes/class-stripe-sepa-pay.php:792
+msgid "Payment is authorized and requires a capture."
+msgstr ""
+
+#. translators: %1$s: Opening anchor tag with preview link, %2$s: Closing anchor tag
+#: includes/class-stripe-afterpay.php:24
+msgid "Accepts payments via Afterpay (also known as Clearpay in the UK) that provides a 'Buy Now, Pay Later' option for customers. %1$s[Preview]%2$s"
+msgstr ""
+
+#. translators: %1$s: Opening HTML div and list tags, %2$s: Bold tag opening, %3$s: Bold tag closing, %4$s: Bold tag opening, %5$s: Bold tag closing, %6$s: Closing HTML list and div tags, %7$s: Documentation link opening, %8$s: Documentation link closing
+#: includes/class-stripe-afterpay.php:68
+msgid "%1$sSupported currencies: %2$sUSD, CAD, GBP, AUD, NZD, EUR%3$sStripe accounts in the following countries can accept the payment: %2$sAustralia, Canada, New Zealand, United Kingdom, United States%3$s</li></ul><p><a target=\"_blank\" href=\"https://www.themehigh.com/docs/set-up-afterpay-or-clearpay-payment-method-for-a-woocommerce-store/\">Read documentation</a></p></div>"
+msgstr ""
+
+#: includes/class-stripe-afterpay.php:80
+msgid "Enables to accept payments using Afterpay."
+msgstr ""
+
+#: includes/class-stripe-afterpay.php:95
+msgid "Accept payments using Afterpay."
+msgstr ""
+
+#: includes/class-stripe-afterpay.php:103
+msgid "Pay via Afterpay"
+msgstr ""
+
+#. translators: %s: Error message
+#: includes/class-stripe-afterpay.php:295
+msgid "Afterpay payment failed: %s"
+msgstr ""
+
+#. translators: %1$s: Site name, %2$s: Order number
+#: includes/class-stripe-afterpay.php:429
+#: includes/class-stripe-bancontact.php:497
+#: includes/class-stripe-eps.php:494
+#: includes/class-stripe-klarna.php:427
+#: includes/class-stripe-multibanco.php:549
+#: includes/class-stripe-p24.php:497
+#: includes/class-stripe-sepa-pay.php:541
+#: includes/class-stripe-wechat.php:571
+msgid "%1$s - Order %2$s"
+msgstr ""
+
+#: includes/class-stripe-afterpay.php:445
+#: includes/class-stripe-bancontact.php:513
+#: includes/class-stripe-eps.php:510
+#: includes/class-stripe-klarna.php:443
+#: includes/class-stripe-multibanco.php:565
+#: includes/class-stripe-p24.php:513
+#: includes/class-stripe-sepa-pay.php:557
+#: includes/class-stripe-wechat.php:587
+msgid "customer_name"
+msgstr ""
+
+#: includes/class-stripe-afterpay.php:446
+#: includes/class-stripe-bancontact.php:514
+#: includes/class-stripe-eps.php:511
+#: includes/class-stripe-klarna.php:444
+#: includes/class-stripe-multibanco.php:566
+#: includes/class-stripe-p24.php:514
+#: includes/class-stripe-sepa-pay.php:558
+#: includes/class-stripe-wechat.php:588
+msgid "customer_email"
+msgstr ""
+
+#: includes/class-stripe-afterpay.php:627
+#: includes/class-stripe-eps.php:683
+#: includes/class-stripe-fpx.php:680
+#: includes/class-stripe-grabpay.php:651
+#: includes/class-stripe-ideal.php:655
+#: includes/class-stripe-multibanco.php:937
+#: includes/class-stripe-p24.php:682
+msgid "Payment processing error."
+msgstr ""
+
+#. translators: %s: Documentation link text
+#: includes/class-stripe-api.php:70
+msgid "Accepts Stripe payments via credit or debit card. <p><a target='_blank' href='https://www.themehigh.com/docs/stripe-payment-plugin-for-woocommerce-free/#credit_debit_cards'>%s</a></p>"
+msgstr ""
+
+#. translators: %s: Documentation link text
+#: includes/class-stripe-api.php:70
+#: includes/class-stripe-apple-pay.php:28
+msgid "Read documentation"
+msgstr ""
+
+#. translators: %1$s: Test mode text, %2$s: Link text for test card details, %3$s: Test card details URL
+#: includes/class-stripe-api.php:74
+msgid "Stripe TEST MODE Enabled: "
+msgstr ""
+
+#. translators: %1$s: Test mode text, %2$s: Link text for test card details, %3$s: Test card details URL
+#: includes/class-stripe-api.php:74
+msgid " Use these "
+msgstr ""
+
+#. translators: %1$s: Test mode text, %2$s: Link text for test card details, %3$s: Test card details URL
+#: includes/class-stripe-api.php:74
+msgid " Test Card Details "
+msgstr ""
+
+#. translators: %1$s: Test mode text, %2$s: Link text for test card details, %3$s: Test card details URL
+#: includes/class-stripe-api.php:74
+msgid " for Testing."
+msgstr ""
+
+#: includes/class-stripe-api.php:331
+#: includes/class-stripe-sepa-pay.php:165
+msgid "Please accept the terms and conditions first"
+msgstr ""
+
+#: includes/class-stripe-api.php:332
+#: includes/class-stripe-sepa-pay.php:166
+msgid "Please fill in required checkout fields first"
+msgstr ""
+
+#: includes/class-stripe-api.php:340
+msgid "1234 1234 1234 1234"
+msgstr ""
+
+#: includes/class-stripe-api.php:341
+msgid "MM / YY"
+msgstr ""
+
+#: includes/class-stripe-api.php:342
+msgid "CVC"
+msgstr ""
+
+#: includes/class-stripe-api.php:397
+#: includes/class-stripe-bancontact.php:237
+#: includes/class-stripe-becs.php:261
+#: includes/class-stripe-eps.php:236
+#: includes/class-stripe-fpx.php:249
+#: includes/class-stripe-grabpay.php:248
+#: includes/class-stripe-ideal.php:250
+#: includes/class-stripe-multibanco.php:186
+#: includes/class-stripe-p24.php:235
+#: includes/class-stripe-payment-request-tab.php:77
+#: includes/class-stripe-sepa-pay.php:231
+msgid "Pay"
+msgstr ""
+
+#: includes/class-stripe-api.php:461
+msgid "Card Number"
+msgstr ""
+
+#: includes/class-stripe-api.php:470
+msgid "Expiry Date"
+msgstr ""
+
+#: includes/class-stripe-api.php:478
+msgid "Card Code (CVC)"
+msgstr ""
+
+#: includes/class-stripe-api.php:848
+msgid "Admin declined the payment due to Card Restriction."
+msgstr ""
+
+#. translators: %1$s: Card brand, %2$s: Accepted card brands list
+#: includes/class-stripe-api.php:853
+msgid "Card brand (%1$s) has been restricted for payment by the seller. Please reload and try with another card from the accepted list (%2$s)"
+msgstr ""
+
+#: includes/class-stripe-api.php:870
+#: includes/class-stripe-api.php:881
+#: includes/class-stripe-api.php:890
+msgid "Invalid card. Please select another card or input a new card number"
+msgstr ""
+
+#: includes/class-stripe-api.php:1055
+msgid "Payment Failed "
+msgstr ""
+
+#: includes/class-stripe-api.php:1055
+msgid "Refresh and try again"
+msgstr ""
+
+#: includes/class-stripe-api.php:1070
+msgid "There was a problem adding the payment method."
+msgstr ""
+
+#. translators: %s: Error message
+#: includes/class-stripe-api.php:1470
+msgid "Stripe SCA authentication failed. Reason: %s"
+msgstr ""
+
+#. translators: %s: Error message
+#: includes/class-stripe-api.php:1470
+msgid "Stripe SCA authentication failed."
+msgstr ""
+
+#: includes/class-stripe-api.php:1502
+msgid "Need to autherise the payment."
+msgstr ""
+
+#: includes/class-stripe-apple-pay.php:28
+msgid "Accepts payments via Apple Pay."
+msgstr ""
+
+#: includes/class-stripe-apple-pay.php:28
+msgid "To use Apple Pay, you need to register all your web domains that display the Apple Pay button with Apple and verify ownership of each domain."
+msgstr ""
+
+#: includes/class-stripe-apple-pay.php:28
+msgid "Steps to register:"
+msgstr ""
+
+#: includes/class-stripe-apple-pay.php:28
+msgid "To do this, navigate to <a href=\"https://dashboard.stripe.com/settings/payment_method_domains\" target=\"_blank\">Settings > Payments > Payment method domains </a> from your Stripe dashboard and add your domain. All domains, whether in production or testing, must be registered. Don’t register your domain more than once per account."
+msgstr ""
+
+#: includes/class-stripe-apple-pay.php:28
+msgid "Download the <a href=\"https://stripe.com/files/apple-pay/apple-developer-merchantid-domain-association\"> domain association file </a> and host it at /.well-known/apple-developer-merchantid-domain-association on your site. For example, if you’re registering https://example.com, make that file available at https://example.com/.well-known/apple-developer-merchantid-domain-association."
+msgstr ""
+
+#: includes/class-stripe-apple-pay.php:28
+msgid "Payment methods are only available when you use a"
+msgstr ""
+
+#. translators: %1$s: "To use Google Pay," text, %2$s: Domain registration instructions, %3$s: HTTPS requirement text, %4$s: "Payment methods are only available when you use a" text, %5$s: "supported browser" text
+#: includes/class-stripe-apple-pay.php:28
+#: includes/class-stripe-payment-request-tab.php:27
+msgid " supported browser"
+msgstr ""
+
+#: includes/class-stripe-apple-pay.php:38
+msgid "Enable Apple Pay to allow customers to make payments using their Apple Wallet."
+msgstr ""
+
+#: includes/class-stripe-apple-pay.php:44
+msgid "Show on pages"
+msgstr ""
+
+#: includes/class-stripe-apple-pay.php:48
+msgid "Select where to display the Apple Pay button."
+msgstr ""
+
+#: includes/class-stripe-apple-pay.php:65
+msgid "Button Settings "
+msgstr ""
+
+#: includes/class-stripe-apple-pay.php:69
+msgid "Color"
+msgstr ""
+
+#: includes/class-stripe-apple-pay.php:72
+msgid "Select the color for the Apple Pay button."
+msgstr ""
+
+#: includes/class-stripe-apple-pay.php:76
+#: includes/class-stripe-payment-request-tab.php:91
+msgid "White"
+msgstr ""
+
+#: includes/class-stripe-apple-pay.php:77
+#: includes/class-stripe-payment-request-tab.php:90
+msgid "Black"
+msgstr ""
+
+#: includes/class-stripe-apple-pay.php:78
+msgid "White Outline"
+msgstr ""
+
+#: includes/class-stripe-apple-pay.php:82
+msgid "Text"
+msgstr ""
+
+#: includes/class-stripe-apple-pay.php:85
+msgid "Select the text to display on the Apple Pay button."
+msgstr ""
+
+#: includes/class-stripe-apple-pay.php:89
+#: includes/class-stripe-payment-request-tab.php:78
+msgid "Plain"
+msgstr ""
+
+#: includes/class-stripe-apple-pay.php:90
+#: includes/class-stripe-payment-request-tab.php:73
+msgid "Buy"
+msgstr ""
+
+#: includes/class-stripe-apple-pay.php:91
+msgid "Add Money"
+msgstr ""
+
+#: includes/class-stripe-apple-pay.php:92
+#: includes/class-stripe-payment-request-tab.php:72
+msgid "Book"
+msgstr ""
+
+#: includes/class-stripe-apple-pay.php:93
+#: includes/class-stripe-payment-request-tab.php:74
+msgid "Checkout"
+msgstr ""
+
+#: includes/class-stripe-apple-pay.php:94
+msgid "Contribute"
+msgstr ""
+
+#: includes/class-stripe-apple-pay.php:95
+#: includes/class-stripe-payment-request-tab.php:75
+msgid "Donate"
+msgstr ""
+
+#: includes/class-stripe-apple-pay.php:96
+#: includes/class-stripe-payment-request-tab.php:76
+#: includes/stripe-overview/class-overview-table-data.php:142
+#: includes/stripe-overview/class-overview-table-data.php:469
+msgid "Order"
+msgstr ""
+
+#: includes/class-stripe-apple-pay.php:97
+msgid "Reload"
+msgstr ""
+
+#: includes/class-stripe-apple-pay.php:98
+msgid "Rent"
+msgstr ""
+
+#: includes/class-stripe-apple-pay.php:100
+msgid "Tip"
+msgstr ""
+
+#: includes/class-stripe-apple-pay.php:101
+msgid "Top up"
+msgstr ""
+
+#: includes/class-stripe-bacs.php:21
+#: includes/class-stripe-bacs.php:78
+#: includes/class-stripe-bacs.php:88
+msgid "Bacs Direct Debit"
+msgstr ""
+
+#: includes/class-stripe-bacs.php:22
+msgid "Pay with Bacs Direct Debit"
+msgstr ""
+
+#. translators: %s: URL path to the plugin assets directory
+#: includes/class-stripe-bacs.php:38
+msgid "<p style=\"%1$s\">Enables users in the UK can accept Bacs Direct Debit payments from customers with a UK bank account. <a class=\"thickbox\" href=\"%2$sassets/img/bacs-preview.png?TB_iframe=true&width=100&height=100\" >Preview</a>"
+msgstr ""
+
+#. translators: %1$s: Opening HTML div and list tags, %2$s: Bold tag opening, %3$s: Bold tag closing, %4$s: Bold tag opening, %5$s: Bold tag closing, %6$s: Closing HTML list and div tags
+#: includes/class-stripe-bacs.php:69
+msgid "%1$sSupported currencies: %2$sGBP%3$sStripe accounts in the following countries can accept the payment: %4$sUK%5$s"
+msgstr ""
+
+#: includes/class-stripe-bacs.php:82
+msgid "Enable to accept Bacs Direct Debit payments."
+msgstr ""
+
+#: includes/class-stripe-bacs.php:96
+msgid "Secure payment via Bacs Direct Debit."
+msgstr ""
+
+#: includes/class-stripe-bacs.php:104
+msgid "Pay via Bacs Direct Debit"
+msgstr ""
+
+#: includes/class-stripe-bacs.php:108
+#: includes/class-stripe-checkout.php:108
+msgid "Locale"
+msgstr ""
+
+#: includes/class-stripe-bacs.php:113
+#: includes/class-stripe-checkout.php:113
+msgid "Browser's locale"
+msgstr ""
+
+#: includes/class-stripe-bacs.php:114
+#: includes/class-stripe-checkout.php:114
+msgid "Bulgarian"
+msgstr ""
+
+#: includes/class-stripe-bacs.php:115
+#: includes/class-stripe-checkout.php:116
+msgid "Czech"
+msgstr ""
+
+#: includes/class-stripe-bacs.php:116
+#: includes/class-stripe-checkout.php:117
+msgid "Danish"
+msgstr ""
+
+#: includes/class-stripe-bacs.php:117
+#: includes/class-stripe-checkout.php:118
+msgid "Dutch"
+msgstr ""
+
+#: includes/class-stripe-bacs.php:118
+#: includes/class-stripe-checkout.php:119
+msgid "English"
+msgstr ""
+
+#: includes/class-stripe-bacs.php:119
+#: includes/class-stripe-checkout.php:120
+msgid "Estonian"
+msgstr ""
+
+#: includes/class-stripe-bacs.php:120
+#: includes/class-stripe-checkout.php:121
+msgid "Finnish"
+msgstr ""
+
+#: includes/class-stripe-bacs.php:121
+#: includes/class-stripe-checkout.php:123
+msgid "French"
+msgstr ""
+
+#: includes/class-stripe-bacs.php:122
+#: includes/class-stripe-checkout.php:124
+msgid "German"
+msgstr ""
+
+#: includes/class-stripe-bacs.php:123
+#: includes/class-stripe-checkout.php:125
+msgid "Greek"
+msgstr ""
+
+#: includes/class-stripe-bacs.php:124
+#: includes/class-stripe-checkout.php:126
+msgid "Hungarian"
+msgstr ""
+
+#: includes/class-stripe-bacs.php:125
+#: includes/class-stripe-checkout.php:128
+msgid "Italian"
+msgstr ""
+
+#: includes/class-stripe-bacs.php:126
+#: includes/class-stripe-checkout.php:129
+msgid "Japanese"
+msgstr ""
+
+#: includes/class-stripe-bacs.php:127
+#: includes/class-stripe-checkout.php:131
+msgid "Latvian"
+msgstr ""
+
+#: includes/class-stripe-bacs.php:128
+#: includes/class-stripe-checkout.php:132
+msgid "Lithuanian"
+msgstr ""
+
+#: includes/class-stripe-bacs.php:129
+#: includes/class-stripe-checkout.php:133
+msgid "Malay"
+msgstr ""
+
+#: includes/class-stripe-bacs.php:130
+#: includes/class-stripe-checkout.php:134
+msgid "Maltese"
+msgstr ""
+
+#: includes/class-stripe-bacs.php:131
+#: includes/class-stripe-checkout.php:135
+msgid "Norwegian Bokmål"
+msgstr ""
+
+#: includes/class-stripe-bacs.php:132
+#: includes/class-stripe-checkout.php:136
+msgid "Polish"
+msgstr ""
+
+#: includes/class-stripe-bacs.php:133
+#: includes/class-stripe-checkout.php:137
+msgid "Portuguese"
+msgstr ""
+
+#: includes/class-stripe-bacs.php:134
+#: includes/class-stripe-checkout.php:138
+msgid "Romanian"
+msgstr ""
+
+#: includes/class-stripe-bacs.php:135
+#: includes/class-stripe-checkout.php:139
+msgid "Russian"
+msgstr ""
+
+#: includes/class-stripe-bacs.php:136
+#: includes/class-stripe-checkout.php:140
+msgid "Simplified Chinese"
+msgstr ""
+
+#: includes/class-stripe-bacs.php:137
+#: includes/class-stripe-checkout.php:141
+msgid "Slovak"
+msgstr ""
+
+#: includes/class-stripe-bacs.php:138
+#: includes/class-stripe-checkout.php:143
+msgid "Spanish"
+msgstr ""
+
+#: includes/class-stripe-bacs.php:139
+#: includes/class-stripe-checkout.php:144
+msgid "Swedish"
+msgstr ""
+
+#: includes/class-stripe-bacs.php:140
+#: includes/class-stripe-checkout.php:146
+msgid "Turkish"
+msgstr ""
+
+#: includes/class-stripe-bacs.php:142
+msgid "Choose a desired locale code from the drop down (Languages supported by Bacs Direct Debit are listed)"
+msgstr ""
+
+#. translators: %1$s: Opening HTML div and paragraph tags, %2$s: Documentation link opening, %3$s: Documentation link closing, %4$s: Closing HTML paragraph and div tags
+#: includes/class-stripe-bacs.php:149
+msgid "%1$sTo accept payments via Bacs Direct Debit payment method, you must configure the webhook endpoint and subscribe to relevant events. %2$sClick here%3$s to know more%4$s"
+msgstr ""
+
+#: includes/class-stripe-bacs.php:330
+#: includes/class-stripe-checkout.php:556
+msgid "Total"
+msgstr ""
+
+#: includes/class-stripe-bacs.php:394
+#: includes/class-stripe-checkout.php:791
+#: includes/class-stripe-payment-request-button.php:270
+#: includes/class-stripe-payment-request-button.php:439
+#: includes/class-stripe-payment-request-button.php:499
+#: includes/class-stripe-payment-request-button.php:670
+msgid "Access Denied"
+msgstr ""
+
+#: includes/class-stripe-bacs.php:413
+msgid "You have cancelled Bacs Direct Debit Session. Please try to process your order again."
+msgstr ""
+
+#: includes/class-stripe-bacs.php:421
+msgid "Invalid session."
+msgstr ""
+
+#: includes/class-stripe-bacs.php:459
+msgid "Wait for the payment to succeed or fail."
+msgstr ""
+
+#. translators: %s: URL path to the plugin assets directory
+#: includes/class-stripe-bancontact.php:25
+msgid "Bancontact allow customer to use Bancontact card or mobile app linked to a Belgian bank account to make online payments. <a class=\"thickbox\" href=\"%sassets/img/bancontact-preview.png?TB_iframe=true&width=100&height=100\">[Preview] </a> "
+msgstr ""
+
+#. translators: %1$s: Opening HTML div and list tags, %2$s: Bold tag opening, %3$s: Bold tag closing, %4$s: Bold tag opening, %5$s: Bold tag closing, %6$s: Closing HTML list and div tags, %7$s: Documentation link opening, %8$s: Documentation link closing
+#: includes/class-stripe-bancontact.php:71
+#: includes/class-stripe-eps.php:71
+msgid "%1$sSupported currencies: %2$sEUR%3$sStripe accounts in the following countries can accept the payment: %4$sAustralia, Austria, Belgium, Bulgaria, Canada, Cyprus, Czech Republic, Denmark, Estonia, Finland, France, Germany, Greece, Hong Kong, Hungary, Ireland, Italy, Japan, Latvia, Lithuania, Luxembourg, Malta, Mexico, Netherlands, New Zealand, Norway, Poland, Portugal, Romania, Singapore, Slovakia, Slovenia, Spain, Sweden, Switzerland, United Kingdom, United States%5$s%6$sRead documentation%7$s"
+msgstr ""
+
+#: includes/class-stripe-bancontact.php:78
+#: includes/class-stripe-bancontact.php:88
+msgid "Bancontact Pay"
+msgstr ""
+
+#: includes/class-stripe-bancontact.php:82
+msgid "Enables customers in the Single Euro Payments Area (Bancontact) to pay by providing their bank account details."
+msgstr ""
+
+#: includes/class-stripe-bancontact.php:96
+msgid "Secure debit payment via Bancontact."
+msgstr ""
+
+#: includes/class-stripe-bancontact.php:104
+msgid "Pay via Bancontact"
+msgstr ""
+
+#. translators: %s: Error message from the payment gateway
+#: includes/class-stripe-bancontact.php:356
+msgid "Bancontact payment failed: %s"
+msgstr ""
+
+#: includes/class-stripe-becs.php:21
+#: includes/class-stripe-becs.php:87
+#: includes/class-stripe-becs.php:97
+msgid "BECS Debit"
+msgstr ""
+
+#. translators: %s: Preview link HTML
+#: includes/class-stripe-becs.php:25
+msgid "Stripe users in Australia can accept BECS Direct Debit payments from customers with an Australian bank account. %s"
+msgstr ""
+
+#. translators: Legal agreement text for BECS Direct Debit
+#: includes/class-stripe-becs.php:50
+msgid "By providing your bank account details and confirming this payment, you agree to this Direct Debit Request and the Direct Debit Request service agreement, <a href=\"https://stripe.com/au-becs-dd-service-agreement/legal\">Direct Debit Request service agreement</a>, and authorise Stripe Payments Australia Pty Ltd ACN 160 180 343 Direct Debit User ID number 507156 (“Stripe”) to debit your account through the Bulk Electronic Clearing System (BECS) on behalf of (the “Merchant”) for any amounts separately communicated to you by the Merchant. You certify that you are either an account holder or an authorised signatory on the account listed above."
+msgstr ""
+
+#. translators: %1$s: Opening HTML div and list tags, %2$s: Bold tag opening, %3$s: Bold tag closing, %4$s: Bold tag opening, %5$s: Bold tag closing, %6$s: Closing HTML list and div tags
+#: includes/class-stripe-becs.php:79
+msgid "%1$sSupported currencies: %2$sAUD%3$sStripe accounts in the following countries can accept the payment: %4$sAustralia%5$s"
+msgstr ""
+
+#: includes/class-stripe-becs.php:91
+msgid "Enables customers in the Single Euro Payments Area (BECS) to pay by providing their bank account details."
+msgstr ""
+
+#: includes/class-stripe-becs.php:105
+msgid "Secure debit payment via BECS Debit."
+msgstr ""
+
+#: includes/class-stripe-becs.php:113
+msgid "Pay via BECS Debit"
+msgstr ""
+
+#. translators: %1$s: Opening HTML div and paragraph tags, %2$s: Documentation link opening, %3$s: Documentation link closing, %4$s: Closing HTML paragraph and div tags
+#: includes/class-stripe-becs.php:119
+msgid "%1$sTo accept payments via BECS payment method, you must configure the webhook endpoint and subscribe to relevant events. %2$sClick here%3$s to know more%4$s"
+msgstr ""
+
+#: includes/class-stripe-becs.php:306
+msgid "BECS Bank"
+msgstr ""
+
+#. translators: %s: Error message
+#: includes/class-stripe-becs.php:397
+msgid "BECS payment failed: %s"
+msgstr ""
+
+#: includes/class-stripe-becs.php:705
+msgid "Your payment is pending. You will receive confirmation shortly."
+msgstr ""
+
+#. translators: %s: URL path to the plugin assets directory
+#: includes/class-stripe-boleto.php:24
+msgid "Boleto is an official (regulated by the Central Bank of Brazil) payment method in Brazil. <a class=\"thickbox\" href=\"%sassets/img/boleto-preview.png?TB_iframe=true&width=100&height=100\">[Preview] </a>"
+msgstr ""
+
+#. translators: %1$s: Opening HTML div and list tags, %2$s: Bold tag opening, %3$s: Bold tag closing, %4$s: Bold tag opening, %5$s: Bold tag closing, %6$s: Closing HTML list and div tags
+#: includes/class-stripe-boleto.php:71
+msgid "%1$sSupported currency: %2$sBRL%3$sStripe accounts in the following countries can accept the payment: %4$sBrazil%5$s"
+msgstr ""
+
+#: includes/class-stripe-boleto.php:82
+msgid "Enables to accept payments using Boleto."
+msgstr ""
+
+#: includes/class-stripe-boleto.php:97
+msgid "Accept payments using Boleto."
+msgstr ""
+
+#: includes/class-stripe-boleto.php:105
+msgid "Pay via Boleto"
+msgstr ""
+
+#. translators: %1$s: Opening HTML div and paragraph tags, %2$s: Documentation link opening, %3$s: Documentation link closing, %4$s: Closing HTML paragraph and div tags
+#: includes/class-stripe-boleto.php:111
+msgid "%1$sTo accept payments via Boleto payment method, you must configure the webhook endpoint and subscribe to relevant events. %2$sClick here%3$s to know more%4$s"
+msgstr ""
+
+#: includes/class-stripe-boleto.php:238
+msgid "CPF/CNPJ"
+msgstr ""
+
+#. translators: %s: Error message
+#: includes/class-stripe-boleto.php:330
+msgid "Boleto payment failed: %s"
+msgstr ""
+
+#. translators: %1$s: Reason text, %2$s: Amount text, %3$s: Status text, %4$s: Transaction ID text
+#: includes/class-stripe-boleto.php:500
+#: includes/class-stripe-sepa-pay.php:619
+msgid "Reason : %1$s<br>Amount : %2$s<br>Status : refunded [ %3$s ] %4$s"
+msgstr ""
+
+#. translators: %1$s: Reason text, %2$s: Amount text
+#: includes/class-stripe-boleto.php:506
+#: includes/class-stripe-sepa-pay.php:625
+msgid "Reason : %1$s<br>Amount : %2$s<br>Status : Failed"
+msgstr ""
+
+#. translators: %1$s: Reason text, %2$s: Amount text, %3$s: Error message
+#: includes/class-stripe-boleto.php:513
+#: includes/class-stripe-sepa-pay.php:632
+msgid "Reason : %1$s<br>Amount : %2$s<br>Status : %3$s"
+msgstr ""
+
+#. translators: %1$s: Payment status, %2$s: Order time, %3$s: Source type, %4$s: Charge status, %5$s: Transaction ID
+#. translators: %1$s: Payment status, %2$s: Order time, %3$s: Source type, %4$s: Charge status, %5$s: Transaction ID (optional)
+#: includes/class-stripe-boleto.php:673
+#: includes/class-stripe-boleto.php:678
+#: includes/class-stripe-ideal.php:718
+#: includes/class-stripe-sepa-pay.php:764
+#: includes/class-stripe-sepa-pay.php:770
+#: includes/class-stripe-sepa-pay.php:794
+msgid "Payment Status : %1$s [ %2$s ] . Source : %3$s . Charge Status : %4$s%5$s"
+msgstr ""
+
+#: includes/class-stripe-checkout.php:22
+msgid "Pay with Stripe Checkout"
+msgstr ""
+
+#. translators: %1$s: Opening paragraph tag with style, %2$s: Dashboard link opening, %3$s: Dashboard link closing, %4$s: Preview link opening, %5$s: Preview link closing, %6$s: Closing paragraph tag, %7$s: Documentation link opening, %8$s: Documentation link closing, %9$s: Closing paragraph tag
+#: includes/class-stripe-checkout.php:39
+msgid "%1$sStripe Checkout redirects users to a secure, Stripe-hosted payment page to accept payment. You will have to specify an account name in Stripe %2$sDashboard%3$s prior to configuring the settings. %4$sPreview%5$s%6$s%7$sRead documentation%8$s%9$s"
+msgstr ""
+
+#: includes/class-stripe-checkout.php:82
+msgid "Enable to accept Stripe Checkout payments."
+msgstr ""
+
+#: includes/class-stripe-checkout.php:96
+msgid "Secure payment via Stripe Checkout."
+msgstr ""
+
+#: includes/class-stripe-checkout.php:104
+msgid "Pay via Stripe Checkout"
+msgstr ""
+
+#: includes/class-stripe-checkout.php:115
+msgid "Croatian"
+msgstr ""
+
+#: includes/class-stripe-checkout.php:122
+msgid "Filipino"
+msgstr ""
+
+#: includes/class-stripe-checkout.php:127
+msgid "Indonesian"
+msgstr ""
+
+#: includes/class-stripe-checkout.php:130
+msgid "Korean"
+msgstr ""
+
+#: includes/class-stripe-checkout.php:142
+msgid "Slovenian"
+msgstr ""
+
+#: includes/class-stripe-checkout.php:145
+msgid "Thai"
+msgstr ""
+
+#: includes/class-stripe-checkout.php:147
+msgid "Vietnamese"
+msgstr ""
+
+#: includes/class-stripe-checkout.php:149
+msgid "Choose a desired locale code from the drop down (Languages supported by Stripe Checkout are listed)"
+msgstr ""
+
+#: includes/class-stripe-checkout.php:154
+msgid "Send line items to stripe"
+msgstr ""
+
+#: includes/class-stripe-checkout.php:155
+msgid "Enable to view all order line items like tax, shipping, fees, discount, etc.  at the stripe hosted payment page."
+msgstr ""
+
+#: includes/class-stripe-checkout.php:161
+msgid "Ask for address details from the stripe hosted page"
+msgstr ""
+
+#: includes/class-stripe-checkout.php:162
+msgid "Billing address"
+msgstr ""
+
+#: includes/class-stripe-checkout.php:168
+msgid "Shipping address"
+msgstr ""
+
+#: includes/class-stripe-checkout.php:173
+msgid "Stripe Invoice for Checkout"
+msgstr ""
+
+#: includes/class-stripe-checkout.php:177
+msgid "If enabled, Stripe will automatically generate and send an invoice for payments made via Stripe Checkout Sessions. This is useful for stores that require invoicing for accounting or customer documentation."
+msgstr ""
+
+#. translators: %1$s: Opening HTML div and paragraph tags, %2$s: Documentation link opening, %3$s: Documentation link closing, %4$s: Closing HTML paragraph and div tags
+#: includes/class-stripe-checkout.php:183
+msgid "%1$sTo accept payments via delayed payment methods from Stripe hosted page, you must configure the webhook endpoint and subscribe to relevant events. %2$sClick here%3$s to know more%4$s"
+msgstr ""
+
+#: includes/class-stripe-checkout.php:418
+#: includes/class-stripe-payment-request-button.php:326
+#: includes/class-stripe-payment-request-button.php:385
+msgid "Shipping"
+msgstr ""
+
+#: includes/class-stripe-checkout.php:442
+#: includes/class-stripe-checkout.php:473
+#: includes/class-stripe-payment-request-button.php:392
+msgid "Discount"
+msgstr ""
+
+#: includes/class-stripe-checkout.php:492
+#: includes/class-stripe-checkout.php:507
+msgid "Fee"
+msgstr ""
+
+#: includes/class-stripe-checkout.php:527
+#: includes/class-stripe-payment-request-button.php:319
+#: includes/class-stripe-payment-request-button.php:378
+msgid "Tax"
+msgstr ""
+
+#: includes/class-stripe-checkout.php:796
+msgid "You have cancelled the Stripe Checkout session. Please try again."
+msgstr ""
+
+#: includes/class-stripe-checkout.php:809
+msgid "Invalid session. Please try again."
+msgstr ""
+
+#: includes/class-stripe-checkout.php:815
+msgid "Order not found."
+msgstr ""
+
+#: includes/class-stripe-checkout.php:863
+msgid "Invalid payment session."
+msgstr ""
+
+#: includes/class-stripe-checkout.php:910
+#: includes/class-stripe-checkout.php:1177
+#: includes/stripe-overview/class-stripe-overview.php:191
+#: payment-gateway-stripe-and-woocommerce-integration.php:389
+msgid "Charge Status : "
+msgstr ""
+
+#. translators: %s: Preview link HTML
+#: includes/class-stripe-eps.php:25
+msgid "EPS is an Austria-based payment method that allows customers to complete transactions online using their bank credentials. %s"
+msgstr ""
+
+#: includes/class-stripe-eps.php:78
+#: includes/class-stripe-eps.php:88
+msgid "EPS Pay"
+msgstr ""
+
+#: includes/class-stripe-eps.php:82
+msgid "Enables customers in the Single Euro Payments Area (EPS) to pay by providing their bank account details."
+msgstr ""
+
+#: includes/class-stripe-eps.php:96
+msgid "Secure debit payment via EPS."
+msgstr ""
+
+#: includes/class-stripe-eps.php:104
+msgid "Pay via EPS"
+msgstr ""
+
+#. translators: %s: Error message
+#: includes/class-stripe-eps.php:353
+msgid "EPS payment failed: %s"
+msgstr ""
+
+#. translators: %1$s: Opening anchor tag with preview link, %2$s: Closing anchor tag
+#: includes/class-stripe-fpx.php:25
+msgid "Enables customers to complete transactions online using their bank credentials. %1$s[Preview]%2$s"
+msgstr ""
+
+#. translators: %1$s: Opening HTML div and list tags, %2$s: Bold tag opening, %3$s: Bold tag closing, %4$s: Bold tag opening, %5$s: Bold tag closing, %6$s: Closing HTML list and div tags
+#: includes/class-stripe-fpx.php:72
+msgid "%1$sSupported currencies: %2$sMYR%3$sStripe accounts in the following countries can accept the payment: %4$sMalaysia%5$s"
+msgstr ""
+
+#: includes/class-stripe-fpx.php:84
+msgid "Enables customers in the Single Euro Payments Area (FPX) to pay by providing their bank account details."
+msgstr ""
+
+#: includes/class-stripe-fpx.php:98
+msgid "Secure  payment via FPX."
+msgstr ""
+
+#: includes/class-stripe-fpx.php:106
+msgid "Pay via FPX"
+msgstr ""
+
+#: includes/class-stripe-fpx.php:294
+msgid "FPX Bank"
+msgstr ""
+
+#. translators: %s: Error message
+#: includes/class-stripe-fpx.php:372
+msgid "FPX payment failed: %s"
+msgstr ""
+
+#: includes/class-stripe-general-settings.php:51
+#: includes/class-stripe-general-settings.php:199
+msgid "Transaction mode"
+msgstr ""
+
+#: includes/class-stripe-general-settings.php:54
+#: includes/class-stripe-general-settings.php:202
+msgid "Test mode"
+msgstr ""
+
+#: includes/class-stripe-general-settings.php:55
+#: includes/class-stripe-general-settings.php:203
+msgid "Live mode"
+msgstr ""
+
+#: includes/class-stripe-general-settings.php:59
+#: includes/class-stripe-general-settings.php:207
+msgid "Choose test mode to trial run using test API keys. Switch to live mode to begin accepting payments with Stripe using live API keys."
+msgstr ""
+
+#: includes/class-stripe-general-settings.php:64
+msgid "Test publishable key"
+msgstr ""
+
+#: includes/class-stripe-general-settings.php:66
+msgid "Get the test publishable key from your stripe account."
+msgstr ""
+
+#: includes/class-stripe-general-settings.php:71
+msgid "Test secret key"
+msgstr ""
+
+#: includes/class-stripe-general-settings.php:73
+msgid "Get the test secret key from your stripe account."
+msgstr ""
+
+#: includes/class-stripe-general-settings.php:79
+msgid "Live publishable key"
+msgstr ""
+
+#: includes/class-stripe-general-settings.php:81
+msgid "Get the live publishable key from your stripe account."
+msgstr ""
+
+#: includes/class-stripe-general-settings.php:86
+msgid "Live secret key"
+msgstr ""
+
+#: includes/class-stripe-general-settings.php:88
+msgid "Get the live secret key from your stripe account."
+msgstr ""
+
+#: includes/class-stripe-general-settings.php:95
+#: includes/class-stripe-general-settings.php:213
+msgid "General"
+msgstr ""
+
+#: includes/class-stripe-general-settings.php:103
+#: includes/class-stripe-general-settings.php:221
+msgid "Stripe overview page"
+msgstr ""
+
+#: includes/class-stripe-general-settings.php:106
+msgid "Enable a 'Stripe Overview' submenu that mirrors the Stripe dashboard"
+msgstr ""
+
+#: includes/class-stripe-general-settings.php:111
+#: includes/class-stripe-general-settings.php:229
+msgid "Capture payment immediately"
+msgstr ""
+
+#: includes/class-stripe-general-settings.php:114
+msgid "Uncaptured payments will expire in 7 days. Payment methods such as Alipay, WeChat Pay, iDEAL, and SEPA do not support manual payment capture."
+msgstr ""
+
+#: includes/class-stripe-general-settings.php:120
+#: includes/class-stripe-general-settings.php:238
+msgid "G Pay/Apple Pay button position"
+msgstr ""
+
+#: includes/class-stripe-general-settings.php:125
+#: includes/class-stripe-general-settings.php:243
+msgid "Above"
+msgstr ""
+
+#: includes/class-stripe-general-settings.php:126
+#: includes/class-stripe-general-settings.php:244
+msgid "Below"
+msgstr ""
+
+#: includes/class-stripe-general-settings.php:128
+#: includes/class-stripe-general-settings.php:246
+msgid "Select the position of the Express Payment Buttons: \"Above\" places them above the order button, while \"Below\" places them underneath. Applies to all active express payment buttons."
+msgstr ""
+
+#: includes/class-stripe-general-settings.php:133
+#: includes/class-stripe-general-settings.php:251
+msgid "G Pay/Apple Pay button height"
+msgstr ""
+
+#: includes/class-stripe-general-settings.php:135
+#: includes/class-stripe-general-settings.php:253
+msgid "Set the height of the express payment buttons in pixels. Enter a value between 40 and 55 px. The height you select will apply to all active express payment buttons."
+msgstr ""
+
+#: includes/class-stripe-general-settings.php:142
+#: includes/class-stripe-general-settings.php:260
+msgid "Webhooks"
+msgstr ""
+
+#. translators: %1$s: Opening paragraph tag, %2$s: Line break and bold tag opening, %3$s: Webhook URL, %4$s: Bold tag closing, %5$s: Closing paragraph tag
+#: includes/class-stripe-general-settings.php:145
+#: includes/class-stripe-general-settings.php:263
+msgid "Stripe uses webhooks to notify charge statuses and update order statuses for payment method like SEPA Direct Debit, Klarna, Bacs Direct Debit, BECS Direct Debit, Boleto, OXXO, Stripe Checkout.%1$sTo confgure, add the following webhook endpoint %2$s %3$s %4$s to your <a href=\"https://dashboard.stripe.com/account/webhooks\" target=\"_blank\">Stripe account (Dashboard > Developers > Webhooks > Add endpoint)</a>%5$s"
+msgstr ""
+
+#: includes/class-stripe-general-settings.php:148
+#: includes/class-stripe-general-settings.php:266
+msgid "Webhook secret"
+msgstr ""
+
+#: includes/class-stripe-general-settings.php:150
+#: includes/class-stripe-general-settings.php:268
+msgid "Webhook secret to ensure the requests are coming from Stripe."
+msgstr ""
+
+#: includes/class-stripe-general-settings.php:155
+#: includes/class-stripe-general-settings.php:273
+msgid "Debug"
+msgstr ""
+
+#. translators: %s: Admin URL for viewing logs
+#: includes/class-stripe-general-settings.php:159
+#: includes/class-stripe-general-settings.php:277
+msgid "Records Stripe payment transactions into WooCommerce status log. <a href=\"%s\" target=\"_blank\"> View log </a>"
+msgstr ""
+
+#: includes/class-stripe-general-settings.php:162
+#: includes/class-stripe-general-settings.php:280
+msgid "Debug mode"
+msgstr ""
+
+#: includes/class-stripe-general-settings.php:166
+msgid "Enable to for debug mode."
+msgstr ""
+
+#: includes/class-stripe-general-settings.php:169
+#: includes/class-stripe-general-settings.php:287
+msgid "Log"
+msgstr ""
+
+#. translators: %1$s: Success log file label, %2$s: Success log file path, %3$s: Failure log file label, %4$s: Failure log file path
+#: includes/class-stripe-general-settings.php:173
+#: includes/class-stripe-general-settings.php:291
+msgid "%1$s: %2$s <br> <br>%3$s: %4$s"
+msgstr ""
+
+#. translators: %1$s: Success log file label, %2$s: Success log file path, %3$s: Failure log file label, %4$s: Failure log file path
+#: includes/class-stripe-general-settings.php:173
+#: includes/class-stripe-general-settings.php:291
+msgid "Success log file"
+msgstr ""
+
+#. translators: %1$s: Success log file label, %2$s: Success log file path, %3$s: Failure log file label, %4$s: Failure log file path
+#: includes/class-stripe-general-settings.php:173
+#: includes/class-stripe-general-settings.php:291
+msgid "Failure log file"
+msgstr ""
+
+#: includes/class-stripe-general-settings.php:175
+#: includes/class-stripe-general-settings.php:293
+msgid "Enable to record stripe payment transaction in a log file."
+msgstr ""
+
+#: includes/class-stripe-general-settings.php:224
+msgid "Enable to have a sub menu ‘Stripe Overview’ that replicates Stripe dashboard. Gives provision to manage orders, process partial/full refunds and capture payments."
+msgstr ""
+
+#: includes/class-stripe-general-settings.php:232
+msgid "Disable to capture payments later manually from Stripe dashboard/overview/order details page. Uncaptured payment will expire in 7 days. <br><br>Alipay, WeChat Pay,  iDEAL and SEPA Payment does not allow to manually capture payments later."
+msgstr ""
+
+#: includes/class-stripe-general-settings.php:284
+msgid "Enable for debug mode."
+msgstr ""
+
+#: includes/class-stripe-general-settings.php:381
+#: includes/class-stripe-general-settings.php:411
+msgid "Connected"
+msgstr ""
+
+#: includes/class-stripe-general-settings.php:390
+msgid "You are in test mode. Connect to Stripe in live mode to receive payments."
+msgstr ""
+
+#: includes/class-stripe-general-settings.php:393
+msgid "Connect your Stripe account to start testing"
+msgstr ""
+
+#: includes/class-stripe-general-settings.php:421
+msgid "You haven’t connected your Stripe account yet. Connect now to start receiving payments"
+msgstr ""
+
+#: includes/class-stripe-general-settings.php:461
+msgid "Switch to live mode"
+msgstr ""
+
+#: includes/class-stripe-general-settings.php:473
+msgid "Sandbox"
+msgstr ""
+
+#: includes/class-stripe-general-settings.php:473
+msgid "Test"
+msgstr ""
+
+#: includes/class-stripe-general-settings.php:488
+msgid "Test Mode"
+msgstr ""
+
+#: includes/class-stripe-general-settings.php:492
+msgid "Switch to Sandbox Mode"
+msgstr ""
+
+#: includes/class-stripe-general-settings.php:494
+msgid "Switch to Test Mode"
+msgstr ""
+
+#: includes/class-stripe-general-settings.php:515
+msgid "If you are currently connected through WebToffee, please disconnect and reconnect using ThemeHigh. The WebToffee connection will be discontinued soon."
+msgstr ""
+
+#: includes/class-stripe-giropay.php:21
+#: includes/class-stripe-giropay.php:75
+#: includes/class-stripe-giropay.php:86
+msgid "Giropay"
+msgstr ""
+
+#. translators: %1$s: Opening anchor tag with preview link, %2$s: Closing anchor tag
+#: includes/class-stripe-giropay.php:24
+msgid "Giropay is a German payment method based on online banking. %1$s[Preview]%2$s"
+msgstr ""
+
+#. translators: %1$s: Opening HTML div and list tags, %2$s: Bold tag opening, %3$s: Bold tag closing, %4$s: Bold tag opening, %5$s: Bold tag closing, %6$s: Closing HTML list and div tags
+#: includes/class-stripe-giropay.php:67
+msgid "%1$sSupported currencies: %2$sEUR%3$sStripe accounts in the following countries can accept the payment: %4$sAustralia, Austria, Belgium, Bulgaria, Canada, Cyprus, Czech Republic, Denmark, Estonia, Finland, France, Germany, Greece, Hong Kong, Hungary, Ireland, Italy, Japan, Latvia, Lithuania, Luxembourg, Malta, Mexico, Netherlands, New Zealand, Norway, Poland, Portugal, Romania, Singapore, Slovakia, Slovenia, Spain, Sweden, Switzerland, United Kingdom, United States%5$s"
+msgstr ""
+
+#: includes/class-stripe-giropay.php:79
+msgid "Enables to accept payments using Giropay."
+msgstr ""
+
+#: includes/class-stripe-giropay.php:94
+msgid "Accept payments using Giropay."
+msgstr ""
+
+#: includes/class-stripe-giropay.php:102
+msgid "Pay via Giropay"
+msgstr ""
+
+#. translators: %s: Error message
+#: includes/class-stripe-giropay.php:293
+msgid "Giropay payment failed: %s"
+msgstr ""
+
+#: includes/class-stripe-giropay.php:523
+#: includes/class-stripe-giropay.php:532
+#: includes/class-stripe-oxxo.php:551
+#: includes/class-stripe-oxxo.php:560
+#: includes/class-stripe-sepa-pay.php:688
+#: includes/class-stripe-sepa-pay.php:697
+msgid "Stripe payment failed"
+msgstr ""
+
+#: includes/class-stripe-grabpay.php:21
+msgid "Grabpay"
+msgstr ""
+
+#. translators: %s: URL path to the plugin assets directory
+#: includes/class-stripe-grabpay.php:25
+msgid "GrabPay is a digital wallet - customers maintain a balance in their wallets that they pay out with. <a class=\"thickbox\" href=\"%sassets/img/grabpay-preview.png?TB_iframe=true&width=100&height=100\">[Preview] </a>"
+msgstr ""
+
+#. translators: %1$s: Opening HTML div and list tags, %2$s: Bold tag opening, %3$s: Bold tag closing, %4$s: Bold tag opening, %5$s: Closing HTML list and div tags
+#: includes/class-stripe-grabpay.php:69
+msgid "%1$sSupported currencies: %2$sSGD, MYR%3$sStripe accounts in the following countries can accept the payment: %4$sMalaysia, Singapore%5$s"
+msgstr ""
+
+#: includes/class-stripe-grabpay.php:81
+msgid "Enables customers in the Single Euro Payments Area (Grabpay) to pay by providing their bank account details."
+msgstr ""
+
+#: includes/class-stripe-grabpay.php:95
+msgid "Secure debit payment via GrabPay."
+msgstr ""
+
+#: includes/class-stripe-grabpay.php:103
+msgid "Pay via GrabPay"
+msgstr ""
+
+#. translators: %s: Error message from the payment gateway
+#: includes/class-stripe-grabpay.php:363
+msgid "GrabPay payment failed: %s"
+msgstr ""
+
+#. translators: %1$s: Opening anchor tag with preview link, %2$s: Closing anchor tag
+#: includes/class-stripe-ideal.php:25
+msgid "iDEAL is a Netherlands-based payment method that allows customers to use bank credentials to complete transactions online. %1$s[Preview]%2$s"
+msgstr ""
+
+#. translators: %1$s: Opening HTML div and list tags, %2$s: Bold tag opening, %3$s: Bold tag closing, %4$s: Bold tag opening, %5$s: Bold tag closing, %6$s: Closing HTML list and div tags, %7$s: Documentation link opening, %8$s: Documentation link closing
+#: includes/class-stripe-ideal.php:73
+msgid "%1$sSupported currency: %2$sEUR%3$sStripe accounts in the following countries can accept the payment: %4$sAustralia, Austria, Belgium, Bulgaria, Canada, Cyprus, Czech Republic, Denmark, Estonia, Finland, France, Germany, Greece, Hong Kong, Hungary, Ireland, Italy, Japan, Latvia, Lithuania, Luxembourg, Malta, Mexico, Netherlands, New Zealand, Norway, Poland, Portugal, Romania, Singapore, Slovakia, Slovenia, Spain, Sweden, Switzerland, United Kingdom, United States%5$s %6$s Read documentation %7$s"
+msgstr ""
+
+#: includes/class-stripe-ideal.php:80
+#: includes/class-stripe-ideal.php:90
+msgid "iDEAL Pay"
+msgstr ""
+
+#: includes/class-stripe-ideal.php:84
+msgid "Enables customers in the Single Euro Payments Area (iDEAL) to pay by providing their bank account details."
+msgstr ""
+
+#: includes/class-stripe-ideal.php:98
+msgid "Secure debit payment via iDEAL."
+msgstr ""
+
+#: includes/class-stripe-ideal.php:106
+msgid "Pay via iDEAL"
+msgstr ""
+
+#: includes/class-stripe-ideal.php:296
+msgid "Name"
+msgstr ""
+
+#. translators: %s: Error message
+#: includes/class-stripe-ideal.php:381
+msgid "iDEAL payment failed: %s"
+msgstr ""
+
+#. translators: %1$s: Reason, %2$s: Amount with currency symbol, %3$s: Refund time, %4$s: Transaction ID (optional)
+#: includes/class-stripe-ideal.php:545
+#: includes/class-stripe-klarna.php:509
+msgid "Reason : %1$s.<br>Amount : %2$s.<br>Status : refunded [ %3$s ] %4$s"
+msgstr ""
+
+#: includes/class-stripe-intent-manager.php:78
+msgid "Something went wrong. Please try again."
+msgstr ""
+
+#: includes/class-stripe-intent-manager.php:93
+msgid "Payment verification error: Missing order ID for payment confirmation"
+msgstr ""
+
+#. translators: %1$s: Opening anchor tag with preview link, %2$s: Closing anchor tag
+#: includes/class-stripe-klarna.php:25
+msgid "Accepts payments via Klarna - Pay now, Pay later, Financing, or Installments based on location. %1$s[Preview]%2$s"
+msgstr ""
+
+#. translators: %1$s: Opening HTML div and list tags, %2$s: Bold tag opening, %3$s: Bold tag closing, %4$s: Bold tag opening, %5$s: Bold tag closing, %6$s: Closing HTML list and div tags, %7$s: Documentation link opening, %8$s: Documentation link closing
+#: includes/class-stripe-klarna.php:70
+msgid "%1$sSupported currencies: %2$sEUR, USD, GBP, DKK, SEK, NOK%3$s %4$sStripe accounts in the following countries can accept the payment: %5$sAustria, Belgium, Denmark, Estonia, Finland, France, Germany, Greece, Ireland, Italy, Latvia, Lithuania, Netherlands, Norway, Slovakia, Slovenia, Spain, Sweden, United Kingdom, United States %6$s %7$s Read documentation %8$s"
+msgstr ""
+
+#: includes/class-stripe-klarna.php:81
+msgid "Enables to accept payments using Klarna."
+msgstr ""
+
+#: includes/class-stripe-klarna.php:95
+msgid "Accept payments using Klarna."
+msgstr ""
+
+#: includes/class-stripe-klarna.php:103
+msgid "Pay via Klarna"
+msgstr ""
+
+#. translators: %1$s: Opening HTML div and paragraph tags, %2$s: Documentation link opening, %3$s: Documentation link closing, %4$s: Closing HTML paragraph and div tags
+#: includes/class-stripe-klarna.php:109
+msgid "%1$sTo accept payments via Klarna payment method, you must configure the webhook endpoint and subscribe to relevant events. %2$sClick here%3$s to know more%4$s"
+msgstr ""
+
+#. translators: %s: Error message
+#: includes/class-stripe-klarna.php:286
+msgid "Klarna payment failed: %s"
+msgstr ""
+
+#. translators: %1$s: Opening anchor tag with preview link, %2$s: Closing anchor tag
+#: includes/class-stripe-multibanco.php:25
+msgid "Stripe users in Europe and the United States can accept Multibanco payments from customers in Portugal. %1$s[Preview]%2$s"
+msgstr ""
+
+#. translators: %1$s: Opening HTML div and list tags, %2$s: Bold tag opening, %3$s: Bold tag closing, %4$s: Bold tag opening, %5$s: Bold tag closing, %6$s: Closing HTML list and div tags
+#: includes/class-stripe-multibanco.php:72
+msgid "%1$sSupported currencies: %2$sEUR%3$sStripe accounts in the following countries can accept the payment: %4$sEurope, United States%5$s"
+msgstr ""
+
+#: includes/class-stripe-multibanco.php:80
+#: includes/class-stripe-multibanco.php:90
+msgid "Multibanco Pay"
+msgstr ""
+
+#: includes/class-stripe-multibanco.php:84
+msgid "Enables customers in the Single Euro Payments Area (Multibanco) to pay by providing their bank account details."
+msgstr ""
+
+#: includes/class-stripe-multibanco.php:98
+msgid "Secure payment via Multibanco."
+msgstr ""
+
+#: includes/class-stripe-multibanco.php:106
+msgid "Pay via Multibanco"
+msgstr ""
+
+#: includes/class-stripe-multibanco.php:431
+msgid "Unable to create payment method: "
+msgstr ""
+
+#: includes/class-stripe-multibanco.php:507
+#: includes/class-stripe-multibanco.php:696
+msgid "Awaiting Multibanco payment."
+msgstr ""
+
+#. translators: %s: Error message returned from Stripe Multibanco payment
+#: includes/class-stripe-multibanco.php:529
+msgid "Multibanco payment failed: %s"
+msgstr ""
+
+#: includes/class-stripe-multibanco.php:1016
+#: includes/class-stripe-multibanco.php:1046
+msgid "Multibanco Payment Details"
+msgstr ""
+
+#: includes/class-stripe-multibanco.php:1017
+#: includes/class-stripe-multibanco.php:1047
+msgid "Entity:"
+msgstr ""
+
+#: includes/class-stripe-multibanco.php:1018
+#: includes/class-stripe-multibanco.php:1048
+msgid "Reference:"
+msgstr ""
+
+#: includes/class-stripe-multibanco.php:1019
+#: includes/class-stripe-multibanco.php:1049
+msgid "Amount:"
+msgstr ""
+
+#: includes/class-stripe-multibanco.php:1021
+#: includes/class-stripe-multibanco.php:1051
+msgid "Pay before:"
+msgstr ""
+
+#: includes/class-stripe-oauth.php:196
+msgid "Security check failed. Please try again."
+msgstr ""
+
+#. translators: %1$s: Opening anchor tag with preview link, %2$s: Closing anchor tag
+#: includes/class-stripe-oxxo.php:24
+msgid "OXXO allows customers to pay bills and online purchases in-store with cash. %1$s[Preview]%2$s"
+msgstr ""
+
+#. translators: %1$s: Opening HTML div and list tags, %2$s: Bold tag opening, %3$s: Bold tag closing, %4$s: Bold tag opening, %5$s: Bold tag closing, %6$s: Closing HTML list and div tags
+#: includes/class-stripe-oxxo.php:71
+msgid "%1$sSupported currency: %2$sMXN%3$sStripe accounts in the following countries can accept the payment: %4$sMexico%5$s"
+msgstr ""
+
+#: includes/class-stripe-oxxo.php:82
+msgid "Enables to accept payments using OXXO."
+msgstr ""
+
+#: includes/class-stripe-oxxo.php:97
+msgid "Accept payments using OXXO."
+msgstr ""
+
+#: includes/class-stripe-oxxo.php:105
+msgid "Pay via OXXO"
+msgstr ""
+
+#. translators: %1$s: Opening HTML div and paragraph tags, %2$s: Documentation link opening, %3$s: Documentation link closing, %4$s: Closing HTML paragraph and div tags
+#: includes/class-stripe-oxxo.php:111
+msgid "%1$sTo accept payments via OXXO payment method, you must configure the webhook endpoint and subscribe to relevant events. %2$sClick here%3$s to know more%4$s"
+msgstr ""
+
+#. translators: %s: Error message
+#: includes/class-stripe-oxxo.php:307
+msgid "OXXO payment failed: %s"
+msgstr ""
+
+#: includes/class-stripe-oxxo.php:644
+msgid "Awaiting OXXO cash payment."
+msgstr ""
+
+#. translators: %s: URL path to the plugin assets directory
+#: includes/class-stripe-p24.php:25
+msgid "Przelewy24 is a Poland-based payment method aggregator that allows customers to complete transactions online using bank transfers. <a class=\"thickbox\" href=\"%sassets/img/p24-preview.png?TB_iframe=true&width=100&height=100\">[Preview] </a>"
+msgstr ""
+
+#. translators: %1$s: Opening HTML div and list tags, %2$s: Bold tag opening, %3$s: Bold tag closing, %4$s: Bold tag opening, %5$s: Bold tag closing, %6$s: Closing HTML list and div tags, %7$s: Documentation link opening, %8$s: Documentation link closing
+#: includes/class-stripe-p24.php:70
+msgid "%1$sSupported currencies: %2$sEUR, PLN%3$sStripe accounts in the following countries can accept the payment: %4$sAustralia, Austria, Belgium, Bulgaria, Canada, Cyprus, Czech Republic, Denmark, Estonia, Finland, France, Germany, Greece, Hong Kong, Hungary, Ireland, Italy, Japan, Latvia, Lithuania, Luxembourg, Malta, Mexico, Netherlands, New Zealand, Norway, Poland, Portugal, Romania, Singapore, Slovakia, Slovenia, Spain, Sweden, Switzerland, United Kingdom, United States%5$s%6$sRead documentation%7$s"
+msgstr ""
+
+#: includes/class-stripe-p24.php:77
+#: includes/class-stripe-p24.php:87
+msgid "Przelewy24 Pay"
+msgstr ""
+
+#: includes/class-stripe-p24.php:81
+msgid "Enables customers in the Single Euro Payments Area (Przelewy24) to pay by providing their bank account details."
+msgstr ""
+
+#: includes/class-stripe-p24.php:95
+msgid "Secure debit payment via Przelewy24."
+msgstr ""
+
+#: includes/class-stripe-p24.php:103
+msgid "Pay via Przelewy24"
+msgstr ""
+
+#. translators: %s: Error message
+#: includes/class-stripe-p24.php:355
+msgid "P24 payment failed: %s"
+msgstr ""
+
+#: includes/class-stripe-payment-request-button.php:258
+msgid "OR"
+msgstr ""
+
+#: includes/class-stripe-payment-request-button.php:419
+msgid "Empty cart"
+msgstr ""
+
+#: includes/class-stripe-payment-request-button.php:540
+#: includes/class-stripe-payment-request-button.php:552
+msgid "Unable to find shipping method for address."
+msgstr ""
+
+#: includes/class-stripe-payment-request-tab.php:24
+msgid "Payment Request Button"
+msgstr ""
+
+#. translators: %1$s: "To use Google Pay," text, %2$s: Domain registration instructions, %3$s: HTTPS requirement text, %4$s: "Payment methods are only available when you use a" text, %5$s: "supported browser" text
+#: includes/class-stripe-payment-request-tab.php:27
+msgid "Google Pay allows customers to make payments using any credit or debit card saved to their Google Account. It works when customers have Google Pay set up on their devices <div class=\"wt_info_div\"><p> %1$s </p><ol><li>Enable Google Pay in your Stripe <a href=\"https://dashboard.stripe.com/settings/payment_methods\">payment methods settings</a>.</li><li>Register your domain</li><ul class=\"wt_notice_bar_style\"><li> %2$s </li></ul><li>%3$s</li></ol>  <p> %4$s <a href=\"https://docs.stripe.com/elements/express-checkout-element#supported-browsers\" target=\"_blank\">%5$s</a> and pay in a supported currency.</p> </div>.<p> <a target=\"_blank\" href=\"https://www.themehigh.com/docs/stripe-payment-plugin-for-woocommerce-free/#google_pay\"> Read documentation </a></p> "
+msgstr ""
+
+#. translators: %1$s: "To use Google Pay," text, %2$s: Domain registration instructions, %3$s: HTTPS requirement text, %4$s: "Payment methods are only available when you use a" text, %5$s: "supported browser" text
+#: includes/class-stripe-payment-request-tab.php:27
+msgid "To use Google Pay,"
+msgstr ""
+
+#. translators: %1$s: "To use Google Pay," text, %2$s: Domain registration instructions, %3$s: HTTPS requirement text, %4$s: "Payment methods are only available when you use a" text, %5$s: "supported browser" text
+#: includes/class-stripe-payment-request-tab.php:27
+msgid "To do this, navigate to <a href=\"https://dashboard.stripe.com/settings/payment_method_domains\"> Settings > Payments > Payment method domains </a> from your Stripe dashboard and add your domain. All domains, whether in production or testing, must be registered. Don't register your domain more than once per account."
+msgstr ""
+
+#. translators: %1$s: "To use Google Pay," text, %2$s: Domain registration instructions, %3$s: HTTPS requirement text, %4$s: "Payment methods are only available when you use a" text, %5$s: "supported browser" text
+#: includes/class-stripe-payment-request-tab.php:27
+msgid "To accept Google Pay payments on the web, you need to serve from an HTTPS webpage with a TLS domain-validated certificate."
+msgstr ""
+
+#. translators: %1$s: "To use Google Pay," text, %2$s: Domain registration instructions, %3$s: HTTPS requirement text, %4$s: "Payment methods are only available when you use a" text, %5$s: "supported browser" text
+#: includes/class-stripe-payment-request-tab.php:27
+msgid "Payment methods are only available when you use a "
+msgstr ""
+
+#: includes/class-stripe-payment-request-tab.php:35
+msgid "Google Pay"
+msgstr ""
+
+#: includes/class-stripe-payment-request-tab.php:38
+msgid "Enable to accept secure payments via Google Pay."
+msgstr ""
+
+#: includes/class-stripe-payment-request-tab.php:42
+msgid "Show on page"
+msgstr ""
+
+#: includes/class-stripe-payment-request-tab.php:46
+msgid "Select where to display the GPay button."
+msgstr ""
+
+#: includes/class-stripe-payment-request-tab.php:61
+msgid "Button Settings"
+msgstr ""
+
+#: includes/class-stripe-payment-request-tab.php:65
+msgid "Type"
+msgstr ""
+
+#: includes/class-stripe-payment-request-tab.php:68
+msgid "Select the desired button type to customize your Google Pay experience."
+msgstr ""
+
+#: includes/class-stripe-payment-request-tab.php:83
+msgid "Theme"
+msgstr ""
+
+#: includes/class-stripe-payment-request-tab.php:86
+msgid "Select a theme to customize the appearance of the payment button."
+msgstr ""
+
+#. translators: %s: URL path to the plugin assets directory
+#: includes/class-stripe-sepa-pay.php:25
+msgid "SEPA (Single Euro Payments Area) Direct Debit payment authenticates customers using the IBAN number. <a class=\"thickbox\" href=\"%sassets/img/sepa-preview.png?TB_iframe=true&width=100&height=100\">[Preview] </a>"
+msgstr ""
+
+#. translators: %1$s: Opening paragraph and strong tags, %2$s: Closing strong and paragraph tags
+#: includes/class-stripe-sepa-pay.php:48
+msgid "%1$sTEST MODE ENABLED%2$s. In test mode, you can use IBAN number AT611904300234573201."
+msgstr ""
+
+#: includes/class-stripe-sepa-pay.php:51
+msgid "By providing your IBAN and confirming this payment, you authorise and Stripe, our payment service provider, to send instructions to your bank to debit your account and your bank to debit your account in accordance with those instructions. You are entitled to a refund from your bank under the terms and conditions of your agreement with your bank. A refund must be claimed within 8 weeks starting from the date on which your account was debited."
+msgstr ""
+
+#. translators: %1$s: Opening HTML div and list tags, %2$s: Bold tag opening, %3$s: Bold tag closing, %4$s: Bold tag opening, %5$s: Bold tag closing, %6$s: Closing HTML list and div tags, %7$s: Documentation link opening, %8$s: Documentation link closing
+#: includes/class-stripe-sepa-pay.php:79
+msgid "%1$s<ul><li>%2$sSupported currency:%3$s EUR</li><li>%2$sStripe accounts in the following countries can accept this payment:%3$s Australia, Austria, Belgium, Bulgaria, Canada, Cyprus, Czech Republic, Denmark, Estonia, Finland, France, Germany, Greece, Hong Kong, Hungary, Ireland, Italy, Japan, Latvia, Lithuania, Luxembourg, Malta, Mexico, Netherlands, New Zealand, Norway, Poland, Portugal, Romania, Singapore, Slovakia, Slovenia, Spain, Sweden, Switzerland, United Kingdom, United States</li></ul><p><a target=\"_blank\" href=\"https://www.themehigh.com/docs/set-up-sepa-payment-method-for-a-woocommerce-store/\">Read documentation</a></p>%4$s"
+msgstr ""
+
+#: includes/class-stripe-sepa-pay.php:86
+#: includes/class-stripe-sepa-pay.php:96
+msgid "SEPA Pay"
+msgstr ""
+
+#: includes/class-stripe-sepa-pay.php:90
+msgid "Enables customers in the Single Euro Payments Area (SEPA) to pay by providing their bank account details."
+msgstr ""
+
+#: includes/class-stripe-sepa-pay.php:104
+msgid "Secure debit payment via SEPA."
+msgstr ""
+
+#: includes/class-stripe-sepa-pay.php:112
+msgid "Pay via SEPA"
+msgstr ""
+
+#. translators: %1$s: Opening HTML div and paragraph tags, %2$s: Documentation link opening, %3$s: Documentation link closing, %4$s: Closing HTML paragraph and div tags
+#: includes/class-stripe-sepa-pay.php:118
+msgid "%1$sTo accept payments via SEPA payment method, you must configure the webhook endpoint and subscribe to relevant events. %2$sClick here%3$s to know more%4$s"
+msgstr ""
+
+#: includes/class-stripe-sepa-pay.php:279
+msgid "IBAN"
+msgstr ""
+
+#. translators: %s: Error message
+#: includes/class-stripe-sepa-pay.php:401
+msgid "Sepa payment failed: %s"
+msgstr ""
+
+#. translators: %1$s: Opening anchor tag with preview link, %2$s: Closing anchor tag
+#: includes/class-stripe-wechat.php:24
+msgid "Accepts payments via WeChat Pay, a digital wallet popular with customers from China. %1$s[Preview]%2$s"
+msgstr ""
+
+#. translators: %1$s: Opening HTML div and list tags, %2$s: Bold tag opening, %3$s: Bold tag closing, %4$s: Bold tag opening, %5$s: Bold tag closing, %6$s: Closing HTML list and div tags, %7$s: Documentation link opening, %8$s: Documentation link closing
+#: includes/class-stripe-wechat.php:81
+msgid "%1$sSupported currencies: %2$sCNY, AUD, CAD, EUR, GBP, HKD, JPY, SGD, USD, DKK, NOK, SEK, CHF%3$s %4$sStripe accounts in the following countries can accept the payment: %5$sAustralia, Austria, Belgium, Canada, Denmark, Finland, France, Germany, Hong Kong, Ireland, Italy, Japan, Luxembourg, Netherlands, Norway, Portugal, Singapore, Spain, Sweden, Switzerland, United Kingdom, United States%6$s %7$s Read documentation %8$s"
+msgstr ""
+
+#: includes/class-stripe-wechat.php:92
+msgid "Enables to accept payments using WeChat."
+msgstr ""
+
+#: includes/class-stripe-wechat.php:107
+msgid "Accept payments using WeChat."
+msgstr ""
+
+#: includes/class-stripe-wechat.php:115
+msgid "Pay via WeChat"
+msgstr ""
+
+#: includes/class-stripe-wechat.php:292
+msgid "Please scan the QR code to complete the payment. This page will automatically redirect when payment is confirmed."
+msgstr ""
+
+#. translators: %s: Error message
+#: includes/class-stripe-wechat.php:447
+msgid "WeChat payment failed: %s"
+msgstr ""
+
+#: includes/eh-goto-pro.php:146
+msgid "Advanced Stripe for WooCommerce"
+msgstr ""
+
+#: includes/eh-goto-pro.php:150
+msgid "Accept recurring payments for WooCommerce Subscriptions"
+msgstr ""
+
+#: includes/eh-goto-pro.php:151
+msgid "One-click payments via Link"
+msgstr ""
+
+#: includes/eh-goto-pro.php:152
+msgid "Offer 20+ payment options"
+msgstr ""
+
+#: includes/eh-goto-pro.php:157
+msgid "Upgrade to Premium"
+msgstr ""
+
+#: includes/eh-goto-pro.php:167
+msgid "ThemeHigh WooCommerce Subscription Plugin"
+msgstr ""
+
+#: includes/eh-goto-pro.php:170
+msgid "Want to offer subscription-based products?"
+msgstr ""
+
+#: includes/eh-goto-pro.php:172
+msgid "Create simple and variable subscriptions"
+msgstr ""
+
+#: includes/eh-goto-pro.php:173
+msgid "Offer free trials & charge signup fees"
+msgstr ""
+
+#: includes/eh-goto-pro.php:174
+msgid "Configure auto-renewals"
+msgstr ""
+
+#: includes/eh-goto-pro.php:175
+msgid "Offer discounts on renewals"
+msgstr ""
+
+#: includes/eh-goto-pro.php:176
+msgid "Synchronize subscription renewals"
+msgstr ""
+
+#: includes/eh-goto-pro.php:177
+msgid "Prorate subscription fee"
+msgstr ""
+
+#: includes/eh-goto-pro.php:178
+msgid "Manage access to content"
+msgstr ""
+
+#: includes/eh-goto-pro.php:179
+msgid "Send automated email reminders"
+msgstr ""
+
+#: includes/eh-goto-pro.php:180
+msgid "Supports Stripe and PayPal"
+msgstr ""
+
+#: includes/eh-goto-pro.php:181
+msgid "Supports 10+ languages"
+msgstr ""
+
+#: includes/eh-goto-pro.php:186
+msgid "Get woo Subscription"
+msgstr ""
+
+#: includes/eh-goto-pro.php:196
+msgid "30-Day"
+msgstr ""
+
+#: includes/eh-goto-pro.php:196
+msgid "Money Back Guarantee"
+msgstr ""
+
+#: includes/eh-goto-pro.php:201
+msgid "99% Customer"
+msgstr ""
+
+#: includes/eh-goto-pro.php:201
+msgid "Satisfaction Score"
+msgstr ""
+
+#: includes/eh-stripe-settings-page.php:12
+#: payment-gateway-stripe-and-woocommerce-integration.php:118
+msgid "Settings"
+msgstr ""
+
+#: includes/eh-stripe-settings-page.php:17
+msgid "Credit/debit cards"
+msgstr ""
+
+#: includes/eh-stripe-settings-page.php:21
+msgid "Enable to accept credit/debit card payments through Stripe."
+msgstr ""
+
+#: includes/eh-stripe-settings-page.php:28
+msgid "Stripe"
+msgstr ""
+
+#: includes/eh-stripe-settings-page.php:36
+msgid "Secure payment via Stripe."
+msgstr ""
+
+#: includes/eh-stripe-settings-page.php:43
+msgid "Pay via Stripe"
+msgstr ""
+
+#: includes/eh-stripe-settings-page.php:47
+msgid "Allowed cards"
+msgstr ""
+
+#: includes/eh-stripe-settings-page.php:51
+msgid "Accepts payments using selected cards. Icon of the chosen cards will be displayed at the checkout. Discover, Diners Club, and JCB cards are supported only for USD."
+msgstr ""
+
+#: includes/eh-stripe-settings-page.php:78
+msgid "Card fields in a row "
+msgstr ""
+
+#: includes/eh-stripe-settings-page.php:81
+msgid "Enable to have a single field for card number, expiration, and CVV."
+msgstr ""
+
+#: includes/eh-stripe-settings-page.php:85
+msgid "Save cards for later"
+msgstr ""
+
+#: includes/eh-stripe-settings-page.php:86
+#: includes/eh-stripe-settings-page.php:93
+msgid "Enable "
+msgstr ""
+
+#: includes/eh-stripe-settings-page.php:88
+msgid "Enable to use saved cards for future payments."
+msgstr ""
+
+#: includes/eh-stripe-settings-page.php:92
+msgid "Email transaction receipt"
+msgstr ""
+
+#: includes/eh-stripe-settings-page.php:95
+msgid "Enable to send transaction receipt via email to customers."
+msgstr ""
+
+#: includes/eh-stripe-settings-page.php:100
+msgid "Statement descriptor"
+msgstr ""
+
+#: includes/eh-stripe-settings-page.php:101
+msgid "Enter a statement descriptor which will appear on customer's bank statements. Max 22 characters. "
+msgstr ""
+
+#: includes/eh-stripe-settings-page.php:101
+msgid "Learn more"
+msgstr ""
+
+#: includes/stripe-overview/class-overview-table-data.php:34
+#: includes/stripe-overview/class-overview-table-data.php:284
+#: includes/stripe-overview/class-overview-table-data.php:316
+#: includes/stripe-overview/class-overview-table-data.php:345
+msgid "Guest"
+msgstr ""
+
+#: includes/stripe-overview/class-overview-table-data.php:97
+#: includes/stripe-overview/class-overview-table-data.php:375
+#: includes/stripe-overview/class-overview-table-data.php:417
+#: templates/template-frontend-main.php:35
+msgid "Refund "
+msgstr ""
+
+#: includes/stripe-overview/class-overview-table-data.php:98
+msgid "Full"
+msgstr ""
+
+#: includes/stripe-overview/class-overview-table-data.php:101
+#: includes/stripe-overview/class-stripe-overview.php:192
+msgid "Capture "
+msgstr ""
+
+#: includes/stripe-overview/class-overview-table-data.php:116
+msgid "Mark as processed"
+msgstr ""
+
+#: includes/stripe-overview/class-overview-table-data.php:116
+msgid "Processing"
+msgstr ""
+
+#: includes/stripe-overview/class-overview-table-data.php:116
+#: includes/stripe-overview/class-overview-table-data.php:119
+msgid "Mark as completed"
+msgstr ""
+
+#: includes/stripe-overview/class-overview-table-data.php:116
+#: includes/stripe-overview/class-overview-table-data.php:119
+msgid "Completed"
+msgstr ""
+
+#: includes/stripe-overview/class-overview-table-data.php:131
+msgid "TEST MODE"
+msgstr ""
+
+#: includes/stripe-overview/class-overview-table-data.php:141
+#: includes/stripe-overview/class-overview-table-data.php:468
+#: includes/stripe-overview/class-overview-table-data.php:471
+msgid "Status"
+msgstr ""
+
+#: includes/stripe-overview/class-overview-table-data.php:143
+msgid "Ship to"
+msgstr ""
+
+#: includes/stripe-overview/class-overview-table-data.php:144
+msgid "Price"
+msgstr ""
+
+#: includes/stripe-overview/class-overview-table-data.php:145
+msgid "Payment Action"
+msgstr ""
+
+#: includes/stripe-overview/class-overview-table-data.php:146
+msgid "Actions"
+msgstr ""
+
+#: includes/stripe-overview/class-overview-table-data.php:147
+#: includes/stripe-overview/class-overview-table-data.php:473
+msgid "Date"
+msgstr ""
+
+#: includes/stripe-overview/class-overview-table-data.php:160
+msgid "Mark Processing"
+msgstr ""
+
+#: includes/stripe-overview/class-overview-table-data.php:161
+msgid "Mark On-Hold"
+msgstr ""
+
+#: includes/stripe-overview/class-overview-table-data.php:162
+msgid "Mark Completed"
+msgstr ""
+
+#. translators: %s: Number of items
+#: includes/stripe-overview/class-overview-table-data.php:233
+#: includes/stripe-overview/class-overview-table-data.php:558
+msgid "%s item"
+msgid_plural "%s items"
+msgstr[0] ""
+msgstr[1] ""
+
+#: includes/stripe-overview/class-overview-table-data.php:280
+msgid "Charge"
+msgstr ""
+
+#: includes/stripe-overview/class-overview-table-data.php:311
+msgid "Refund"
+msgstr ""
+
+#: includes/stripe-overview/class-overview-table-data.php:340
+msgid "Balance"
+msgstr ""
+
+#: includes/stripe-overview/class-overview-table-data.php:385
+msgid "Payment Complete"
+msgstr ""
+
+#: includes/stripe-overview/class-overview-table-data.php:387
+msgid "Capture Pending"
+msgstr ""
+
+#: includes/stripe-overview/class-overview-table-data.php:398
+msgid "Fully Refunded"
+msgstr ""
+
+#: includes/stripe-overview/class-overview-table-data.php:400
+msgid "Partially Refunded"
+msgstr ""
+
+#: includes/stripe-overview/class-overview-table-data.php:404
+msgid "Transaction Successful"
+msgstr ""
+
+#: includes/stripe-overview/class-overview-table-data.php:414
+msgid "Amount "
+msgstr ""
+
+#: includes/stripe-overview/class-overview-table-data.php:414
+msgid "Refunded : "
+msgstr ""
+
+#: includes/stripe-overview/class-overview-table-data.php:420
+msgid "Balance "
+msgstr ""
+
+#: includes/stripe-overview/class-overview-table-data.php:470
+msgid "Transaction ID"
+msgstr ""
+
+#: includes/stripe-overview/class-overview-table-data.php:472
+msgid "Amount"
+msgstr ""
+
+#: includes/stripe-overview/class-overview-table-data.php:575
+#: includes/stripe-overview/class-overview-table-data.php:588
+#: includes/stripe-overview/class-stripe-overview.php:22
+#: includes/stripe-overview/class-stripe-overview.php:128
+#: includes/stripe-overview/class-stripe-overview.php:215
+#: includes/stripe-overview/include-ajax-functions.php:10
+#: includes/stripe-overview/include-ajax-functions.php:179
+#: includes/stripe-overview/include-ajax-functions.php:230
+#: includes/stripe-overview/include-ajax-functions.php:243
+#: includes/stripe-overview/include-ajax-functions.php:256
+#: includes/stripe-overview/include-ajax-functions.php:267
+msgid "You are not allowed to view this page."
+msgstr ""
+
+#: includes/stripe-overview/class-stripe-overview.php:28
+#: includes/stripe-overview/class-stripe-overview.php:227
+msgid "Manual Refund Status:"
+msgstr ""
+
+#: includes/stripe-overview/class-stripe-overview.php:50
+msgid "Stripe Overview refund"
+msgstr ""
+
+#: includes/stripe-overview/class-stripe-overview.php:180
+#: payment-gateway-stripe-and-woocommerce-integration.php:372
+msgid "Charge response not found after capture."
+msgstr ""
+
+#: includes/stripe-overview/class-stripe-overview.php:191
+#: payment-gateway-stripe-and-woocommerce-integration.php:389
+msgid "Capture Status : "
+msgstr ""
+
+#: includes/stripe-overview/class-stripe-overview.php:192
+msgid " at "
+msgstr ""
+
+#: includes/stripe-overview/class-stripe-overview.php:192
+msgid ", via "
+msgstr ""
+
+#: includes/stripe-overview/class-stripe-overview.php:252
+msgid "Refund through Stripe Overview Page"
+msgstr ""
+
+#: includes/stripe-overview/class-stripe-overview.php:360
+msgctxt "Admin menu name"
+msgid "Stripe Overview"
+msgstr ""
+
+#: payment-gateway-stripe-and-woocommerce-integration.php:60
+msgid "Oops! PREMIUM Version of this Plugin Installed. Please deactivate the PREMIUM Version before activating BASIC."
+msgstr ""
+
+#: payment-gateway-stripe-and-woocommerce-integration.php:120
+msgid "Premium Upgrade"
+msgstr ""
+
+#: payment-gateway-stripe-and-woocommerce-integration.php:321
+msgid "Capture Stripe Payment"
+msgstr ""
+
+#: templates/template-frontend-main.php:13
+msgid "Please Wait ..."
+msgstr ""
+
+#: templates/template-frontend-main.php:20
+msgid "Overview of Stripe"
+msgstr ""
+
+#: templates/template-frontend-main.php:20
+msgid "Stripe Settings"
+msgstr ""
+
+#: templates/template-frontend-main.php:26
+msgid "Captured Payments"
+msgstr ""
+
+#: templates/template-frontend-main.php:26
+msgid "Captured"
+msgstr ""
+
+#: templates/template-frontend-main.php:31
+msgid "Uncaptured Payments"
+msgstr ""
+
+#: templates/template-frontend-main.php:31
+msgid "Uncaptured "
+msgstr ""
+
+#: templates/template-frontend-main.php:35
+msgid "Refunded Payments"
+msgstr ""
+
+#: templates/template-frontend-main.php:48
+msgid "Provide date range for displaying overview."
+msgstr ""
+
+#: templates/template-frontend-main.php:58
+msgid "Captured Payments "
+msgstr ""
+
+#: templates/template-frontend-main.php:71
+msgid "Order Details"
+msgstr ""
+
+#: templates/template-frontend-main.php:72
+msgid "Transaction Details"
+msgstr ""
+
+#: templates/template-oauth-connect-settings.php:8
+msgid "Connect your Stripe account"
+msgstr ""
+
+#: templates/template-oauth-connect-settings.php:19
+msgid "Skip for now"
+msgstr ""
+
+#: templates/template-order-overview.php:20
+#: templates/template-stripe-overview.php:20
+msgid "Number of Rows"
+msgstr ""
+
+#: templates/template-order-overview.php:21
+#: templates/template-stripe-overview.php:21
+msgid "Save"
+msgstr ""

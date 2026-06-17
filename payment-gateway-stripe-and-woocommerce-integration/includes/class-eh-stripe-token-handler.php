@@ -15,7 +15,8 @@ class EH_Stripe_Token_Handler {
     private static $is_initialized = false;
 
     private function __construct() {
-        // Private constructor to prevent direct creation
+        add_action( 'admin_notices', array( __CLASS__, 'wtst_oauth_refresh_admin_notice' ) );
+        add_filter( 'woocommerce_available_payment_gateways', array( __CLASS__, 'wtst_maybe_disable_stripe_gateways' ), 1000 );
     }
 
     public static function get_instance() {
@@ -71,7 +72,13 @@ class EH_Stripe_Token_Handler {
                     }
                     return base64_decode(self::wtst_get_site_option('get', array('name' => $wt_stripe_access_token)));
                 } else {
-                    return self::wtst_refresh_token();
+                    if ( self::wtst_is_refresh_cooldown_active( $mode, $test_mode ) ) {
+                        self::wtst_schedule_oauth_refresh( $mode, $test_mode );
+                        return self::get_current_access_token($mode, $test_mode);
+                    }
+
+                    $api_key = self::wtst_refresh_token();
+                    return $api_key ? $api_key : self::get_current_access_token($mode, $test_mode);
                 }
             }
     
@@ -326,72 +333,62 @@ class EH_Stripe_Token_Handler {
 
     /*************  Refresh token function -START ***********/
 
-    private static function wtst_refresh_token( $force = false ) {
+    private static function wtst_refresh_token( $force = false, $mode = null, $test_mode = null ) {
 
         $lock_file_path = self::get_temp_dir() . '/stripe_token_refresh.lock';
-        $max_retries    = 3;
-        $retry_delay    = 2;
 
         // Resolve settings safely
         $stripe_settings = get_option( 'woocommerce_eh_stripe_pay_settings', array() );
-        $mode = ! empty( $stripe_settings['eh_stripe_mode'] ) ? $stripe_settings['eh_stripe_mode'] : 'live';
-        $test_mode = EH_Stripe_Token_Handler::get_stripe_test_mode_type();
+        $mode = $mode ?: ( ! empty( $stripe_settings['eh_stripe_mode'] ) ? $stripe_settings['eh_stripe_mode'] : 'live' );
+        $test_mode = $test_mode ?: EH_Stripe_Token_Handler::get_stripe_test_mode_type();
 
         // Fast-path: token still valid and no force refresh
         if ( ! self::wtst_get_oauth_expired( $mode ) && ! $force ) {
             return self::get_current_access_token($mode, $test_mode);
         }
 
-        for ( $attempt = 1; $attempt <= $max_retries; $attempt++ ) {
-            // Open lock file
-            // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fopen -- Needed for file locking with flock()
-            $lock_handle = fopen( $lock_file_path, 'c+' );
-            if ( ! $lock_handle ) {
-                EH_Stripe_Log::log_update( 'oauth', 'Unable to open lock file', 'Refresh token error' );
-                return false;
-            }
-
-            // Try to acquire lock
-            if ( ! flock( $lock_handle, LOCK_EX | LOCK_NB ) ) {
-                // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fclose -- Closing lock file
-                fclose( $lock_handle );
-
-                if ( $attempt < $max_retries ) {
-                    sleep( $retry_delay );
-                    continue;
-                }
-
-                EH_Stripe_Log::log_update( 'oauth', 'Failed to acquire refresh lock after retries', 'Refresh token error');
-                self::handle_refresh_error();
-                return false;
-            }
-            // Lock acquired - proceed with refresh
-            try {
-                // Double-check expiry after acquiring lock (another process may have refreshed)
-                if ( ! self::wtst_get_oauth_expired( $mode ) && ! $force ) {
-                    return self::get_current_access_token($mode, $test_mode);
-                }
-                return self::execute_token_refresh($mode, $test_mode);
-                
-            } catch ( Exception $e ) {
-
-                EH_Stripe_Log::log_update( 'oauth', $e->getMessage(), 'Refresh token error' );
-                self::handle_refresh_error();
-
-            } finally {
-                // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_flock -- Required for atomic locking
-                flock( $lock_handle, LOCK_UN );
-                // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fclose -- Closing lock file
-                fclose( $lock_handle );
-                // Remove the temporary lock file
-                if ( file_exists( $lock_file_path ) ) {
-                    // phpcs:ignore WordPress.WP.AlternativeFunctions.unlink_unlink -- Removing temporary lock file
-                    unlink( $lock_file_path );
-                }
-            }
+        if ( ! $force && self::wtst_is_refresh_cooldown_active( $mode, $test_mode ) ) {
+            EH_Stripe_Log::log_update( 'oauth', self::wtst_get_refresh_failure_state( $mode, $test_mode ), 'Refresh token skipped during cooldown' );
+            return self::get_current_access_token($mode, $test_mode);
         }
 
-        return false;
+        // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fopen -- Needed for file locking with flock()
+        $lock_handle = fopen( $lock_file_path, 'c+' );
+        if ( ! $lock_handle ) {
+            EH_Stripe_Log::log_update( 'oauth', 'Unable to open lock file', 'Refresh token error' );
+            self::wtst_record_refresh_failure( $mode, $test_mode, 'Unable to open lock file', 'retryable' );
+            return self::get_current_access_token($mode, $test_mode);
+        }
+
+        if ( ! flock( $lock_handle, LOCK_EX | LOCK_NB ) ) {
+            // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fclose -- Closing lock file
+            fclose( $lock_handle );
+            EH_Stripe_Log::log_update( 'oauth', 'Refresh lock already held; failing fast', 'Refresh token lock busy' );
+            return self::get_current_access_token($mode, $test_mode);
+        }
+
+        try {
+            // Double-check expiry after acquiring lock (another process may have refreshed)
+            if ( ! self::wtst_get_oauth_expired( $mode ) && ! $force ) {
+                self::wtst_clear_refresh_failure_state( $mode, $test_mode );
+                return self::get_current_access_token($mode, $test_mode);
+            }
+
+            $access_token = self::execute_token_refresh($mode, $test_mode, $force);
+            self::wtst_clear_refresh_failure_state( $mode, $test_mode );
+            return $access_token;
+        } catch ( Exception $e ) {
+            $error_type = self::wtst_classify_refresh_error( $e->getMessage() );
+            EH_Stripe_Log::log_update( 'oauth', array( 'message' => $e->getMessage(), 'type' => $error_type ), 'Refresh token error' );
+            self::wtst_record_refresh_failure( $mode, $test_mode, $e->getMessage(), $error_type );
+            self::handle_refresh_error();
+            return self::get_current_access_token($mode, $test_mode);
+        } finally {
+            // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_flock -- Required for atomic locking
+            flock( $lock_handle, LOCK_UN );
+            // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fclose -- Closing lock file
+            fclose( $lock_handle );
+        }
     }
 
     /**
@@ -405,10 +402,139 @@ class EH_Stripe_Token_Handler {
         $token = self::wtst_get_site_option('get', array('name' => $token_option));
         return $token ? base64_decode($token) : false;
     }
+
+    private static function wtst_schedule_oauth_refresh( $mode, $test_mode ) {
+        $state = self::wtst_get_refresh_failure_state( $mode, $test_mode );
+        $schedule_time = ( ! empty( $state['cooldown_until'] ) && time() < absint( $state['cooldown_until'] ) )
+            ? absint( $state['cooldown_until'] ) + 1
+            : time();
+        $queue_key = 'wtst_oauth_refresh_queued_' . self::wtst_get_mode_prefix( $mode, $test_mode );
+
+        if ( get_transient( $queue_key ) ) {
+            return;
+        }
+
+        set_transient( $queue_key, 'yes', max( 5 * MINUTE_IN_SECONDS, $schedule_time - time() + MINUTE_IN_SECONDS ) );
+        $args = array(
+            'mode'      => $mode,
+            'test_mode' => $test_mode,
+        );
+
+        if ( function_exists('as_schedule_single_action') ) {
+            as_schedule_single_action($schedule_time, 'eh_stripe_refresh_oauth_token', $args);
+        } elseif ( ! wp_next_scheduled( 'eh_stripe_refresh_oauth_token', $args ) ) {
+            wp_schedule_single_event($schedule_time, 'eh_stripe_refresh_oauth_token', $args);
+        }
+    }
+
+    private static function wtst_get_mode_prefix($mode, $test_mode){
+        if ( 'test' === $mode ) {
+            return ( 'sandbox' === $test_mode ) ? 'sandbox' : 'test';
+        }
+
+        return 'live';
+    }
+
+    private static function wtst_get_refresh_failure_option($mode, $test_mode){
+        return 'wtst_oauth_refresh_failure_' . self::wtst_get_mode_prefix($mode, $test_mode);
+    }
+
+    private static function wtst_get_refresh_failure_state($mode, $test_mode){
+        $state = self::wtst_get_site_option('get', array('name' => self::wtst_get_refresh_failure_option($mode, $test_mode)));
+        return is_array($state) ? $state : array();
+    }
+
+    private static function wtst_is_refresh_cooldown_active($mode, $test_mode){
+        $state = self::wtst_get_refresh_failure_state($mode, $test_mode);
+        return ! empty($state['cooldown_until']) && time() < absint($state['cooldown_until']);
+    }
+
+    private static function wtst_record_refresh_failure($mode, $test_mode, $message, $type = 'retryable'){
+        $state = self::wtst_get_refresh_failure_state($mode, $test_mode);
+        $count = isset($state['count']) ? absint($state['count']) + 1 : 1;
+        $cooldown = ( 'terminal' === $type )
+            ? apply_filters('wtst_oauth_terminal_error_cooldown', HOUR_IN_SECONDS)
+            : apply_filters('wtst_oauth_retryable_error_cooldown', 10 * MINUTE_IN_SECONDS);
+
+        self::wtst_get_site_option('update', array(
+            'name'  => self::wtst_get_refresh_failure_option($mode, $test_mode),
+            'value' => array(
+                'count'          => $count,
+                'type'           => $type,
+                'message'        => sanitize_text_field($message),
+                'last_failed_at' => time(),
+                'cooldown_until' => time() + absint($cooldown),
+            ),
+        ));
+    }
+
+    private static function wtst_clear_refresh_failure_state($mode, $test_mode){
+        self::wtst_get_site_option('delete', array('name' => self::wtst_get_refresh_failure_option($mode, $test_mode)));
+    }
+
+    private static function wtst_classify_refresh_error($message){
+        $message = strtolower($message);
+        $terminal_markers = array(
+            'invalid_grant',
+            'refresh token missing',
+            'refresh_token revoked',
+            'empty string for \'refresh_token\'',
+        );
+
+        foreach ( $terminal_markers as $marker ) {
+            if ( false !== strpos($message, $marker) ) {
+                return 'terminal';
+            }
+        }
+
+        return 'retryable';
+    }
+
+    public static function wtst_oauth_refresh_admin_notice(){
+        if ( ! current_user_can('manage_woocommerce') ) {
+            return;
+        }
+
+        $stripe_settings = get_option( 'woocommerce_eh_stripe_pay_settings', array() );
+        $mode = ! empty( $stripe_settings['eh_stripe_mode'] ) ? $stripe_settings['eh_stripe_mode'] : 'live';
+        $test_mode = EH_Stripe_Token_Handler::get_stripe_test_mode_type();
+
+        $state = self::wtst_get_refresh_failure_state($mode, $test_mode);
+        if ( empty($state['message']) ) {
+            return;
+        }
+
+        echo '<div class="notice notice-error"><p>' . esc_html__('Stripe OAuth token refresh failed. Stripe payment methods may be unavailable until the connection is refreshed or reconnected.', 'payment-gateway-stripe-and-woocommerce-integration') . '</p><p><code>' . esc_html($state['message']) . '</code></p></div>';
+    }
+
+    public static function wtst_maybe_disable_stripe_gateways($gateways){
+        $stripe_settings = get_option( 'woocommerce_eh_stripe_pay_settings', array() );
+        $mode = $stripe_settings['eh_stripe_mode'] ?? 'live';
+        $test_mode = EH_Stripe_Token_Handler::get_stripe_test_mode_type();
+        $current_token = self::get_current_access_token($mode, $test_mode);
+
+        if ( ! Eh_Stripe_Admin_Handler::wtst_oauth_compatible($mode) || ( $current_token && ! empty(trim($current_token)) ) ) {
+            return $gateways;
+        }
+
+        foreach ( self::wtst_get_stripe_gateway_ids() as $gateway_id ) {
+            unset($gateways[$gateway_id]);
+        }
+
+        return $gateways;
+    }
+
+    private static function wtst_get_stripe_gateway_ids(){
+        return array('eh_multibanco_stripe', 'eh_grabpay_stripe', 'eh_oxxo_stripe', 'eh_boleto_stripe', 'eh_fpx_stripe', 'eh_becs_stripe', 'eh_bacs', 'eh_giropay_stripe', 'eh_p24_stripe', 'eh_eps_stripe', 'eh_bancontact_stripe', 'eh_ideal_stripe', 'eh_sofort_stripe', 'eh_wechat_stripe', 'eh_afterpay_stripe', 'eh_klarna_stripe', 'eh_sepa_stripe', 'eh_stripe_pay', 'eh_alipay_stripe', 'eh_stripe_checkout', 'eh_affirm_stripe');
+    }
+
+    private static function wtst_is_background_context(){
+        return ( function_exists('wp_doing_cron') && wp_doing_cron() ) || ( defined('WP_CLI') && WP_CLI );
+    }
     /**
      * Execute the actual token refresh logic
     */
-    private static function execute_token_refresh($mode, $test_mode) {
+    private static function execute_token_refresh($mode, $test_mode, $force = false) {
 
         $instance   = self::get_instance();
         $app_author = get_option( 'eh_stripe_connected_app_author' );
@@ -456,13 +582,13 @@ class EH_Stripe_Token_Handler {
             throw new Exception( 'Refresh token missing' );
         }
         // Make API request
-        $response = self::make_refresh_request($access_token_url, $refresh_token, $mode, $test_mode, $account_id);
+        $response = self::make_refresh_request($access_token_url, $refresh_token, $mode, $test_mode, $account_id, $force);
         // Process and store response
         return self::process_refresh_response($response, $mode_prefix);
 
     }
 
-    private static function make_refresh_request($url, $refresh_token, $mode, $test_mode, $account_id){
+    private static function make_refresh_request($url, $refresh_token, $mode, $test_mode, $account_id, $force = false){
 
         $request_body = wp_json_encode(
             array(
@@ -483,6 +609,14 @@ class EH_Stripe_Token_Handler {
             'Refresh token API request debug'
         );
 
+        $is_background_context = $force || self::wtst_is_background_context();
+        $timeout = $is_background_context
+            ? apply_filters("wtst_refresh_token_timeout", 60)
+            : apply_filters("wtst_refresh_token_web_timeout", 8);
+        $connect_timeout = $is_background_context
+            ? apply_filters("wtst_refresh_token_connect_timeout", 25)
+            : apply_filters("wtst_refresh_token_web_connect_timeout", 5);
+
         $response = wp_safe_remote_post(
             $url,
             array(
@@ -495,8 +629,8 @@ class EH_Stripe_Token_Handler {
                 ),
                 /* IMPORTANT FIX */
                 'data_format' => 'body',
-                'timeout' => apply_filters("wtst_refresh_token_timeout", 60), // Optional: Set a timeout for the request.
-                'connect_timeout' => apply_filters("wtst_refresh_token_connect_timeout", 25), // Connection timeout
+                'timeout' => $timeout,
+                'connect_timeout' => $connect_timeout,
             )
         );
 
@@ -584,14 +718,16 @@ class EH_Stripe_Token_Handler {
             self::wtst_get_site_option( 'update', array( 'name' => $name, 'value' => $value ) );
         }
 
+        $refresh_interval = max( MINUTE_IN_SECONDS, absint( apply_filters( 'wtst_oauth_token_refresh_interval', 40 * MINUTE_IN_SECONDS ) ) );
+
         // Schedule recurring refresh
         if (function_exists('as_unschedule_all_actions')) {
             as_unschedule_all_actions('eh_stripe_refresh_oauth_token', null);
         }
         if (!as_next_scheduled_action('eh_stripe_refresh_oauth_token')) {
             as_schedule_recurring_action(
-                time() + 50 * MINUTE_IN_SECONDS, // ✅ first run AFTER 50 minutes
-                50 * MINUTE_IN_SECONDS,
+                time() + $refresh_interval,
+                $refresh_interval,
                 'eh_stripe_refresh_oauth_token'
             );
         }
@@ -858,8 +994,9 @@ class EH_Stripe_Token_Handler {
         } else {
             $option = 'wtst_oauth_expriy_live';
         }
-        $expiry_time = self::wtst_get_site_option('get', array('name' => $option ));
-        if ($expiry_time && (time() - $expiry_time) <= 3000) { // 3000 seconds = 50 minutes
+        $expiry_time     = self::wtst_get_site_option('get', array('name' => $option ));
+        $expiry_interval = max( MINUTE_IN_SECONDS, absint( apply_filters( 'wtst_oauth_token_expiry_interval', 50 * MINUTE_IN_SECONDS ) ) );
+        if ($expiry_time && (time() - $expiry_time) <= $expiry_interval) {
             return false;
         }
         else{  
@@ -897,8 +1034,8 @@ class EH_Stripe_Token_Handler {
         return $folder_path;
     }
 
-    public static function eh_stripe_refresh_oauth_token() {
-        EH_Stripe_Token_Handler::wtst_refresh_token(true);
+    public static function eh_stripe_refresh_oauth_token( $mode = null, $test_mode = null ) {
+        EH_Stripe_Token_Handler::wtst_refresh_token(true, $mode, $test_mode);
     }
 
     /**

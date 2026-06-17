@@ -171,9 +171,9 @@ class EH_Wechat extends WC_Payment_Gateway {
         }
 
         $stripe_settings   = get_option( 'woocommerce_eh_stripe_pay_settings' );
-        if ( (is_checkout()  && !is_order_received_page())) {
-            //phpcs:ignore WordPress.WP.EnqueuedResourceParameters.MissingVersion, WordPress.WP.EnqueuedResourceParameters.NotInFooter            
+        if ( (is_checkout()  && !is_order_received_page())) {           
             //wp_register_script('stripe_v3_js', 'https://js.stripe.com/v3/');
+            //phpcs:ignore WordPress.WP.EnqueuedResourceParameters.MissingVersion, WordPress.WP.EnqueuedResourceParameters.NotInFooter
             wp_register_script( 'stripe_v3_js', 'https://js.stripe.com/basil/stripe.js');
 
          wp_enqueue_script('eh_wechat_js', plugins_url('assets/js/eh-wechat.js', EH_STRIPE_MAIN_FILE), array('stripe_v3_js','jquery'),EH_STRIPE_VERSION, true);
@@ -220,17 +220,29 @@ class EH_Wechat extends WC_Payment_Gateway {
                 }                       
             }
             //$stripe_params['version'] = EH_Stripe_Token_Handler::wt_get_api_version();  
-           wp_localize_script('eh_wechat_js', 'eh_wechat_val', apply_filters('eh_wechat_val', $stripe_params));
-
+            wp_localize_script('eh_wechat_js', 'eh_wechat_val', apply_filters('eh_wechat_val', $stripe_params));
+            //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing
+            $order_id  = isset( $_REQUEST['order_id'] ) ? absint( wp_unslash( $_REQUEST['order_id'] ) ) : 0;
+            $order     = $order_id ? wc_get_order( $order_id ) : false;
+            // Only expose order_key if the request already carries the correct key.
+            // The legitimate QR flow always redirects here with ?key=<order_key>, so real
+            // customers are unaffected. An attacker with only order_id gets an empty key
+            // and will fail the poll endpoint's hash_equals check.
+            //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing
+            $key_from_request = isset( $_REQUEST['key'] ) ? sanitize_text_field( wp_unslash( $_REQUEST['key'] ) ) : '';
+            $order_key = ( $order && $key_from_request && hash_equals( $order->get_order_key(), $key_from_request ) )
+                ? $key_from_request
+                : '';
             wp_localize_script(
                 'eh_wechat_js',
                 'eh_wechat_poll',
                 array(
                     //'ajax_url' => admin_url('admin-ajax.php'),
                     'wc_ajax_url' => WC_AJAX::get_endpoint('%%endpoint%%'),
-                    'order_id' => isset($_REQUEST['order_id']) ? absint($_REQUEST['order_id']) : '',
-                    'redirect' => isset($_REQUEST['order_id']) ? $this->get_return_url( wc_get_order($_REQUEST['order_id']) ) : '',
-                    'nonce'       => wp_create_nonce('eh_wechat_poll_nonce')
+                    'order_id' => $order_id,
+                    'order_key' => $order_key,
+                    'nonce'       => wp_create_nonce('eh_wechat_poll_nonce'),
+                    'timeout_message' => esc_html__( 'We could not confirm the WeChat payment automatically. Please refresh the page or contact support if you completed the payment.', 'payment-gateway-stripe-and-woocommerce-integration' ),
                 )
             );
         }
@@ -390,7 +402,7 @@ class EH_Wechat extends WC_Payment_Gateway {
                     if ( $intent->status === 'succeeded' ) {
                         //wc_add_notice(__('An error has occurred internally, due to which you are not redirected to the order received page. Please contact support for more assistance.', 'payment-gateway-stripe-and-woocommerce-integration'), $notice_type = 'error');
                         //wp_redirect(wc_get_checkout_url());
-                        wp_redirect($this->get_return_url($order));
+                        wp_safe_redirect($this->get_return_url($order));
                         exit;
                     }else{
                         $intent = \Stripe\PaymentIntent::create( $payment_intent_args , array(
@@ -880,7 +892,7 @@ add_action('wc_ajax_nopriv_wt_check_wechat_order_status', 'wt_check_wechat_order
 function wt_check_wechat_order_status() {
 
     if ( ! isset($_POST['nonce']) || 
-         ! wp_verify_nonce($_POST['nonce'], 'eh_wechat_poll_nonce') ) {
+         ! wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['nonce'])), 'eh_wechat_poll_nonce') ) {
         wp_send_json_error(['message' => 'Invalid nonce'], 403);
     }
 
@@ -896,7 +908,19 @@ function wt_check_wechat_order_status() {
         wp_send_json_error(['message' => 'Order not found']);
     }
 
-    wp_send_json_success([
-        'status' => $order->get_status()
-    ]);
+    $order_key = isset($_POST['order_key']) ? sanitize_text_field(wp_unslash($_POST['order_key'])) : '';
+    if ( ! hash_equals($order->get_order_key(), $order_key) ) {
+        wp_send_json_error(['message' => 'Invalid order key'], 403);
+    }
+
+    $status   = $order->get_status();
+    $response = [
+        'status' => $status,
+    ];
+
+    if ( in_array( $status, [ 'processing', 'completed', 'on-hold' ], true ) ) {
+        $response['redirect'] = $order->get_checkout_order_received_url();
+    }
+
+    wp_send_json_success( $response );
 }

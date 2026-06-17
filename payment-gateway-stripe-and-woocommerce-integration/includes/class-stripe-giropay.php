@@ -255,7 +255,8 @@ class EH_Giropay extends WC_Payment_Gateway {
 
                     if ( $intent->status === 'succeeded' ) {
                         wc_add_notice(__('An error has occurred internally, due to which you are not redirected to the order received page. Please contact support for more assistance.', 'payment-gateway-stripe-and-woocommerce-integration'), $notice_type = 'error');
-                        wp_redirect(wc_get_checkout_url());
+                        wp_safe_redirect(wc_get_checkout_url());
+                        exit;
                     }else{
                         $intent = \Stripe\PaymentIntent::create( $payment_intent_args , array(
                             'idempotency_key' => $order->get_order_key() . '-' . $payment_method

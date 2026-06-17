@@ -164,9 +164,10 @@ class EH_Klarna_Gateway extends WC_Payment_Gateway {
 
         $stripe_settings   = get_option( 'woocommerce_eh_stripe_pay_settings' );
         if ( (is_checkout()  && !is_order_received_page())) {
-            //phpcs:ignore WordPress.WP.EnqueuedResourceParameters.MissingVersion, WordPress.WP.EnqueuedResourceParameters.NotInFooter            
+            //phpcs:ignore WordPress.WP.EnqueuedResourceParameters.MissingVersion, WordPress.WP.EnqueuedResourceParameters.NotInFooter   
+            wp_register_script( 'stripe_v3_js', 'https://js.stripe.com/basil/stripe.js');         
             //wp_register_script('stripe_v3_js', 'https://js.stripe.com/v3/');
-            wp_register_script( 'stripe_v3_js', 'https://js.stripe.com/basil/stripe.js');
+            
 
          wp_enqueue_script('eh_klarna_js', plugins_url('assets/js/eh-klarna.js', EH_STRIPE_MAIN_FILE), array('stripe_v3_js','jquery'),EH_STRIPE_VERSION, true);
            $mode = isset($stripe_settings['eh_stripe_mode']) ? $stripe_settings['eh_stripe_mode'] : 'live';
@@ -249,7 +250,8 @@ class EH_Klarna_Gateway extends WC_Payment_Gateway {
 
                     if ( $intent->status === 'succeeded' ) {
                         wc_add_notice(__('An error has occurred internally, due to which you are not redirected to the order received page. Please contact support for more assistance.', 'payment-gateway-stripe-and-woocommerce-integration'), 'error');
-                        wp_redirect(wc_get_checkout_url());
+                        wp_safe_redirect(wc_get_checkout_url());
+                        exit;
                     }else{
                         $intent = \Stripe\PaymentIntent::create( $payment_intent_args , array(
                             'idempotency_key' => $order->get_order_key() . '-' . $payment_method

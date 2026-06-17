@@ -3,9 +3,9 @@ Contributors: themehigh
 Donate link: https://www.themehigh.com/product/woocommerce-stripe-payment-gateway/
 Tags: stripe checkout, credit card, google pay, apple pay, stripe payments
 Requires at least: 5.6
-Tested up to: 6.9
+Tested up to: 7.0
 Requires PHP: 5.6
-Stable tag: 5.0.8
+Stable tag: 5.0.9
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
@@ -286,6 +286,15 @@ Payment Gateway for Stripe and for WooCommerce acts as a secure bridge between y
 24. Stripe General Settings
 
 == Changelog ==
+= 5.0.9 =
+* [Security] Require Stripe webhook signature verification before processing webhook events.
+* [Security] Retrieve refund details from Stripe before processing refund webhook events.
+* [Improvement] Enhanced OAuth token refresh reliability with configurable timeouts, cooldown controls, improved retry handling, and better recovery from temporary connection failures.
+* [Improvement] Reduced the impact of temporary network, Stripe API, and OAuth service interruptions during token refresh.
+* [Enhancement] Added OAuth refresh tuning filters: wtst_refresh_token_web_timeout, wtst_refresh_token_web_connect_timeout, wtst_oauth_retryable_error_cooldown, and wtst_oauth_terminal_error_cooldown.
+* [Compatibility] WordPress 7.0
+* [Compatibility] WooCommerce 10.8
+
 = 5.0.8 =
 * [Enhancement] Updated Stripe API version (Basil).
 * [Enhancement] Improved Google Pay, Multibanco and Wechat payment handling.

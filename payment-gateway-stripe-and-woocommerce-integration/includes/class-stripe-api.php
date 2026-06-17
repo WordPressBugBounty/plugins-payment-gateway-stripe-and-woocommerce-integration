@@ -123,8 +123,10 @@ class EH_Stripe_Payment extends WC_Payment_Gateway {
     public function process_admin_options(){
 
         //save test mode types
+        //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing
         if (isset($_POST['woocommerce_eh_stripe_test_mode_type_hidden'])) {
-            $mode = sanitize_text_field($_POST['woocommerce_eh_stripe_test_mode_type_hidden']);
+            //phpcs:ignore WordPress.Security.NonceVerification.Recommended, , WordPress.Security.NonceVerification.Missing
+            $mode = sanitize_text_field(wp_unslash($_POST['woocommerce_eh_stripe_test_mode_type_hidden']));
             if (in_array($mode, ['test', 'sandbox'], true)) {
                 update_option('woocommerce_eh_stripe_test_mode_type', $mode);
             }
@@ -292,9 +294,9 @@ class EH_Stripe_Payment extends WC_Payment_Gateway {
         }
 
         if ( (is_checkout() || is_product() || is_cart() || is_add_payment_method_page() || apply_filters('wt_stripe_load_script', false))  && !is_order_received_page()) {
-            //phpcs:ignore WordPress.WP.EnqueuedResourceParameters.MissingVersion, WordPress.WP.EnqueuedResourceParameters.NotInFooter            
+            //phpcs:ignore WordPress.WP.EnqueuedResourceParameters.MissingVersion, WordPress.WP.EnqueuedResourceParameters.NotInFooter   
+            wp_register_script('stripe_v3_js', 'https://js.stripe.com/basil/stripe.js');         
             //wp_register_script('stripe_v3_js', 'https://js.stripe.com/v3/');
-            wp_register_script('stripe_v3_js', 'https://js.stripe.com/basil/stripe.js');
 
             $this->tokenization_script();
             wp_enqueue_script('eh_stripe_checkout', plugins_url('assets/js/eh_stripe_checkout.js', EH_STRIPE_MAIN_FILE), array('stripe_v3_js','jquery'),EH_STRIPE_VERSION, true);
@@ -776,7 +778,8 @@ class EH_Stripe_Payment extends WC_Payment_Gateway {
     public function process_payment($order_id) {
         global $wp;
         $wc_order = wc_get_order($order_id);
-        $is_express = isset($_POST['payment_type']) && 'express_element' === sanitize_text_field($_POST['payment_type']);
+        // phpcs:ignore WordPress.Security.NonceVerification.Missing -- WooCommerce verifies checkout nonce before calling process_payment().
+        $is_express = isset($_POST['payment_type']) && 'express_element' === sanitize_text_field(wp_unslash($_POST['payment_type']));
         try {
         
             //phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing 
@@ -941,7 +944,7 @@ class EH_Stripe_Payment extends WC_Payment_Gateway {
 
                     if ( $intent->status === 'succeeded' ) {
                         wc_add_notice(__('An error has occurred internally, due to which you are not redirected to the order received page. Please contact support for more assistance.', 'payment-gateway-stripe-and-woocommerce-integration'), $notice_type = 'error');
-                        wp_redirect(wc_get_checkout_url());
+                        wp_safe_redirect(wc_get_checkout_url());
                     }else{
                         $intent = \Stripe\PaymentIntent::create( $payment_intent_args , array(
                             'idempotency_key' => $idempotency_key

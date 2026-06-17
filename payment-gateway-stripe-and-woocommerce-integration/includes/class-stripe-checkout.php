@@ -334,6 +334,7 @@ class Eh_Stripe_Checkout extends WC_Payment_Gateway {
                 /* translators: %1$s: Site name, %2$s: Order number */
                 'description' => sprintf( __( '%1$s Order #%2$s', 'payment-gateway-stripe-and-woocommerce-integration' ), wp_specialchars_decode( get_bloginfo( 'name' ), ENT_QUOTES ), $order->get_order_number() ),
                 'capture_method' => $capture_method,
+                'metadata' => array( 'order_id' => $order_id ),
             ],
             'success_url' => $success_url,
             'cancel_url' => $cancel_url,
@@ -775,10 +776,8 @@ class Eh_Stripe_Checkout extends WC_Payment_Gateway {
         
         if(!EH_Helper_Class::verify_nonce(EH_STRIPE_PLUGIN_NAME, 'eh_checkout_nonce'))
         {
-            EH_Stripe_Log::log_update('dead',
-                array('order_id' => intval($_GET['order_id'] ?? 0), 'message' => 'Nonce verification failed'),
-                'debug code : 1063A  ' . get_bloginfo('blogname') . ' - Nonce Failed - Order #' . intval($_GET['order_id'] ?? 0));
 
+            //phpcs:ignore WordPress.Security.NonceVerification.Recommended
             $order_id = intval($_GET['order_id'] ?? 0);
             if ($order_id) {
                 $order = wc_get_order($order_id);
@@ -790,17 +789,19 @@ class Eh_Stripe_Checkout extends WC_Payment_Gateway {
             die(esc_html__('Access Denied', 'payment-gateway-stripe-and-woocommerce-integration'));
         }
 
-         // cancel action
+        // cancel action
+        //phpcs:ignore WordPress.Security.NonceVerification.Recommended
         if (isset($_REQUEST['action']) && 'cancel_checkout' === sanitize_text_field(wp_unslash($_REQUEST['action']))) {
             wc_add_notice(__('You have cancelled the Stripe Checkout session. Please try again.', 'payment-gateway-stripe-and-woocommerce-integration'), 'notice');
             wp_safe_redirect(wc_get_checkout_url());
             exit;
         }
-
+        //phpcs:ignore WordPress.Security.NonceVerification.Recommended
         $session_id = $session_id = isset($_GET['sessionid']) ? sanitize_text_field(wp_unslash($_GET['sessionid'])) : '';
+        //phpcs:ignore WordPress.Security.NonceVerification.Recommended
         $order_id = intval( $_GET['order_id'] );
         $order = wc_get_order($order_id);
-
+        //phpcs:ignore WordPress.Security.NonceVerification.Recommended
         $order_key = isset($_GET['key']) ? sanitize_text_field(wp_unslash($_GET['key'])) : '';
         
 

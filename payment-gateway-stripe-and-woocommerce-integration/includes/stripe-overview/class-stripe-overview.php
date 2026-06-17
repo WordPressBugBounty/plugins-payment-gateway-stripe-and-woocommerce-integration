@@ -374,18 +374,25 @@ class EH_Stripe_Overview
         global  $wpdb;
 
         $count=0;
-        $id=  eh_stripe_overview_get_order_ids();
+        $id       = eh_stripe_overview_get_order_ids();
+        $int_ids  = array_map( 'absint', $id );
+        $int_ids  = array_filter( $int_ids );
+        $result   = array();
 
-        $ids = implode(',', $id);
+        if ( empty( $int_ids ) ) {
+            return $count;
+        }
+
+        $placeholders = implode( ',', array_fill( 0, count( $int_ids ), '%d' ) );
 
         if(true === EH_Stripe_Payment::wt_stripe_is_HPOS_compatibile()){
-            //phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-            $result = $wpdb->get_results( $wpdb->prepare( "SELECT order_id, meta_value FROM " . $wpdb->prefix ."wc_orders_meta  WHERE meta_key = '_eh_stripe_payment_charge' AND order_id IN (%s)", $ids ) );
+            //phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+            $result = $wpdb->get_results( $wpdb->prepare( "SELECT order_id, meta_value FROM {$wpdb->prefix}wc_orders_meta WHERE meta_key = %s AND order_id IN ($placeholders)", array_merge( array( '_eh_stripe_payment_charge' ), $int_ids ) ) );
 
         }
         else{   
-            //phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching     
-            $result = $wpdb->get_results( $wpdb->prepare( "SELECT distinct post_id, meta_value FROM " . $wpdb->postmeta ." WHERE meta_key = '_eh_stripe_payment_charge' AND post_id IN (%s)", $ids ) );
+            //phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+            $result = $wpdb->get_results( $wpdb->prepare( "SELECT DISTINCT post_id, meta_value FROM {$wpdb->postmeta} WHERE meta_key = %s AND post_id IN ($placeholders)", array_merge( array( '_eh_stripe_payment_charge' ), $int_ids ) ) );
         }
 
         for($i=0;$i<count($result);$i++)
