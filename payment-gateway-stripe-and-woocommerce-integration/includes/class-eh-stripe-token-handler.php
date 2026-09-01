@@ -36,15 +36,101 @@ class EH_Stripe_Token_Handler {
             }
             \Stripe\Stripe::setApiKey($api_key);
             \Stripe\Stripe::setApiVersion(self::wt_get_api_version());
+
+            $app_info = self::wt_get_app_info();
+
             \Stripe\Stripe::setAppInfo(
-                'WordPress Stripe Payment Gateway for WooCommerce', 
-                EH_STRIPE_VERSION, 
-                'https://www.themehigh.com/product/woocommerce-stripe-payment-gateway/',
-                'pp_partner_KHip9dhhenLx0S'
+                $app_info['name'],
+                $app_info['version'],
+                $app_info['url']
             );
     
             self::$is_initialized = true;
         }
+    }
+
+    /**
+     * Plugin identity reported to Stripe on server-side and client-side requests.
+     *
+     * The partner ID is intentionally omitted because it belongs to the former
+     * WebToffee integration. Keep the name and URL within Stripe.js validation
+     * limits so the entire registration is not rejected.
+     *
+     * @return array
+     *
+     * @since 5.0.10
+     */
+    public static function wt_get_app_info() {
+        return array(
+            'name'    => 'WooCommerce ThemeHigh Stripe',
+            'version' => EH_STRIPE_VERSION,
+            'url'     => 'https://www.themehigh.com',
+        );
+    }
+
+    /**
+     * Share Stripe.js instances that use the same publishable key and options.
+     *
+     * @return void
+     *
+     * @since 5.0.10
+     */
+    public static function wt_share_stripe_instance() {
+        if ( ! wp_script_is( 'stripe_v3_js', 'registered' ) ) {
+            return;
+        }
+
+        $script = "(function(){"
+            . "if(window.ehStripeGetInstance){return;}"
+            . "window.ehStripeInstances=window.ehStripeInstances||{};"
+            . "var ehNorm=function(o){"
+            . "if(!o){return null;}"
+            . "var ks=Object.keys(o).filter(function(x){return undefined!==o[x];}).sort();"
+            . "if(!ks.length){return null;}"
+            . "var r={};ks.forEach(function(x){r[x]=o[x];});return r;"
+            . "};"
+            . "window.ehStripeCacheKey=function(key,options){"
+            . "return String(key)+'|'+JSON.stringify(ehNorm(options));"
+            . "};"
+            . "window.ehStripeGetInstance=function(key,options){"
+            . "var k;"
+            . "try{k=window.ehStripeCacheKey(key,options);}catch(e){return window.Stripe(key,options);}"
+            . "var store=window.ehStripeInstances;"
+            . "if(!Object.prototype.hasOwnProperty.call(store,k)){store[k]=window.Stripe(key,options);}"
+            . "return store[k];"
+            . "};"
+            . "})();";
+
+        wp_add_inline_script( 'stripe_v3_js', $script, 'after' );
+    }
+
+    /**
+     * Expose the app info helper used by classic checkout scripts.
+     *
+     * @return void
+     *
+     * @since 5.0.10
+     */
+    public static function wt_register_client_app_info() {
+        if ( ! wp_script_is( 'stripe_v3_js', 'registered' ) ) {
+            return;
+        }
+
+        $app_info = wp_json_encode( self::wt_get_app_info() );
+        if ( false === $app_info ) {
+            return;
+        }
+
+        $script = "window.ehStripeRegisterAppInfo=function(stripe){"
+            . "try{"
+            . "if(stripe&&'function'===typeof stripe.registerAppInfo){"
+            . "stripe.registerAppInfo(" . $app_info . ");"
+            . "}"
+            . "}catch(e){}"
+            . "return stripe;"
+            . "};";
+
+        wp_add_inline_script( 'stripe_v3_js', $script, 'after' );
     }
 
 
@@ -468,7 +554,7 @@ class EH_Stripe_Token_Handler {
         ));
     }
 
-    private static function wtst_clear_refresh_failure_state($mode, $test_mode){
+    public static function wtst_clear_refresh_failure_state($mode, $test_mode){
         self::wtst_get_site_option('delete', array('name' => self::wtst_get_refresh_failure_option($mode, $test_mode)));
     }
 
@@ -578,13 +664,13 @@ class EH_Stripe_Token_Handler {
 
         if ( ! $refresh_token ) {
             require_once EH_STRIPE_MAIN_PATH . 'includes/class-stripe-oauth.php';
-            EH_Stripe_Oauth::wtst_oauth_disconnect( true );
+            EH_Stripe_Oauth::wtst_oauth_disconnect( true, $mode, $test_mode );
             throw new Exception( 'Refresh token missing' );
         }
         // Make API request
         $response = self::make_refresh_request($access_token_url, $refresh_token, $mode, $test_mode, $account_id, $force);
         // Process and store response
-        return self::process_refresh_response($response, $mode_prefix);
+        return self::process_refresh_response($response, $mode_prefix, $mode, $test_mode, $refresh_token);
 
     }
 
@@ -648,7 +734,7 @@ class EH_Stripe_Token_Handler {
     /**
      * Process the refresh token response
      */
-    private static function process_refresh_response($response, $mode_prefix){
+    private static function process_refresh_response($response, $mode_prefix, $mode = null, $test_mode = null, $used_refresh_token = null){
 
         $body = wp_remote_retrieve_body( $response );
         if ( empty( $body ) ) {
@@ -658,6 +744,15 @@ class EH_Stripe_Token_Handler {
         $response_body = json_decode( $body, true );
         if ( ! is_array( $response_body ) ) {
             throw new Exception( 'Invalid OAuth JSON response' );
+        }
+
+        // A reconnect may store new credentials while this request is in flight. The
+        // response then describes the old token and must not be acted on: neither a
+        // disconnect nor a token write may touch the newly stored credentials.
+        if ( null !== $used_refresh_token && self::wtst_refresh_token_changed_since_request( $mode_prefix, $used_refresh_token ) ) {
+            EH_Stripe_Log::log_update( 'oauth', 'Stored ' . $mode_prefix . ' refresh token changed while the request was in flight; response ignored', 'Refresh token stale response' );
+            $stored_token = self::wtst_get_site_option( 'get', array( 'name' => 'wt_stripe_access_token_' . $mode_prefix ) );
+            return $stored_token ? base64_decode( $stored_token ) : false;
         }
 
         $should_disconnect = false;
@@ -686,7 +781,7 @@ class EH_Stripe_Token_Handler {
 
         if ( $should_disconnect ) {
             require_once EH_STRIPE_MAIN_PATH . 'includes/class-stripe-oauth.php';
-            EH_Stripe_Oauth::wtst_oauth_disconnect( true );
+            EH_Stripe_Oauth::wtst_oauth_disconnect( true, $mode, $test_mode );
             throw new Exception( 'OAuth refresh token revoked' );
         }
 
@@ -734,6 +829,17 @@ class EH_Stripe_Token_Handler {
 
         return sanitize_text_field( $decoded['access_token'] );
 
+    }
+
+    /**
+     * Whether the stored refresh token for the mode differs from the one a request
+     * was made with, i.e. a reconnect replaced the credentials mid-request.
+     */
+    private static function wtst_refresh_token_changed_since_request( $mode_prefix, $used_refresh_token ) {
+        self::get_instance()->wtst_clear_cache_for_options( array( 'wt_stripe_refresh_token_' . $mode_prefix ) );
+        $stored = self::wtst_get_site_option( 'get', array( 'name' => 'wt_stripe_refresh_token_' . $mode_prefix ) );
+        $stored = $stored ? base64_decode( $stored ) : '';
+        return $stored !== $used_refresh_token;
     }
 
     /**

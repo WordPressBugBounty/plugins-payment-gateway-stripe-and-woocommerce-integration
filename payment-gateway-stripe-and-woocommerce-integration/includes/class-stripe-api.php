@@ -630,7 +630,9 @@ class EH_Stripe_Payment extends WC_Payment_Gateway {
                 unset($charge['shipping']);
                 $charge['automatic_payment_methods']['enabled'] = true;
             }
-             $charge['automatic_payment_methods'] = array(
+        }
+        if ( ! is_checkout_pay_page() || ! empty( $charge['confirm'] ) ) {
+            $charge['automatic_payment_methods'] = array(
                 'enabled'         => true,
                 'allow_redirects' => 'never',
             );

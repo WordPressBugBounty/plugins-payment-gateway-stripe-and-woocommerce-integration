@@ -4,7 +4,8 @@ jQuery( function( $ ) {
 
 try {
     //var stripe = Stripe( eh_afterpay_val.key, {apiVersion: eh_afterpay_val.version} );
-    var stripe = Stripe( eh_afterpay_val.key );
+    var stripe = ( window.ehStripeGetInstance || Stripe )( eh_afterpay_val.key );
+    window.ehStripeRegisterAppInfo && ehStripeRegisterAppInfo( stripe );
 } catch( error ) {
     console.log( error );
     return;

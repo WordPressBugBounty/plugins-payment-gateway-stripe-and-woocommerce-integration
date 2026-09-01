@@ -207,7 +207,7 @@ class EH_Stripe_Webhook_Handler {
         );
 
         if ( $wh_order_id && in_array( $wh_event_type, $lockable_events, true ) ) {
-            $lock_key = 'wt_stripe_wh_lock_' . $wh_order_id;
+            $lock_key = 'wt_stripe_wh_lock_' . $wh_order_id . '_' . str_replace( '.', '_', $wh_event_type );
             if ( get_transient( $lock_key ) ) {
                 // Already being processed
                 EH_Stripe_Log::log_update( 'live',
@@ -584,6 +584,15 @@ class EH_Stripe_Webhook_Handler {
             ),
             'debug code : 1170A  ' . get_bloginfo( 'blogname' ) . ' - payment_intent webhook - Order #' . $order_id );
 
+        // ── Guard: skip already-processed orders ──────────────────────
+        if ( ! in_array( $order_status, array( 'pending', 'on-hold', 'failed' ) ) &&
+             ! apply_filters( 'wtst_process_order_on_other_status', false, $order_status ) ) {
+            EH_Stripe_Log::log_update( 'live',
+                array( 'order_id' => $order_id, 'order_status' => $order_status ),
+                'debug code : 1170D  ' . get_bloginfo( 'blogname' ) . ' - payment_intent webhook: already processed - Order #' . $order_id );
+            return;
+        }
+
         // ── SEPA/redirect methods — handled by charge.succeeded ───────
         $redirect_methods = array( 'eh_eps_stripe', 'eh_klarna_stripe', 'eh_multibanco_stripe', 'eh_p24_stripe', 'eh_sepa_stripe' );
         if ( in_array( $payment_method, $redirect_methods ) ) {
@@ -592,15 +601,6 @@ class EH_Stripe_Webhook_Handler {
                     $order->update_status( 'failed', __( 'Payment failed.', 'payment-gateway-stripe-and-woocommerce-integration' ) );
                 }
             }
-            return;
-        }
-
-        // ── Guard: skip already-processed orders ──────────────────────
-        if ( ! in_array( $order_status, array( 'pending', 'on-hold', 'failed' ) ) &&
-             ! apply_filters( 'wtst_process_order_on_other_status', false, $order_status ) ) {
-            EH_Stripe_Log::log_update( 'live',
-                array( 'order_id' => $order_id, 'order_status' => $order_status ),
-                'debug code : 1170D  ' . get_bloginfo( 'blogname' ) . ' - payment_intent webhook: already processed - Order #' . $order_id );
             return;
         }
 

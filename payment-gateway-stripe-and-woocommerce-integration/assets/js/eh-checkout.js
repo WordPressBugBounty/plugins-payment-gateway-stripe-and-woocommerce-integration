@@ -2,7 +2,8 @@ jQuery(function ($) {
     'use strict';
    
    // var stripe = Stripe(eh_stripe_checkout_params.key, {apiVersion: eh_stripe_checkout_params.version});
-     var stripe = Stripe(eh_stripe_checkout_params.key);
+     var stripe = ( window.ehStripeGetInstance || Stripe )( eh_stripe_checkout_params.key );
+     window.ehStripeRegisterAppInfo && ehStripeRegisterAppInfo( stripe );
     var eh_checkout_form = {
 
         init: function(  ) {

@@ -3,7 +3,8 @@ jQuery( function( $ ) {
     
 
 try {
-    var stripe = Stripe( eh_sepa_val.key, {apiVersion: eh_sepa_val.version} );
+    var stripe = ( window.ehStripeGetInstance || Stripe )( eh_sepa_val.key, {apiVersion: eh_sepa_val.version} );
+    window.ehStripeRegisterAppInfo && ehStripeRegisterAppInfo( stripe );
 } catch( error ) {
     console.log( error );
     return;

@@ -3,9 +3,11 @@ jQuery(function ($) {
 
 
     //var stripe = Stripe(eh_payment_request_params.key, {apiVersion: eh_payment_request_params.version});
+    var ehStripeFactory = window.ehStripeGetInstance || Stripe;
     var stripe = eh_payment_request_params.version
-        ? Stripe(eh_payment_request_params.key, { apiVersion: eh_payment_request_params.version })
-        : Stripe(eh_payment_request_params.key);
+        ? ehStripeFactory(eh_payment_request_params.key, { apiVersion: eh_payment_request_params.version })
+        : ehStripeFactory(eh_payment_request_params.key);
+    window.ehStripeRegisterAppInfo && ehStripeRegisterAppInfo( stripe );
 
     var eh_payment_request_gen = {
 

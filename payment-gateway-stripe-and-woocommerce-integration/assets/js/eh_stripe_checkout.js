@@ -8,7 +8,8 @@ try {
     if (eh_stripe_val.wt_stripe_account_id) {
         stripeOptions.stripeAccount = eh_stripe_val.wt_stripe_account_id;
     }
-    var stripe = Stripe(eh_stripe_val.key, stripeOptions);
+    var stripe = ( window.ehStripeGetInstance || Stripe )( eh_stripe_val.key, stripeOptions );
+    window.ehStripeRegisterAppInfo && ehStripeRegisterAppInfo( stripe );
 } catch( error ) {
     console.log( error );
     return;

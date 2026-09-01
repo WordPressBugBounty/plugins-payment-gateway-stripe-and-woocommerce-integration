@@ -145,11 +145,18 @@ class EH_Stripe_Oauth {
     
                         $stripe_settings['eh_stripe_mode'] = 'live';
                         update_option("woocommerce_eh_stripe_pay_settings", $stripe_settings);
-                    
-    
+
+
                         $oauth_status = 'success';
-                        EH_Stripe_Oauth::eh_stripe_schedule_oauth_refresh();
                     }
+
+                    // Drop the stale failure notice for the mode that just (re)connected
+                    EH_Stripe_Token_Handler::wtst_clear_refresh_failure_state($mode, $test_mode);
+
+                    // Remove leftover refresh retries queued before the reconnect; they hold
+                    // dead tokens and also block scheduling of the recurring refresh
+                    self::wtst_clear_stale_refresh_schedule();
+                    EH_Stripe_Oauth::eh_stripe_schedule_oauth_refresh();
 
                     update_option('eh_stripe_connected_app_author', $app_author);
                     
@@ -180,10 +187,15 @@ class EH_Stripe_Oauth {
      * Function to delete the oAuth tokens
      * 
      * */     
-    public static function wtst_oauth_disconnect($force = false)
+    public static function wtst_oauth_disconnect($force = false, $mode = null, $test_mode = null)
     {
-        
-        
+        if ($force) {
+            // Programmatic disconnect (refresh failure, revoked token, deactivation) - not user-initiated.
+            // $mode/$test_mode limit the disconnect to the mode that actually failed.
+            self::perform_oauth_disconnect($force, $mode, $test_mode);
+            return;
+        }
+
         // Check if this is an AJAX request
         if (wp_doing_ajax()) {
             // AJAX request - verify nonce
@@ -195,26 +207,26 @@ class EH_Stripe_Oauth {
                 // Invalid AJAX request - no nonce or invalid nonce
                 wp_die(esc_html__('Security check failed. Please try again.', 'payment-gateway-stripe-and-woocommerce-integration'));
             }
-        } elseif ($force) {
-            // Non-AJAX request, Check if this is a forced disconnect
-
-            self::perform_oauth_disconnect($force);
         }
     }
 
     /**
      * Perform the actual OAuth disconnect operations
      */
-    private static function perform_oauth_disconnect($force)
+    private static function perform_oauth_disconnect($force, $mode = null, $test_mode = null)
     {
-        $stripe_settings = get_option("woocommerce_eh_stripe_pay_settings");            
-        $mode = (isset($stripe_settings['eh_stripe_mode']) ? $stripe_settings['eh_stripe_mode'] : 'live');
+        $stripe_settings = get_option("woocommerce_eh_stripe_pay_settings");
+        $current_mode = (isset($stripe_settings['eh_stripe_mode']) ? $stripe_settings['eh_stripe_mode'] : 'live');
 
-        //If mode is passed override 
-        //phpcs:ignore WordPress.Security.NonceVerification.Recommended
-        $mode = (isset($_REQUEST['mode']) ? sanitize_text_field( wp_unslash($_REQUEST['mode']) ): $mode);
-        if('test' === $mode){ 
-            $test_mode = EH_Stripe_Token_Handler::get_stripe_test_mode_type();
+        if (null === $mode) {
+            $mode = $current_mode;
+
+            //If mode is passed override
+            //phpcs:ignore WordPress.Security.NonceVerification.Recommended
+            $mode = (isset($_REQUEST['mode']) ? sanitize_text_field( wp_unslash($_REQUEST['mode']) ): $mode);
+        }
+        $test_mode = $test_mode ? $test_mode : EH_Stripe_Token_Handler::get_stripe_test_mode_type();
+        if('test' === $mode){
             if($test_mode === 'sandbox'){
                 //phpcs:ignore WordPress.Security.NonceVerification.Recommended
                 if(isset($_REQUEST['expire']) && 'access_token' === sanitize_text_field(wp_unslash($_REQUEST['expire'])) ){ 
@@ -263,29 +275,59 @@ class EH_Stripe_Oauth {
                 
             }
         }
-        if(as_next_scheduled_action('eh_stripe_refresh_oauth_token')){
-            as_unschedule_all_actions('eh_stripe_refresh_oauth_token');
+        if ($mode === $current_mode) {
+            if(as_next_scheduled_action('eh_stripe_refresh_oauth_token')){
+                as_unschedule_all_actions('eh_stripe_refresh_oauth_token');
+            }
+        } elseif (function_exists('as_unschedule_all_actions')) {
+            // Disconnecting a mode other than the active one: keep the active mode's
+            // recurring refresh, only drop retries queued for the disconnected mode.
+            as_unschedule_all_actions('eh_stripe_refresh_oauth_token', array('mode' => $mode, 'test_mode' => $test_mode));
         }
-        
+
         // Send email notification for forced disconnects
         if ($force) {
             // Get the admin email
             $admin_email = get_option('admin_email');
 
             // Set the email subject and message
-            $subject = 'Stripe Connection Lost';
-            $message = 'Please reconnect to Stripe. Due to some error, the Stripe connection is lost.';
+            if ($mode === $current_mode) {
+                $subject = 'Stripe Connection Lost';
+                $message = 'Please reconnect to Stripe. Due to some error, the Stripe connection (' . $mode . ' mode) is lost.';
+            } else {
+                $subject = 'Stripe ' . $mode . ' mode connection removed';
+                $message = 'The Stripe ' . $mode . ' mode connection was removed because its token is no longer valid. Your active ' . $current_mode . ' mode connection is not affected. Reconnect ' . $mode . ' mode before using it again.';
+            }
 
             // Send the email
             wp_mail($admin_email, $subject, $message);
         }
     }
     public static function eh_stripe_schedule_oauth_refresh() {
-        if (!as_next_scheduled_action('eh_stripe_refresh_oauth_token')) {
+        // Check for the no-args recurring action specifically: pending single retry
+        // actions (which carry mode args) must not block scheduling it
+        if (!as_next_scheduled_action('eh_stripe_refresh_oauth_token', array())) {
             $refresh_interval = max( MINUTE_IN_SECONDS, absint( apply_filters( 'wtst_oauth_token_refresh_interval', 40 * MINUTE_IN_SECONDS ) ) );
             as_schedule_recurring_action(time(), $refresh_interval, 'eh_stripe_refresh_oauth_token');
         }
-    }  
+    }
+
+    /**
+     * Remove all queued refresh actions and queued-refresh transients so a fresh
+     * refresh schedule can be built after a successful (re)connect.
+     */
+    private static function wtst_clear_stale_refresh_schedule() {
+        if (function_exists('as_unschedule_all_actions')) {
+            as_unschedule_all_actions('eh_stripe_refresh_oauth_token');
+        }
+        if (function_exists('wp_unschedule_hook')) {
+            wp_unschedule_hook('eh_stripe_refresh_oauth_token');
+        }
+        foreach (array('live', 'test', 'sandbox') as $mode_prefix) {
+            delete_transient('wtst_oauth_refresh_queued_' . $mode_prefix);
+        }
+    }
+
   
     public function check_and_remove_scheduled_actions() {
         // Check if the connection is disabled

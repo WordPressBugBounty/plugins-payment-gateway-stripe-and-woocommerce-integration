@@ -6,9 +6,9 @@
  * Description: Accept payments from your WooCommerce store via Credit/Debit Cards, Stripe Checkout, Apple Pay, Google Pay, Alipay, SEPA Pay, Klarna, Afterpay, WeChat Pay, iDEAL, Bancontact, EPS, P24, Bacs Debit, BECS Debit, FPX, Boleto, OXXO, GrabPay, Multibanco and Affirm using Stripe.
  * Author: ThemeHigh
  * Author URI: https://www.themehigh.com
- * Version: 5.0.9
+ * Version: 5.1.0
  * WC requires at least: 7.0
- * WC tested up to: 10.8
+ * WC tested up to: 11.0
  * License: GPLv3
  * License URI: https://www.gnu.org/licenses/gpl-3.0.html
  * Text Domain: payment-gateway-stripe-and-woocommerce-integration
@@ -26,7 +26,7 @@ if (!defined('EH_STRIPE_MAIN_PATH')) {
     define('EH_STRIPE_MAIN_PATH', plugin_dir_path(__FILE__));
 }
 if (!defined('EH_STRIPE_VERSION')) {
-    define('EH_STRIPE_VERSION', '5.0.9');
+    define('EH_STRIPE_VERSION', '5.1.0');
 }
 if (!defined('EH_STRIPE_MAIN_FILE')) {
     define('EH_STRIPE_MAIN_FILE', __FILE__);
@@ -137,7 +137,13 @@ if(is_plugin_active('eh-stripe-payment-gateway/stripe-payment-gateway.php')){
 
         include_once(EH_STRIPE_MAIN_PATH . "includes/class-eh-security-helper.php");
         include_once(EH_STRIPE_MAIN_PATH . "includes/class-stripe-oauth.php");
-        include_once(EH_STRIPE_MAIN_PATH . "includes/class-eh-stripe-token-handler.php");        
+        include_once(EH_STRIPE_MAIN_PATH . "includes/class-eh-stripe-token-handler.php");
+
+        // Share one Stripe.js instance per key and options across gateways, then
+        // identify the plugin to Stripe on client-side requests.
+        add_action( 'wp_enqueue_scripts', array( 'EH_Stripe_Token_Handler', 'wt_share_stripe_instance' ), 999 );
+        add_action( 'wp_enqueue_scripts', array( 'EH_Stripe_Token_Handler', 'wt_register_client_app_info' ), 999 );
+
         include_once(EH_STRIPE_MAIN_PATH . "includes/class-stripe-payment-request-button.php");
 
         
