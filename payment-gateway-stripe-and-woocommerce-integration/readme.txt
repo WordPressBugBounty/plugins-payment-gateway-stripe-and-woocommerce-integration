@@ -5,7 +5,7 @@ Tags: stripe checkout, credit card, google pay, apple pay, stripe payments
 Requires at least: 5.6
 Tested up to: 7.1
 Requires PHP: 5.6
-Stable tag: 5.1.0
+Stable tag: 5.1.1
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
@@ -286,6 +286,11 @@ Payment Gateway for Stripe and for WooCommerce acts as a secure bridge between y
 24. Stripe General Settings
 
 == Changelog ==
+
+= 5.1.1 =
+* [Fix] Fixed paid orders being incorrectly marked as Failed when the platform API key expired.
+* [Fix] Fixed shipping phone validation error during Google Pay checkout.
+* [Compatibility] WooCommerce 11.2
 
 = 5.1.0 =
 * [Fix] Updated Stripe integration to support the Payment Methods API and latest Stripe API requirements.

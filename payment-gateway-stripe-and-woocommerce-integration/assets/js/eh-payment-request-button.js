@@ -51,7 +51,7 @@ jQuery(function ($) {
         OrderDetails: function (evt) {
 
             var email = evt.billingDetails.email;
-            var phone = evt.billingDetails.phone;
+            var phone = evt.billingDetails.phone || (evt.payerPhone || '').replace(/[() -]/g, '');
             var billing = evt.billingDetails.address;
             var name = evt.billingDetails.name;
             var shipping = evt.shippingAddress;
@@ -61,7 +61,7 @@ jQuery(function ($) {
                 billing_last_name: null !== name ? name.split(' ').slice(1).join(' ') : '',
                 billing_company: '',
                 billing_email: null !== email ? email : evt.payerEmail,
-                billing_phone: null !== phone ? phone : evt.payerPhone.replace(/[() -]/g, ''),
+                billing_phone: phone,
                 billing_country: null !== billing ? billing.country : '',
                 billing_address_1: null !== billing ? billing.line1 : '',
                 billing_address_2: null !== billing ? billing.line2 : '',
@@ -96,6 +96,8 @@ jQuery(function ($) {
                 data.shipping_city = shipping.address.city;
                 data.shipping_state = shipping.address.state;
                 data.shipping_postcode = shipping.address.postal_code;
+                // Express Checkout provides the contact phone in billingDetails.
+                data.shipping_phone = phone;
             }
 
             $(document).trigger("wt-stripe-payment-request-data", data);
@@ -603,6 +605,10 @@ jQuery(function ($) {
 
 
         paymentFailure: function (payment, message) {
+            if (payment && typeof payment.paymentFailed === 'function') {
+                payment.paymentFailed({ reason: 'fail' });
+            }
+
             console.error('[Stripe Express] Payment failure:', message);
             var $target = $('.woocommerce-notices-wrapper:first') || $('.cart-empty').closest('.woocommerce') || $('.woocommerce-cart-form');
 

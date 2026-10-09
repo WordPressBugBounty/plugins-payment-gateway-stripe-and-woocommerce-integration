@@ -419,7 +419,7 @@ class EH_Stripe_Token_Handler {
 
     /*************  Refresh token function -START ***********/
 
-    private static function wtst_refresh_token( $force = false, $mode = null, $test_mode = null ) {
+    private static function wtst_refresh_token( $force = false, $mode = null, $test_mode = null, $web_request = false ) {
 
         $lock_file_path = self::get_temp_dir() . '/stripe_token_refresh.lock';
 
@@ -460,7 +460,7 @@ class EH_Stripe_Token_Handler {
                 return self::get_current_access_token($mode, $test_mode);
             }
 
-            $access_token = self::execute_token_refresh($mode, $test_mode, $force);
+            $access_token = self::execute_token_refresh($mode, $test_mode, $force, $web_request);
             self::wtst_clear_refresh_failure_state( $mode, $test_mode );
             return $access_token;
         } catch ( Exception $e ) {
@@ -487,6 +487,85 @@ class EH_Stripe_Token_Handler {
         
         $token = self::wtst_get_site_option('get', array('name' => $token_option));
         return $token ? base64_decode($token) : false;
+    }
+
+    /**
+     * Obtain a valid platform access token after Stripe rejected the one in use as
+     * expired (`platform_api_key_expired`) and apply it to the Stripe SDK for the
+     * rest of the current request.
+     *
+     * Issuing a token invalidates the previous one, so the usual cause is a
+     * refresh by another request (such as the scheduled one) after this request
+     * loaded its key. A stored token that differs from the one in use is adopted
+     * as is: refreshing again would invalidate it for every other request in
+     * flight. Only when the stored token is the rejected one is a refresh forced,
+     * since the local expiry check may still consider it fresh. An active refresh
+     * cooldown is respected.
+     *
+     * @return bool True when a different access token was applied.
+     */
+    public static function wtst_refresh_api_key_after_expiry() {
+        $stripe_settings = get_option( 'woocommerce_eh_stripe_pay_settings', array() );
+        $mode      = ! empty( $stripe_settings['eh_stripe_mode'] ) ? $stripe_settings['eh_stripe_mode'] : 'live';
+        $test_mode = self::get_stripe_test_mode_type();
+
+        if ( ! Eh_Stripe_Admin_Handler::wtst_oauth_compatible( $mode ) ) {
+            return false;
+        }
+
+        $current_key = \Stripe\Stripe::getApiKey();
+        $api_key     = self::wtst_get_stored_access_token_uncached( $mode, $test_mode );
+
+        if ( empty( $api_key ) || $api_key === $current_key ) {
+            if ( self::wtst_is_refresh_cooldown_active( $mode, $test_mode ) ) {
+                self::wtst_schedule_oauth_refresh( $mode, $test_mode );
+                return false;
+            }
+            $api_key = self::wtst_refresh_token( true, $mode, $test_mode, true );
+        }
+
+        if ( empty( $api_key ) || $api_key === $current_key ) {
+            return false;
+        }
+
+        \Stripe\Stripe::setApiKey( $api_key );
+        return true;
+    }
+
+    /**
+     * Read the stored access token from the database rather than the copy cached
+     * when this request started.
+     */
+    private static function wtst_get_stored_access_token_uncached( $mode, $test_mode ) {
+        self::wtst_flush_cached_options( array( 'wt_stripe_access_token_' . self::wtst_get_mode_prefix( $mode, $test_mode ) ) );
+        return self::get_current_access_token( $mode, $test_mode );
+    }
+
+    /**
+     * Drop this request's cached copies of the given options so that the next
+     * read comes from the database and reflects writes by other requests, such
+     * as a token refresh or a reconnect.
+     *
+     * wtst_clear_cache_for_options() is not enough for this: autoloaded options,
+     * the OAuth tokens among them, are also cached together in `alloptions`, and
+     * network options under a network-prefixed key. Reloading `alloptions` costs
+     * a query, so this is for the token refresh path only, not for the token
+     * reads made while gateways load.
+     *
+     * @param array $option_names Option names.
+     */
+    private static function wtst_flush_cached_options( $option_names ) {
+        wp_cache_delete( 'alloptions', 'options' );
+        wp_cache_delete( 'notoptions', 'options' );
+        self::get_instance()->wtst_clear_cache_for_options( $option_names );
+
+        if ( is_multisite() ) {
+            $network_id = get_current_network_id();
+            wp_cache_delete( $network_id . ':notoptions', 'site-options' );
+            foreach ( $option_names as $option_name ) {
+                wp_cache_delete( $network_id . ':' . $option_name, 'site-options' );
+            }
+        }
     }
 
     private static function wtst_schedule_oauth_refresh( $mode, $test_mode ) {
@@ -620,7 +699,7 @@ class EH_Stripe_Token_Handler {
     /**
      * Execute the actual token refresh logic
     */
-    private static function execute_token_refresh($mode, $test_mode, $force = false) {
+    private static function execute_token_refresh($mode, $test_mode, $force = false, $web_request = false) {
 
         $instance   = self::get_instance();
         $app_author = get_option( 'eh_stripe_connected_app_author' );
@@ -668,13 +747,13 @@ class EH_Stripe_Token_Handler {
             throw new Exception( 'Refresh token missing' );
         }
         // Make API request
-        $response = self::make_refresh_request($access_token_url, $refresh_token, $mode, $test_mode, $account_id, $force);
+        $response = self::make_refresh_request($access_token_url, $refresh_token, $mode, $test_mode, $account_id, $force, $web_request);
         // Process and store response
         return self::process_refresh_response($response, $mode_prefix, $mode, $test_mode, $refresh_token);
 
     }
 
-    private static function make_refresh_request($url, $refresh_token, $mode, $test_mode, $account_id, $force = false){
+    private static function make_refresh_request($url, $refresh_token, $mode, $test_mode, $account_id, $force = false, $web_request = false){
 
         $request_body = wp_json_encode(
             array(
@@ -695,7 +774,8 @@ class EH_Stripe_Token_Handler {
             'Refresh token API request debug'
         );
 
-        $is_background_context = $force || self::wtst_is_background_context();
+        // A forced refresh made while serving a shopper (checkout) keeps the short web timeouts.
+        $is_background_context = ( $force && ! $web_request ) || self::wtst_is_background_context();
         $timeout = $is_background_context
             ? apply_filters("wtst_refresh_token_timeout", 60)
             : apply_filters("wtst_refresh_token_web_timeout", 8);

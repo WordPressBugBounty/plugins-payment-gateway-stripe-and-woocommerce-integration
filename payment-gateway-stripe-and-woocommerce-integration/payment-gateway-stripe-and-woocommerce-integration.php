@@ -6,9 +6,9 @@
  * Description: Accept payments from your WooCommerce store via Credit/Debit Cards, Stripe Checkout, Apple Pay, Google Pay, Alipay, SEPA Pay, Klarna, Afterpay, WeChat Pay, iDEAL, Bancontact, EPS, P24, Bacs Debit, BECS Debit, FPX, Boleto, OXXO, GrabPay, Multibanco and Affirm using Stripe.
  * Author: ThemeHigh
  * Author URI: https://www.themehigh.com
- * Version: 5.1.0
+ * Version: 5.1.1
  * WC requires at least: 7.0
- * WC tested up to: 11.0
+ * WC tested up to: 11.2
  * License: GPLv3
  * License URI: https://www.gnu.org/licenses/gpl-3.0.html
  * Text Domain: payment-gateway-stripe-and-woocommerce-integration
@@ -26,7 +26,7 @@ if (!defined('EH_STRIPE_MAIN_PATH')) {
     define('EH_STRIPE_MAIN_PATH', plugin_dir_path(__FILE__));
 }
 if (!defined('EH_STRIPE_VERSION')) {
-    define('EH_STRIPE_VERSION', '5.1.0');
+    define('EH_STRIPE_VERSION', '5.1.1');
 }
 if (!defined('EH_STRIPE_MAIN_FILE')) {
     define('EH_STRIPE_MAIN_FILE', __FILE__);

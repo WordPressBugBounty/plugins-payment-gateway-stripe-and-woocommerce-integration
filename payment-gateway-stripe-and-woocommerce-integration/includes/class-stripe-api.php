@@ -8,6 +8,14 @@ use Automattic\WooCommerce\Utilities\OrderUtil;
 #[\AllowDynamicProperties]
 class EH_Stripe_Payment extends WC_Payment_Gateway {
 
+    /**
+     * Whether the current process_payment() call already used its one
+     * token-refresh retry for an expired platform API key.
+     *
+     * @var bool
+     */
+    private $platform_key_retry_used = false;
+
     public function __construct() {
         $this->id = 'eh_stripe_pay';
         $this->method_title = __('Credit/Debit Cards', 'payment-gateway-stripe-and-woocommerce-integration');
@@ -780,6 +788,7 @@ class EH_Stripe_Payment extends WC_Payment_Gateway {
     public function process_payment($order_id) {
         global $wp;
         $wc_order = wc_get_order($order_id);
+        $this->platform_key_retry_used = false;
         // phpcs:ignore WordPress.Security.NonceVerification.Missing -- WooCommerce verifies checkout nonce before calling process_payment().
         $is_express = isset($_POST['payment_type']) && 'express_element' === sanitize_text_field(wp_unslash($_POST['payment_type']));
         try {
@@ -881,7 +890,9 @@ class EH_Stripe_Payment extends WC_Payment_Gateway {
                 $card_brand = $wc_token->get_card_type();
                 $payment_method = $token;
                 //$customer = get_user_meta($logged_in_userid, '_stripe_customer_id', true);
-                $customer = EH_Stripe_Payment::validate_and_clean_customer_id($logged_in_userid);
+                $customer = $this->call_stripe_with_token_retry( $wc_order, function () use ( $logged_in_userid ) {
+                    return EH_Stripe_Payment::validate_and_clean_customer_id( $logged_in_userid );
+                } );
                 if (!$payment_method || !$customer) {
                     throw new Exception(__("Invalid card. Please select another card or input a new card number", 'payment-gateway-stripe-and-woocommerce-integration'));
                  } 
@@ -905,12 +916,16 @@ class EH_Stripe_Payment extends WC_Payment_Gateway {
                 
                    //check customer token is exist for the logged in user
                     //$customer = get_user_meta($logged_in_userid, '_stripe_customer_id', true);
-                    $customer = EH_Stripe_Payment::validate_and_clean_customer_id($logged_in_userid);
+                    $customer = $this->call_stripe_with_token_retry( $wc_order, function () use ( $logged_in_userid ) {
+                        return EH_Stripe_Payment::validate_and_clean_customer_id( $logged_in_userid );
+                    } );
                 }
 
                  //create stripe customer 
                 if (empty($customer)) { 
-                    $customer = $this->create_stripe_customer( $payment_method, $wc_order, ((version_compare(WC()->version, '2.7.0', '<')) ? $wc_order->billing_email : $wc_order->get_billing_email()) );
+                    $customer = $this->call_stripe_with_token_retry( $wc_order, function () use ( $payment_method, $wc_order ) {
+                        return $this->create_stripe_customer( $payment_method, $wc_order, ((version_compare(WC()->version, '2.7.0', '<')) ? $wc_order->billing_email : $wc_order->get_billing_email()) );
+                    } );
 
                     //if error occured
                     if(isset($customer->error) && !empty($customer->error)){
@@ -932,7 +947,9 @@ class EH_Stripe_Payment extends WC_Payment_Gateway {
             try {
                 $payment_intent_args  = $this->get_charge_details($wc_order, $token, $order_type, $client, $card_brand, $currency, $amount,$customer);
                 
-                $intent = $this->get_payment_intent_from_order( $wc_order );
+                $intent = $this->call_stripe_with_token_retry( $wc_order, function () use ( $wc_order ) {
+                    return $this->get_payment_intent_from_order( $wc_order );
+                } );
 
                 if(!empty($payment_method)){
                     $idempotency_key = $wc_order->get_order_key().'-'.$payment_method;                    
@@ -948,24 +965,31 @@ class EH_Stripe_Payment extends WC_Payment_Gateway {
                         wc_add_notice(__('An error has occurred internally, due to which you are not redirected to the order received page. Please contact support for more assistance.', 'payment-gateway-stripe-and-woocommerce-integration'), $notice_type = 'error');
                         wp_safe_redirect(wc_get_checkout_url());
                     }else{
-                        $intent = \Stripe\PaymentIntent::create( $payment_intent_args , array(
-                            'idempotency_key' => $idempotency_key
-                        ));
+                        $intent = $this->call_stripe_with_token_retry( $wc_order, function () use ( $payment_intent_args, $idempotency_key ) {
+                            return \Stripe\PaymentIntent::create( $payment_intent_args , array(
+                                'idempotency_key' => $idempotency_key
+                            ));
+                        } );
                     }
                 }else{
-                    $intent = \Stripe\PaymentIntent::create( $payment_intent_args , array(
-                        'idempotency_key' => $idempotency_key
-                    ));
+                    $intent = $this->call_stripe_with_token_retry( $wc_order, function () use ( $payment_intent_args, $idempotency_key ) {
+                        return \Stripe\PaymentIntent::create( $payment_intent_args , array(
+                            'idempotency_key' => $idempotency_key
+                        ));
+                    } );
                 }
                     
                 //if save card option enabled save the customer token
                 if($this->should_save_this_card()){
                     //this->save_cards_for_later($intent->charges->data[0]);
 
-                    $intent = \Stripe\PaymentIntent::retrieve([
-                        'id' => $intent->id,
-                        'expand' => ['latest_charge.balance_transaction']
-                    ]);
+                    $intent_id = $intent->id;
+                    $intent = $this->call_stripe_with_token_retry( $wc_order, function () use ( $intent_id ) {
+                        return \Stripe\PaymentIntent::retrieve([
+                            'id' => $intent_id,
+                            'expand' => ['latest_charge.balance_transaction']
+                        ]);
+                    } );
                     $this->save_cards_for_later($intent->latest_charge);
                 }              
 
@@ -1019,10 +1043,13 @@ class EH_Stripe_Payment extends WC_Payment_Gateway {
                 }
                  else {
                     //return $this->process_order(   end( $intent->charges->data ),$wc_order );
-                     $intent = \Stripe\PaymentIntent::retrieve(array(
-                            'id'     => $intent->id,
-                            'expand' => array('latest_charge.balance_transaction')
-                        ));
+                     $intent_id = $intent->id;
+                     $intent = $this->call_stripe_with_token_retry( $wc_order, function () use ( $intent_id ) {
+                            return \Stripe\PaymentIntent::retrieve(array(
+                                'id'     => $intent_id,
+                                'expand' => array('latest_charge.balance_transaction')
+                            ));
+                        } );
                         return $this->process_order($intent->latest_charge, $wc_order);
 
                  }
@@ -1035,7 +1062,6 @@ class EH_Stripe_Payment extends WC_Payment_Gateway {
                 return;
             }
         } catch (Exception $error) {
-            $wc_order->update_status( 'failed' );
             $user = wp_get_current_user();
             $user_detail = array(
                 'name' => get_user_meta($user->ID, 'first_name', true),
@@ -1051,18 +1077,121 @@ class EH_Stripe_Payment extends WC_Payment_Gateway {
                 $error_message = $error->getMessage();
             }
 
-            if(isset($oops['error']['code']) && 'platform_api_key_expired' === $oops['error']['code']){
-                EH_Stripe_Log::log_update('dead', 'expired and recall', get_bloginfo('blogname') . ' - Charge - Order #' . $wc_order->get_order_number());
+            // The PaymentIntent this checkout created or reused may have been paid even though a
+            // later call failed: check it with Stripe before treating the payment as failed.
+            $checked_intent_id = ( ! empty( $intent ) && ! empty( $intent->id ) ) ? $intent->id : '';
+            $intent_paid       = empty( $checked_intent_id ) ? false : $this->payment_intent_paid_or_in_progress( $wc_order, $checked_intent_id );
 
-                $this->process_payment($order_id);
+            if ( false !== $intent_paid ) {
+                // Paid, in progress, or its status could not be read: leave the order for the
+                // payment_intent webhook, and do not ask the customer to pay again.
+                EH_Stripe_Log::log_update('dead', 'PaymentIntent ' . $checked_intent_id . ( true === $intent_paid ? ' is paid or in progress' : ' status could not be checked' ) . ', order status left unchanged', get_bloginfo('blogname') . ' - Charge - Order #' . $wc_order->get_order_number());
+                wc_add_notice(__('An error has occurred internally, due to which you are not redirected to the order received page. Please contact support for more assistance.', 'payment-gateway-stripe-and-woocommerce-integration'), $notice_type = 'error');
+            } else {
+                if ( self::is_stripe_authentication_error( $error ) ) {
+                    // Stripe rejected the platform credentials, and the one refresh-and-retry did not
+                    // help: leave the order status unchanged.
+                    EH_Stripe_Log::log_update('dead', 'Stripe authentication error, order status left unchanged', get_bloginfo('blogname') . ' - Charge - Order #' . $wc_order->get_order_number());
+                } else {
+                    $this->mark_order_failed_unless_paid( $order_id );
+                }
+
+                wc_add_notice(__('Payment Failed ', 'payment-gateway-stripe-and-woocommerce-integration') . "( " . $error_message . " )." . __('Refresh and try again', 'payment-gateway-stripe-and-woocommerce-integration'), $notice_type = 'error');
             }
-
-            wc_add_notice(__('Payment Failed ', 'payment-gateway-stripe-and-woocommerce-integration') . "( " . $error_message . " )." . __('Refresh and try again', 'payment-gateway-stripe-and-woocommerce-integration'), $notice_type = 'error');
             EH_Stripe_Log::log_update('dead', array_merge($user_detail, (array) $oops), get_bloginfo('blogname') . ' - Charge - Order #' . $wc_order->get_order_number());
             return array (
                 'result' => 'failure'
             );
         }
+    }
+
+    /**
+     * Run a Stripe API call. When Stripe reports the platform access token as expired,
+     * refresh the token and retry this call once; at most one such retry is made per
+     * process_payment() call. Any other error is rethrown unchanged.
+     *
+     * @param WC_Order $wc_order  Order being paid, used for logging.
+     * @param callable $operation Stripe API call to run.
+     * @return mixed Result of the call.
+     * @throws Exception When the call fails and no retry is possible, or the retry fails.
+     */
+    private function call_stripe_with_token_retry( $wc_order, $operation ) {
+        try {
+            return call_user_func( $operation );
+        } catch ( Exception $error ) {
+            if ( $this->platform_key_retry_used || ! self::is_platform_api_key_expired_error( $error ) ) {
+                throw $error;
+            }
+            $this->platform_key_retry_used = true;
+
+            if ( ! EH_Stripe_Token_Handler::wtst_refresh_api_key_after_expiry() ) {
+                throw $error;
+            }
+
+            EH_Stripe_Log::log_update('live', 'Platform API key expired; token refreshed, retrying the Stripe call once', get_bloginfo('blogname') . ' - Charge - Order #' . $wc_order->get_order_number());
+            return call_user_func( $operation );
+        }
+    }
+
+    /**
+     * Whether a Stripe error reports the platform access token as expired.
+     */
+    private static function is_platform_api_key_expired_error( $error ) {
+        if ( ! method_exists( $error, 'getJsonBody' ) ) {
+            return false;
+        }
+        $body = $error->getJsonBody();
+        return isset( $body['error']['code'] ) && 'platform_api_key_expired' === $body['error']['code'];
+    }
+
+    /**
+     * Whether a Stripe error means the API credentials were rejected (expired or invalid).
+     */
+    private static function is_stripe_authentication_error( $error ) {
+        return $error instanceof \Stripe\Exception\AuthenticationException || self::is_platform_api_key_expired_error( $error );
+    }
+
+    /**
+     * Whether a PaymentIntent has been paid or is still being paid (authorised and awaiting
+     * capture, or processing), in which case the order must not be marked failed.
+     *
+     * @param WC_Order $wc_order  Order being paid, used for logging.
+     * @param string   $intent_id PaymentIntent ID.
+     * @return bool|null Null when the PaymentIntent could not be retrieved.
+     */
+    private function payment_intent_paid_or_in_progress( $wc_order, $intent_id ) {
+        try {
+            $intent = $this->call_stripe_with_token_retry( $wc_order, function () use ( $intent_id ) {
+                return \Stripe\PaymentIntent::retrieve( $intent_id );
+            } );
+        } catch ( Exception $e ) {
+            EH_Stripe_Log::log_update('dead', array( 'message' => $e->getMessage() ), 'PaymentIntent status check failed - ' . get_bloginfo('blogname') . ' - Charge - Order #' . $wc_order->get_order_number());
+            return null;
+        }
+
+        return in_array( $intent->status, array( 'succeeded', 'processing', 'requires_capture' ), true );
+    }
+
+    /**
+     * Mark the order failed, unless another request (e.g. the payment_intent.succeeded
+     * webhook) has already moved it to a paid status.
+     */
+    private function mark_order_failed_unless_paid( $order_id ) {
+        if ( true != self::wt_stripe_is_HPOS_compatibile() ) {
+            clean_post_cache( $order_id );
+        }
+        $order = wc_get_order( $order_id );
+        if ( ! $order ) {
+            return;
+        }
+
+        $paid_statuses = function_exists( 'wc_get_is_paid_statuses' ) ? wc_get_is_paid_statuses() : array( 'processing', 'completed' );
+        if ( $order->has_status( $paid_statuses ) ) {
+            EH_Stripe_Log::log_update('dead', 'Order already ' . $order->get_status() . ', not marked as failed', get_bloginfo('blogname') . ' - Charge - Order #' . $order->get_order_number());
+            return;
+        }
+
+        $order->update_status( 'failed' );
     }
 
     // add payment method via my account page invoke this function
